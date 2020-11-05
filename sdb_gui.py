@@ -526,7 +526,8 @@ class SDBWidget(QWidget):
 
         svm_op_list = [
             self.kernelCB.currentText(),
-            self.gammaDSB.value()
+            self.gammaDSB.value(),
+            self.cDSB.value()
         ]
 
 
@@ -576,7 +577,7 @@ class SDBWidget(QWidget):
         regressor = SVR(
             kernel=svm_op_list[0],
             gamma=svm_op_list[1],
-            # C=samples_split[0],
+            C=svm_op_list[2],
             cache_size=8000)
 
         samples_split.append(regressor)
