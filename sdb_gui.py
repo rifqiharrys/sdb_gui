@@ -489,7 +489,13 @@ class SDBWidget(QWidget):
         self.gammaDSB = QDoubleSpinBox()
         self.gammaDSB.setRange(0, 10)
         self.gammaDSB.setDecimals(3)
-        self.gammaDSB.setValue(0.1)
+        self.gammaDSB.setValue(.1)
+
+        cLabel = QLabel('C:')
+        self.cDSB = QDoubleSpinBox()
+        self.cDSB.setRange(.001, 10000)
+        self.cDSB.setDecimals(3)
+        self.cDSB.setValue(1.0)
 
         cancelButton = QPushButton('Cancel')
         cancelButton.clicked.connect(optionDialog.close)
@@ -505,8 +511,11 @@ class SDBWidget(QWidget):
         grid.addWidget(gammaLabel, 2, 1, 1, 2)
         grid.addWidget(self.gammaDSB, 2, 3, 1, 2)
 
-        grid.addWidget(loadButton, 3, 3, 1, 1)
-        grid.addWidget(cancelButton, 3, 4, 1, 1)
+        grid.addWidget(cLabel, 3, 1, 1, 2)
+        grid.addWidget(self.cDSB, 3, 3, 1, 2)
+
+        grid.addWidget(loadButton, 4, 3, 1, 1)
+        grid.addWidget(cancelButton, 4, 4, 1, 1)
 
         optionDialog.setLayout(grid)
 
