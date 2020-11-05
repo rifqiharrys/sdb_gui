@@ -38,8 +38,10 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 
-os.environ['PROJ_LIB'] = os.path.expanduser('~\\.conda\\envs\\sdb_exe\\Library\\share\\proj')
-os.environ['GDAL_DATA'] = os.path.expanduser('~\\.conda\\envs\\sdb_exe\\Library\\share')
+# os.environ['PROJ_LIB'] = os.path.expanduser('~\\.conda\\envs\\sdb_exe\\Library\\share\\proj')
+# os.environ['GDAL_DATA'] = os.path.expanduser('~\\.conda\\envs\\sdb_exe\\Library\\share')
+# os.environ['PROJ_LIB'] = os.path.expanduser('~/.conda/envs/sdb_exe/Library/share/proj')
+# os.environ['GDAL_DATA'] = os.path.expanduser('~/.conda/envs/sdb_exe/Library/share')
 
 
 
