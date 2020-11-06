@@ -72,7 +72,8 @@ class SDBWidget(QWidget):
         global svm_op_list
         svm_op_list = [
             'rbf',
-            0.1
+            .1,
+            1.0
         ]
 ####### Default Values #######
 
