@@ -569,6 +569,12 @@ class SDBWidget(QWidget):
 
         samples_split.append(regressor)
 
+        global print_parameters_info
+        print_parameters_info = (
+            'N Trees: ' + '\t\t' + str(rf_op_list[0]) + '\n' +
+            'Criterion: ' + '\t\t' + str(rf_op_list[1]) 
+        )
+
         return samples_split
 
 
@@ -584,6 +590,13 @@ class SDBWidget(QWidget):
             cache_size=8000)
 
         samples_split.append(regressor)
+
+        global print_parameters_info
+        print_parameters_info = (
+            'Kernel: ' + '\t\t' + str(svm_op_list[0]) +'\n' +
+            'Gamma: ' + '\t\t' + str(svm_op_list[1]) + '\n' +
+            'C: ' + '\t\t' + str(svm_op_list[2])
+        )
 
         return samples_split
 
@@ -626,10 +639,11 @@ class SDBWidget(QWidget):
 
         global print_result_info
         print_result_info = (
-            'Method: ' + '\t\t' + self.methodCB.currentText() + '\n\n' +
             'Image Input: ' + '\t\t' + img_loc + '\n' +
-            'Sample Data: ' + '\t\t' + fileListPrint + '\n\n' +
-            'RMSE: ' + '\t\t' + str(rmse) + '\n' +
+            'Sample Data: ' + '\t' + fileListPrint + '\n\n' +
+            'Method: ' + '\t\t' + self.methodCB.currentText() + '\n\n' +
+            print_parameters_info + '\n\n'
+            'RMSE: ' + '\t\t' + str(rmse) + '\n\n' +
             'Fitting Runtime: ' + '\t' + str(runtime[0]) + '\n' +
             'Prediction Runtime: ' + '\t' + str(runtime[1]) + '\n' +
             'Validating Runtime: ' + '\t' + str(runtime[2]) + '\n' +
