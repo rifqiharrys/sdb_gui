@@ -1,11 +1,11 @@
 # Satellite Derived Bathymetry (SDB) GUI
 This is a GUI to make a bathimetric prediction using satellite imagery and some depth samples corresponding to the imagery. If you wish to use the GUI, please download the pre-release version (version 1.0.0). Or if you want to run the source code instead, please install `python 3.6.x` and the following libraries first:
 
-1. Numpy
-2. Pandas
-3. Rasterio
-4. Scikit Learn
-5. PyQt5
+1. [Numpy](https://numpy.org/)
+2. [Pandas](https://pandas.pydata.org/)
+3. [Rasterio](https://rasterio.readthedocs.io/)
+4. [Scikit Learn](https://scikit-learn.org)
+5. [PyQt5](https://www.riverbankcomputing.com/static/Docs/PyQt5/)
 
 Prepare your own data before using this SDB GUI. The required data are georeferenced and corrected imagery and tabular data consisting depth sample and corresponding raster values in the form of text file (e.g. CSV, TXT, or DAT file). 
 
