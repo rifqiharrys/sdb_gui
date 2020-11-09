@@ -1,4 +1,5 @@
 from sklearn import metrics
+from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import SVR
 from sklearn.model_selection import train_test_split
@@ -59,21 +60,29 @@ class SDBWidget(QWidget):
 
         global method_list
         method_list = [
+            'Multiple Linear Regression',
             'Random Forest', 
             'Support Vector Machines'
         ]
 
+        global mlr_op_list
+        mlr_op_list = [
+            True, # fit_intercept
+            False, # normalize
+            True # copy_X
+        ]
+
         global rf_op_list
         rf_op_list = [
-            300,
-            'mse'
+            300, # n_estimators
+            'mse' # criterion
         ]
 
         global svm_op_list
         svm_op_list = [
-            'rbf',
-            .1,
-            1.0
+            'rbf', # kernel
+            .1, # gamma
+            1.0 # C
         ]
 ####### Default Values #######
 
@@ -112,13 +121,14 @@ class SDBWidget(QWidget):
         self.methodCB = QComboBox()
 
         self.methodCB.addItems(method_list)
+        self.methodCB.setCurrentIndex(1)
         self.methodCB.activated.connect(self.methodSelection)
 
         trainPercentLabel = QLabel('Train Data (Percent):')
         self.trainPercentDSB = QDoubleSpinBox()
         self.trainPercentDSB.setRange(10.0, 90.0)
         self.trainPercentDSB.setDecimals(2)
-        self.trainPercentDSB.setValue(80.0)
+        self.trainPercentDSB.setValue(75.0)
 
         self.optionsButton = QPushButton('Options')
         self.optionsButton.clicked.connect(self.rfOptionDialog)
@@ -179,12 +189,21 @@ class SDBWidget(QWidget):
         self.setLayout(grid)
 
 
+    def str2bool(self, v):
+        '''Transform string to boolean'''
+
+        return v in ('True')
+
+
     def methodSelection(self):
 
         if self.methodCB.currentText() == method_list[0]:
             self.optionsButton.clicked.disconnect()
-            self.optionsButton.clicked.connect(self.rfOptionDialog)
+            self.optionsButton.clicked.connect(self.mlrOptionDialog)
         elif self.methodCB.currentText() == method_list[1]:
+            self.optionsButton.clicked.disconnect()
+            self.optionsButton.clicked.connect(self.rfOptionDialog)
+        elif self.methodCB.currentText() == method_list[2]:
             self.optionsButton.clicked.disconnect()
             self.optionsButton.clicked.connect(self.svmOptionDialog)
 
@@ -431,6 +450,60 @@ class SDBWidget(QWidget):
         self.loadSampleLabel.setText('Sample Data Loaded')
 
 
+    def mlrOptionDialog(self):
+
+        optionDialog = QDialog()
+        optionDialog.setWindowTitle('Options (MLR)')
+        optionDialog.setWindowIcon(QIcon(resource_path('setting-tool-pngrepo-com.png')))
+
+        fitInterceptLabel = QLabel('Fit Intercept:')
+        self.fitInterceptCB = QComboBox()
+        self.fitInterceptCB.addItems(['True', 'False'])
+
+        normalizeLabel = QLabel('Normalize:')
+        self.normalizeCB = QComboBox()
+        self.normalizeCB.addItems(['True', 'False'])
+        self.normalizeCB.setCurrentIndex(1)
+
+        copyXLabel = QLabel('Copy X:')
+        self.copyXCB = QComboBox()
+        self.copyXCB.addItems(['True', 'False'])
+
+        cancelButton = QPushButton('Cancel')
+        cancelButton.clicked.connect(optionDialog.close)
+        loadButton = QPushButton('Load')
+        loadButton.clicked.connect(self.loadMLROptionAction)
+        loadButton.clicked.connect(optionDialog.close)
+
+        grid = QGridLayout()
+
+        grid.addWidget(fitInterceptLabel, 1, 1, 1, 2)
+        grid.addWidget(self.fitInterceptCB, 1, 3, 1, 2)
+
+        grid.addWidget(normalizeLabel, 2, 1, 1, 2)
+        grid.addWidget(self.normalizeCB, 2, 3, 1, 2)
+
+        grid.addWidget(copyXLabel, 3, 1, 1, 2)
+        grid.addWidget(self.copyXCB, 3, 3, 1, 2)
+
+        grid.addWidget(loadButton, 4, 3, 1, 1)
+        grid.addWidget(cancelButton, 4, 4, 1, 1)
+
+        optionDialog.setLayout(grid)
+
+        optionDialog.exec_()
+
+
+    def loadMLROptionAction(self):
+
+        global mlr_op_list
+        mlr_op_list = [
+            self.str2bool(self.fitInterceptCB.currentText()),
+            self.str2bool(self.normalizeCB.currentText()),
+            self.str2bool(self.copyXCB.currentText())
+        ]
+
+
     def rfOptionDialog(self):
 
         optionDialog = QDialog()
@@ -467,6 +540,7 @@ class SDBWidget(QWidget):
         optionDialog.setLayout(grid)
 
         optionDialog.exec_()
+
 
     def loadRFOptionAction(self):
 
@@ -559,6 +633,29 @@ class SDBWidget(QWidget):
         return samples_split
 
 
+    def mlrPredict(self):
+        print('mlrPredict')
+
+        samples_split = self.inputDict()
+
+        regressor = LinearRegression(
+            fit_intercept=mlr_op_list[0],
+            normalize=mlr_op_list[1],
+            copy_X=mlr_op_list[2]
+        )
+
+        samples_split.append(regressor)
+
+        global print_parameters_info
+        print_parameters_info = (
+            'Fit Intercept: ' + '\t\t' + str(mlr_op_list[0]) + '\n' +
+            'Normalize: ' + '\t\t' + str(mlr_op_list[1]) + '\n' +
+            'Copy X: ' + '\t\t' + str(mlr_op_list[2])
+        )
+
+        return samples_split
+
+
     def rfPredict(self):
         print('rfPredict')
 
@@ -574,7 +671,7 @@ class SDBWidget(QWidget):
         global print_parameters_info
         print_parameters_info = (
             'N Trees: ' + '\t\t' + str(rf_op_list[0]) + '\n' +
-            'Criterion: ' + '\t\t' + str(rf_op_list[1]) 
+            'Criterion: ' + '\t\t' + str(rf_op_list[1])
         )
 
         return samples_split
@@ -610,6 +707,8 @@ class SDBWidget(QWidget):
         time_start = datetime.datetime.now()
 
         if self.methodCB.currentText() == method_list[0]:
+            regressor = self.mlrPredict()
+        elif self.methodCB.currentText() == method_list[1]:
             regressor = self.rfPredict()
         else:
             regressor = self.svmPredict()
