@@ -470,6 +470,7 @@ class SDBWidget(QWidget):
 
     def loadRFOptionAction(self):
 
+        global rf_op_list
         rf_op_list = [
             self.ntreeSB.value(),
             self.criterionCB.currentText()
@@ -527,6 +528,7 @@ class SDBWidget(QWidget):
 
     def loadSVMOptionAction(self):
 
+        global svm_op_list
         svm_op_list = [
             self.kernelCB.currentText(),
             self.gammaDSB.value(),
