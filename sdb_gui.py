@@ -604,6 +604,7 @@ class SDBWidget(QWidget):
     def predict(self):
         print('prediction')
 
+        self.resultText.setText('Fitting...\n')
         time_start = datetime.datetime.now()
 
         if self.methodCB.currentText() == method_list[0]:
@@ -616,12 +617,14 @@ class SDBWidget(QWidget):
             regressor[4].fit(regressor[0], regressor[2])
 
             time_fit = datetime.datetime.now()
+            self.resultText.append('Predicting...\n')
             self.progressBar.setValue(2)
 
             global z_predict
             z_predict = regressor[4].predict(bands_array)
 
             time_predict = datetime.datetime.now()
+            self.resultText.append('Calculating RMSE...\n')
             self.progressBar.setValue(3)
 
             z_validate = regressor[4].predict(regressor[1])
@@ -640,11 +643,11 @@ class SDBWidget(QWidget):
         global print_result_info
         print_result_info = (
             'Image Input: ' + '\t\t' + img_loc + '\n' +
-            'Sample Data: ' + '\t' + fileListPrint + '\n\n' +
+            'Sample Data: ' + '\t\t' + fileListPrint + '\n\n' +
             'Method: ' + '\t\t' + self.methodCB.currentText() + '\n\n' +
             print_parameters_info + '\n\n'
             'RMSE: ' + '\t\t' + str(rmse) + '\n\n' +
-            'Fitting Runtime: ' + '\t' + str(runtime[0]) + '\n' +
+            'Fitting Runtime: ' + '\t\t' + str(runtime[0]) + '\n' +
             'Prediction Runtime: ' + '\t' + str(runtime[1]) + '\n' +
             'Validating Runtime: ' + '\t' + str(runtime[2]) + '\n' +
             'Overall Runtime: ' + '\t' + str(runtime[3]) + '\n\n' +
