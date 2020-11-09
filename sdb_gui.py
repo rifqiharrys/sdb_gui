@@ -147,6 +147,9 @@ class SDBWidget(QWidget):
         self.progressBar.setMinimum(0)
         self.progressBar.setMaximum(4)
 
+        aboutButton = QPushButton('About')
+        aboutButton.clicked.connect(self.aboutDialog)
+
 
         grid = QGridLayout()
         vbox = QVBoxLayout()
@@ -185,6 +188,8 @@ class SDBWidget(QWidget):
         grid.addLayout(vbox, 20, 1)
 
         grid.addWidget(self.progressBar, 21, 1, 1, 4)
+
+        grid.addWidget(aboutButton, 22, 2, 1, 2)
         self.setLayout(grid)
 
 
@@ -861,6 +866,33 @@ class SDBWidget(QWidget):
 
         new_img.write(z_img_ar, 1)
         new_img.close()
+
+
+    def aboutDialog(self):
+
+        about = QDialog()
+        about.setWindowTitle('About')
+        about.setWindowIcon(QIcon(resource_path('information-pngrepo-com.png')))
+
+        okButton = QPushButton('OK')
+        okButton.clicked.connect(about.close)
+
+        license_file = open(resource_path('LICENSE'), 'r')
+        licenseLabel = QLabel('SDB GUI')
+        licenseText = QTextBrowser()
+        licenseText.setText(license_file.read())
+
+        grid = QGridLayout()
+
+        grid.addWidget(licenseLabel, 1, 1, 1, 4)
+
+        grid.addWidget(licenseText, 2, 1, 1, 4)
+
+        grid.addWidget(okButton, 3, 4, 1, 1)
+
+        about.setLayout(grid)
+
+        about.exec_()
 
 
 
