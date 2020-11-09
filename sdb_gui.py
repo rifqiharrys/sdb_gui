@@ -725,11 +725,13 @@ class SDBWidget(QWidget):
             z_predict = regressor[4].predict(bands_array)
 
             time_predict = datetime.datetime.now()
-            self.resultText.append('Calculating RMSE...\n')
+            self.resultText.append('Calculating RMSE, MAE, and R\u00B2...\n')
             self.progressBar.setValue(3)
 
             z_validate = regressor[4].predict(regressor[1])
             rmse = np.sqrt(metrics.mean_squared_error(regressor[3], z_validate))
+            mae = metrics.mean_absolute_error(regressor[3], z_validate)
+            r2 = metrics.r2_score(regressor[3], z_validate)
 
             time_test = datetime.datetime.now()
             self.progressBar.setValue(4)
@@ -747,7 +749,9 @@ class SDBWidget(QWidget):
             'Sample Data: ' + '\t\t' + fileListPrint + '\n\n' +
             'Method: ' + '\t\t' + self.methodCB.currentText() + '\n\n' +
             print_parameters_info + '\n\n'
-            'RMSE: ' + '\t\t' + str(rmse) + '\n\n' +
+            'RMSE: ' + '\t\t' + str(rmse) + '\n' +
+            'MAE: ' + '\t\t' + str(mae) + '\n' +
+            'R\u00B2: ' + '\t\t' + str(r2) + '\n\n' +
             'Fitting Runtime: ' + '\t\t' + str(runtime[0]) + '\n' +
             'Prediction Runtime: ' + '\t' + str(runtime[1]) + '\n' +
             'Validating Runtime: ' + '\t' + str(runtime[2]) + '\n' +
