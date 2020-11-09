@@ -121,7 +121,6 @@ class SDBWidget(QWidget):
         self.methodCB = QComboBox()
 
         self.methodCB.addItems(method_list)
-        self.methodCB.setCurrentIndex(1)
         self.methodCB.activated.connect(self.methodSelection)
 
         trainPercentLabel = QLabel('Train Data (Percent):')
