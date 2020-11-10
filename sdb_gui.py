@@ -81,7 +81,7 @@ class SDBWidget(QWidget):
         svm_op_list = [
             'rbf', # kernel
             .1, # gamma
-            1.0 # C
+            1000.0 # C
         ]
 ####### Default Values #######
 
@@ -586,7 +586,7 @@ class SDBWidget(QWidget):
         self.cDSB = QDoubleSpinBox()
         self.cDSB.setRange(.001, 10000)
         self.cDSB.setDecimals(3)
-        self.cDSB.setValue(1.0)
+        self.cDSB.setValue(1000.0)
 
         cancelButton = QPushButton('Cancel')
         cancelButton.clicked.connect(optionDialog.close)
