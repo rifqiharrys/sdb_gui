@@ -5,8 +5,8 @@ from sklearn.svm import SVR
 from sklearn.model_selection import train_test_split
 from joblib import parallel_backend
 import sklearn.neighbors.typedefs
-import sklearn.utils._cython_blas
 import sklearn.neighbors.quad_tree
+import sklearn.utils._cython_blas
 import sklearn.tree
 import sklearn.tree._utils
 import pandas as pd
