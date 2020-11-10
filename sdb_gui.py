@@ -4,8 +4,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import SVR
 from sklearn.model_selection import train_test_split
 from joblib import parallel_backend
-import sklearn.neighbors.typedefs
-import sklearn.neighbors.quad_tree
+import sklearn.neighbors
 import sklearn.utils._cython_blas
 import sklearn.tree
 import sklearn.tree._utils
@@ -130,7 +129,7 @@ class SDBWidget(QWidget):
         self.trainPercentDSB.setValue(75.0)
 
         self.optionsButton = QPushButton('Options')
-        self.optionsButton.clicked.connect(self.rfOptionDialog)
+        self.optionsButton.clicked.connect(self.mlrOptionDialog)
         self.optionsButton.clicked.connect(self.methodSelection)
 
         makePredictionButton = QPushButton('Make Prediction')
