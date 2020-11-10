@@ -254,6 +254,9 @@ class SDBWidget(QWidget):
         global img_loc
         img_loc = fname[0]
 
+        global img_size
+        img_size = os.path.getsize(img_loc)
+
         self.locList.setText(img_loc)
 
 
@@ -406,11 +409,18 @@ class SDBWidget(QWidget):
 
         dummy = []
 
+        global sample_size
+        sample_size = np.ones(len(filesList))
+
         for file in filesList:
             raw_single = pd.read_csv(file, sep=sepSelect, header=head)
             raw_single = raw_single.iloc[start_data:, 0:]
 
             dummy.append(raw_single)
+
+            sample_size[filesList.index(file)] = os.path.getsize(file)
+
+        sample_size = sample_size.sum()
 
         global samples_raw
         samples_raw = pd.concat(dummy, ignore_index=True, sort=False)
@@ -748,8 +758,10 @@ class SDBWidget(QWidget):
 
         global print_result_info
         print_result_info = (
-            'Image Input: ' + '\t\t' + img_loc + '\n' +
-            'Sample Data: ' + '\t\t' + fileListPrint + '\n\n' +
+            'Image Input: ' + '\t\t' + img_loc + ' (' +
+            str(round(img_size / 2**10 / 2**10, 2)) + ' MB)' + '\n' +
+            'Sample Data: ' + '\t\t' + fileListPrint + ' (' +
+            str(round(sample_size / 2**10 / 2**10, 2)) + ' MB)' + '\n\n' +
             'Method: ' + '\t\t' + self.methodCB.currentText() + '\n\n' +
             print_parameters_info + '\n\n'
             'RMSE: ' + '\t\t' + str(rmse) + '\n' +
@@ -838,17 +850,6 @@ class SDBWidget(QWidget):
 
     def saveAction(self):
 
-        if self.reportState.text() == self.reportCheckBox.text():
-            report_save_loc = save_loc[:-4] + '_report.txt'
-            report = open(report_save_loc, 'w')
-
-            report.write(
-                print_result_info +
-                'Output: ' + '\t\t' + save_loc
-            )
-        else:
-            pass
-
         z_img_ar = z_predict.reshape(image_raw.height, image_raw.width) #* (-1)
 
         new_img = rio.open(
@@ -865,6 +866,20 @@ class SDBWidget(QWidget):
 
         new_img.write(z_img_ar, 1)
         new_img.close()
+
+        if self.reportState.text() == self.reportCheckBox.text():
+            report_save_loc = save_loc[:-4] + '_report.txt'
+            report = open(report_save_loc, 'w')
+            new_img_size = os.path.getsize(save_loc)
+
+            report.write(
+                print_result_info +
+                'Output: ' + '\t\t' + save_loc + ' (' +
+                str(round(new_img_size / 2**10 / 2**10, 2)) + ' MB)'
+            )
+        else:
+            pass
+
 
 
     def aboutDialog(self):
