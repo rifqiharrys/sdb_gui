@@ -189,7 +189,7 @@ class SDBWidget(QWidget):
 
         grid.addWidget(self.progressBar, 21, 1, 1, 4)
 
-        grid.addWidget(aboutButton, 22, 2, 1, 2)
+        grid.addWidget(aboutButton, 22, 1, 1, 4)
         self.setLayout(grid)
 
 
