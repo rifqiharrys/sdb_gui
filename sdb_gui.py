@@ -872,6 +872,7 @@ class SDBWidget(QWidget):
 
         about = QDialog()
         about.setWindowTitle('About')
+        about.resize(500, 380)
         about.setWindowIcon(QIcon(resource_path('information-pngrepo-com.png')))
 
         okButton = QPushButton('OK')
