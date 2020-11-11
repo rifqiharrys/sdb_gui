@@ -117,9 +117,9 @@ class SDBWidget(QWidget):
         scroll.setWidget(self.table)
 
         self.limitCheckBox = QCheckBox('Create Depth Limitation')
-        self.limitCheckBox.setChecked(False)
+        self.limitCheckBox.setChecked(True)
         self.limitCheckBox.toggled.connect(self.limitCheckBoxState)
-        self.limitState = QLabel()
+        self.limitState = QLabel('checked')
 
         limitLabel = QLabel('Depth Limit Value:')
         self.limitSB = QSpinBox()
