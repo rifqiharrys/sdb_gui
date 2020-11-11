@@ -116,6 +116,17 @@ class SDBWidget(QWidget):
         scroll = QScrollArea()
         scroll.setWidget(self.table)
 
+        self.limitCheckBox = QCheckBox('Create Depth Limitation')
+        self.limitCheckBox.setChecked(False)
+        self.limitCheckBox.toggled.connect(self.limitCheckBoxState)
+        self.limitState = QLabel()
+
+        limitLabel = QLabel('Depth Limit Value:')
+        self.limitSB = QSpinBox()
+        self.limitSB.setRange(-100, 0)
+        self.limitSB.setValue(-30)
+        self.limitSB.setAlignment(Qt.AlignRight)
+
         methodLabel = QLabel('Regression Method:')
         self.methodCB = QComboBox()
 
@@ -127,6 +138,7 @@ class SDBWidget(QWidget):
         self.trainPercentDSB.setRange(10.0, 90.0)
         self.trainPercentDSB.setDecimals(2)
         self.trainPercentDSB.setValue(75.0)
+        self.trainPercentDSB.setAlignment(Qt.AlignRight)
 
         self.optionsButton = QPushButton('Options')
         self.optionsButton.clicked.connect(self.mlrOptionDialog)
@@ -169,26 +181,30 @@ class SDBWidget(QWidget):
 
         grid.addWidget(self.table, 5, 1, 5, 4)
 
-        grid.addWidget(methodLabel, 10, 1, 1, 1)
-        grid.addWidget(self.methodCB, 10, 2, 1, 3)
+        grid.addWidget(self.limitCheckBox, 10, 1, 1, 2)
+        grid.addWidget(limitLabel, 10, 3, 1, 1)
+        grid.addWidget(self.limitSB, 10, 4, 1, 1)
 
-        grid.addWidget(trainPercentLabel, 11, 1, 1, 1)
-        grid.addWidget(self.trainPercentDSB, 11, 2, 1, 1)
+        grid.addWidget(methodLabel, 11, 1, 1, 1)
+        grid.addWidget(self.methodCB, 11, 2, 1, 3)
 
-        grid.addWidget(self.optionsButton, 11, 3, 1, 2)
+        grid.addWidget(trainPercentLabel, 12, 1, 1, 1)
+        grid.addWidget(self.trainPercentDSB, 12, 2, 1, 1)
 
-        grid.addWidget(makePredictionButton, 12, 1, 1, 2)
-        grid.addWidget(saveFileButton, 12, 3, 1, 2)
+        grid.addWidget(self.optionsButton, 12, 3, 1, 2)
 
-        grid.addWidget(resultInfo, 13, 1, 1, 2)
-        grid.addWidget(self.resultText, 14, 1, 1, 4)
+        grid.addWidget(makePredictionButton, 13, 1, 1, 2)
+        grid.addWidget(saveFileButton, 13, 3, 1, 2)
+
+        grid.addWidget(resultInfo, 14, 1, 1, 2)
+        grid.addWidget(self.resultText, 15, 1, 1, 4)
 
         vbox.addStretch(1)
-        grid.addLayout(vbox, 20, 1)
+        grid.addLayout(vbox, 21, 1)
 
-        grid.addWidget(self.progressBar, 21, 1, 1, 4)
+        grid.addWidget(self.progressBar, 22, 1, 1, 4)
 
-        grid.addWidget(aboutButton, 22, 1, 1, 4)
+        grid.addWidget(aboutButton, 23, 1, 1, 4)
         self.setLayout(grid)
 
 
@@ -196,6 +212,14 @@ class SDBWidget(QWidget):
         '''Transform string to boolean'''
 
         return v in ('True')
+
+
+    def limitCheckBoxState(self):
+
+        if self.limitCheckBox.isChecked() == True:
+            self.limitState.setText('checked')
+        else:
+            self.limitState.setText('unchecked')
 
 
     def methodSelection(self):
@@ -305,10 +329,12 @@ class SDBWidget(QWidget):
         headerLineLabel = QLabel('Header Starting Line:')
         self.headerLineSB = QSpinBox()
         self.headerLineSB.setMinimum(1)
+        self.headerLineSB.setAlignment(Qt.AlignRight)
 
         dataLineLabel = QLabel('Data Starting Line:')
         self.dataLineSB = QSpinBox()
         self.dataLineSB.setMinimum(1)
+        self.dataLineSB.setAlignment(Qt.AlignRight)
 
         locLabel = QLabel('Location:')
         self.locList = QTextBrowser()
@@ -395,7 +421,7 @@ class SDBWidget(QWidget):
     def showCheckBoxState(self):
 
         if self.showCheckBox.isChecked() == True:
-            self.showState.setText(self.showCheckBox.text())
+            self.showState.setText('checked')
         else:
             self.showState.setText('unchecked')
 
@@ -432,7 +458,7 @@ class SDBWidget(QWidget):
 
         raw = self.loadSampleDict()
 
-        if self.showState.text() == self.showCheckBox.text():
+        if self.showState.text() == 'checked':
             data = raw
         else:
             data = raw.head(100)
@@ -528,6 +554,7 @@ class SDBWidget(QWidget):
         self.ntreeSB = QSpinBox()
         self.ntreeSB.setRange(1, 10000)
         self.ntreeSB.setValue(300)
+        self.ntreeSB.setAlignment(Qt.AlignRight)
 
         criterionLabel = QLabel('Criterion:')
         self.criterionCB = QComboBox()
@@ -581,12 +608,14 @@ class SDBWidget(QWidget):
         self.gammaDSB.setRange(0, 10)
         self.gammaDSB.setDecimals(3)
         self.gammaDSB.setValue(.1)
+        self.gammaDSB.setAlignment(Qt.AlignRight)
 
         cLabel = QLabel('C:')
         self.cDSB = QDoubleSpinBox()
         self.cDSB.setRange(.001, 10000)
         self.cDSB.setDecimals(3)
         self.cDSB.setValue(1000.0)
+        self.cDSB.setAlignment(Qt.AlignRight)
 
         cancelButton = QPushButton('Cancel')
         cancelButton.clicked.connect(optionDialog.close)
@@ -638,6 +667,13 @@ class SDBWidget(QWidget):
 
         if positives_count > samples_count / 2:
             samples_edit[depth_label] = samples_edit[depth_label] * -1
+        else:
+            pass
+        print(self.limitState.text())
+        if self.limitState.text() == 'checked':
+            print('checking input')
+            samples_edit = samples_edit[samples_edit[depth_label] >= self.limitSB.value()]
+            samples_edit = samples_edit[samples_edit[depth_label] <= 0]
         else:
             pass
 
@@ -747,6 +783,13 @@ class SDBWidget(QWidget):
             global z_predict
             z_predict = regressor[4].predict(bands_array)
 
+            if self.limitState.text() == 'checked':
+                print('checking prediction')
+                z_predict[z_predict < self.limitSB.value()] = np.nan
+                z_predict[z_predict > 0] = np.nan
+            else:
+                pass
+
             time_predict = datetime.datetime.now()
             self.resultText.append('Calculating RMSE, MAE, and R\u00B2...\n')
             self.progressBar.setValue(3)
@@ -853,7 +896,7 @@ class SDBWidget(QWidget):
     def reportCheckBoxState(self):
 
         if self.reportCheckBox.isChecked() == True:
-            self.reportState.setText(self.reportCheckBox.text())
+            self.reportState.setText('checked')
         else:
             self.reportState.setText('unchecked')
 
@@ -877,7 +920,7 @@ class SDBWidget(QWidget):
         new_img.write(z_img_ar, 1)
         new_img.close()
 
-        if self.reportState.text() == self.reportCheckBox.text():
+        if self.reportState.text() == 'checked':
             report_save_loc = save_loc[:-4] + '_report.txt'
             report = open(report_save_loc, 'w')
             new_img_size = os.path.getsize(save_loc)
