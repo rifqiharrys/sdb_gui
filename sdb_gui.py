@@ -707,9 +707,9 @@ class SDBWidget(QWidget):
 
         global print_parameters_info
         print_parameters_info = (
-            'Fit Intercept: ' + '\t\t' + str(mlr_op_list[0]) + '\n' +
-            'Normalize: ' + '\t\t' + str(mlr_op_list[1]) + '\n' +
-            'Copy X: ' + '\t\t' + str(mlr_op_list[2])
+            'Fit Intercept:' + '\t\t' + str(mlr_op_list[0]) + '\n' +
+            'Normalize:' + '\t\t' + str(mlr_op_list[1]) + '\n' +
+            'Copy X:' + '\t\t' + str(mlr_op_list[2])
         )
 
         return samples_split
@@ -729,8 +729,8 @@ class SDBWidget(QWidget):
 
         global print_parameters_info
         print_parameters_info = (
-            'N Trees: ' + '\t\t' + str(rf_op_list[0]) + '\n' +
-            'Criterion: ' + '\t\t' + str(rf_op_list[1])
+            'N Trees:' + '\t\t' + str(rf_op_list[0]) + '\n' +
+            'Criterion:' + '\t\t' + str(rf_op_list[1])
         )
 
         return samples_split
@@ -751,9 +751,9 @@ class SDBWidget(QWidget):
 
         global print_parameters_info
         print_parameters_info = (
-            'Kernel: ' + '\t\t' + str(svm_op_list[0]) +'\n' +
-            'Gamma: ' + '\t\t' + str(svm_op_list[1]) + '\n' +
-            'C: ' + '\t\t' + str(svm_op_list[2])
+            'Kernel:' + '\t\t' + str(svm_op_list[0]) +'\n' +
+            'Gamma:' + '\t\t' + str(svm_op_list[1]) + '\n' +
+            'C:' + '\t\t' + str(svm_op_list[2])
         )
 
         return samples_split
@@ -787,7 +787,14 @@ class SDBWidget(QWidget):
                 print('checking prediction')
                 z_predict[z_predict < self.limitSB.value()] = np.nan
                 z_predict[z_predict > 0] = np.nan
+
+                print_limit = (
+                    'Depth Limit:' + '\t\t' + str(self.limitSB.value())
+                )
             else:
+                print_limit = (
+                    'Depth Limit:' + '\t\t' + 'Disabled'
+                )
                 pass
 
             time_predict = datetime.datetime.now()
@@ -811,23 +818,26 @@ class SDBWidget(QWidget):
 
         global print_result_info
         print_result_info = (
-            'Image Input: ' + '\t\t' + img_loc + ' (' +
+            'Image Input:' + '\t\t' + img_loc + ' (' +
             str(round(img_size / 2**10 / 2**10, 2)) + ' MB)' + '\n' +
-            'Sample Data: ' + '\t\t' + fileListPrint + ' (' +
+            'Sample Data:' + '\t\t' + fileListPrint + ' (' +
             str(round(sample_size / 2**10 / 2**10, 2)) + ' MB)' + '\n\n' +
-            'Method: ' + '\t\t' + self.methodCB.currentText() + '\n\n' +
+            print_limit + '\n' +
+            'Train Data:' + '\t\t' + str(self.trainPercentDSB.value()) + ' %' + '\n'
+            'Test Data:' + '\t\t' + str(100 - self.trainPercentDSB.value()) + ' %' + '\n\n'
+            'Method:' + '\t\t' + self.methodCB.currentText() + '\n' +
             print_parameters_info + '\n\n'
-            'RMSE: ' + '\t\t' + str(rmse) + '\n' +
-            'MAE: ' + '\t\t' + str(mae) + '\n' +
-            'R\u00B2: ' + '\t\t' + str(r2) + '\n\n' +
-            'Fitting Runtime: ' + '\t\t' + str(runtime[0]) + '\n' +
-            'Prediction Runtime: ' + '\t' + str(runtime[1]) + '\n' +
-            'Validating Runtime: ' + '\t' + str(runtime[2]) + '\n' +
-            'Overall Runtime: ' + '\t' + str(runtime[3]) + '\n\n' +
-            'CRS: ' + '\t\t' + str(image_raw.crs) +'\n'
-            'Dimensions: ' + '\t\t' + str(image_raw.width) + ' x ' + 
+            'RMSE:' + '\t\t' + str(rmse) + '\n' +
+            'MAE:' + '\t\t' + str(mae) + '\n' +
+            'R\u00B2:' + '\t\t' + str(r2) + '\n\n' +
+            'Fitting Runtime:' + '\t\t' + str(runtime[0]) + '\n' +
+            'Prediction Runtime:' + '\t' + str(runtime[1]) + '\n' +
+            'Validating Runtime:' + '\t' + str(runtime[2]) + '\n' +
+            'Overall Runtime:' + '\t' + str(runtime[3]) + '\n\n' +
+            'CRS:' + '\t\t' + str(image_raw.crs) +'\n'
+            'Dimensions:' + '\t\t' + str(image_raw.width) + ' x ' + 
             str(image_raw.height) + ' pixels' + '\n'
-            'Pixel Size: ' + '\t\t' + str(pixel_size[0]) + ' , ' + 
+            'Pixel Size:' + '\t\t' + str(pixel_size[0]) + ' , ' + 
             str(pixel_size[1]) + '\n\n'
         )
 
@@ -927,7 +937,7 @@ class SDBWidget(QWidget):
 
             report.write(
                 print_result_info +
-                'Output: ' + '\t\t' + save_loc + ' (' +
+                'Output:' + '\t\t' + save_loc + ' (' +
                 str(round(new_img_size / 2**10 / 2**10, 2)) + ' MB)'
             )
         else:
