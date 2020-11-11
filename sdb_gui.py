@@ -625,17 +625,27 @@ class SDBWidget(QWidget):
 
     def inputDict(self):
 
+        samples_edit = samples_raw.copy()
+
         depth_label = self.depthHeaderCB.currentText()
         start_label = self.bandStartCB.currentText()
         end_label = self.bandEndCB.currentText()
 
         test_data_size = (100 - self.trainPercentDSB.value()) / 100
 
-        start_loc = samples_raw.columns.get_loc(start_label)
-        end_loc = samples_raw.columns.get_loc(end_label)
+        positives_count = samples_edit[samples_edit[depth_label] > 0][depth_label].count()
+        samples_count = samples_edit[depth_label].count()
 
-        features = samples_raw.iloc[:, start_loc:end_loc+1]
-        z = samples_raw[depth_label]
+        if positives_count > samples_count / 2:
+            samples_edit[depth_label] = samples_edit[depth_label] * -1
+        else:
+            pass
+
+        start_loc = samples_edit.columns.get_loc(start_label)
+        end_loc = samples_edit.columns.get_loc(end_label)
+
+        features = samples_edit.iloc[:, start_loc:end_loc+1]
+        z = samples_edit[depth_label]
 
         features_train, features_test, z_train, z_test = train_test_split(features, z, test_size=test_data_size, random_state=0)
 
