@@ -116,10 +116,10 @@ class SDBWidget(QWidget):
         scroll = QScrollArea()
         scroll.setWidget(self.table)
 
-        self.limitCheckBox = QCheckBox('Create Depth Limitation')
-        self.limitCheckBox.setChecked(True)
+        self.limitCheckBox = QCheckBox('Disable Depth Limitation')
+        self.limitCheckBox.setChecked(False)
         self.limitCheckBox.toggled.connect(self.limitCheckBoxState)
-        self.limitState = QLabel('checked')
+        self.limitState = QLabel('unchecked')
 
         limitLabel = QLabel('Depth Limit Value:')
         self.limitSB = QSpinBox()
@@ -181,9 +181,9 @@ class SDBWidget(QWidget):
 
         grid.addWidget(self.table, 5, 1, 5, 4)
 
-        grid.addWidget(self.limitCheckBox, 10, 1, 1, 2)
-        grid.addWidget(limitLabel, 10, 3, 1, 1)
-        grid.addWidget(self.limitSB, 10, 4, 1, 1)
+        grid.addWidget(limitLabel, 10, 1, 1, 1)
+        grid.addWidget(self.limitSB, 10, 2, 1, 1)
+        grid.addWidget(self.limitCheckBox, 10, 3, 1, 2)
 
         grid.addWidget(methodLabel, 11, 1, 1, 1)
         grid.addWidget(self.methodCB, 11, 2, 1, 3)
@@ -670,7 +670,7 @@ class SDBWidget(QWidget):
         else:
             pass
 
-        if self.limitState.text() == 'checked':
+        if self.limitState.text() == 'unchecked':
             print('checking input')
             samples_edit = samples_edit[samples_edit[depth_label] >= self.limitSB.value()]
             samples_edit = samples_edit[samples_edit[depth_label] <= 0]
@@ -783,7 +783,7 @@ class SDBWidget(QWidget):
             global z_predict
             z_predict = regressor[4].predict(bands_array)
 
-            if self.limitState.text() == 'checked':
+            if self.limitState.text() == 'unchecked':
                 print('checking prediction')
                 z_predict[z_predict < self.limitSB.value()] = np.nan
                 z_predict[z_predict > 0] = np.nan
