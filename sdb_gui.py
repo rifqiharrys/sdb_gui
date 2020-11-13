@@ -853,19 +853,28 @@ class SDBWidget(QWidget):
         saveFileButton = QPushButton('Save File Location')
         saveFileButton.clicked.connect(self.savePathDialog)
 
-        raster_driver = ['GTiff', 'ECW']
+        global format_dict
+        format_dict = {
+            'GeoTIFF (*.tif)': 'GTiff',
+            'Erdas Imagine image (*.img)': 'HFA',
+            'ASCII Gridded XYZ (*.xyz)': 'XYZ'
+        }
+
+        format_list = list(format_dict)
+        format_list.sort()
 
         dataTypeLabel = QLabel('Data Type:')
         self.dataTypeCB = QComboBox()
-        self.dataTypeCB.addItems(raster_driver)
+        self.dataTypeCB.addItems(format_list)
+        self.dataTypeCB.setCurrentText('GeoTIFF (*.tif)')
 
         locLabel = QLabel('Location:')
         self.locList = QTextBrowser()
 
         self.reportCheckBox = QCheckBox('Save Report')
-        self.reportCheckBox.setChecked(False)
+        self.reportCheckBox.setChecked(True)
         self.reportCheckBox.toggled.connect(self.reportCheckBoxState)
-        self.reportState = QLabel()
+        self.reportState = QLabel('checked')
 
         cancelButton = QPushButton('Cancel')
         cancelButton.clicked.connect(saveOption.close)
@@ -894,8 +903,8 @@ class SDBWidget(QWidget):
     def savePathDialog(self):
 
         home_dir = str(Path.home())
-        fileFilter = 'All Files(*.*) ;; GeoTIFF (*.tif) ;; ECW (*.ecw)'
-        selectedFilter = 'GeoTIFF (*.tif)'
+        fileFilter = 'All Files(*.*) ;; ' + self.dataTypeCB.currentText()
+        selectedFilter = self.dataTypeCB.currentText()
         fname = QFileDialog.getSaveFileName(self, 'Save File', home_dir, fileFilter, selectedFilter)
 
         global save_loc
@@ -913,12 +922,12 @@ class SDBWidget(QWidget):
 
     def saveAction(self):
 
-        z_img_ar = z_predict.reshape(image_raw.height, image_raw.width) #* (-1)
+        z_img_ar = z_predict.reshape(image_raw.height, image_raw.width)
 
         new_img = rio.open(
             save_loc,
             'w',
-            driver=self.dataTypeCB.currentText(),
+            driver=format_dict[self.dataTypeCB.currentText()],
             height=image_raw.height,
             width=image_raw.width,
             count=1,
@@ -931,7 +940,7 @@ class SDBWidget(QWidget):
         new_img.close()
 
         if self.reportState.text() == 'checked':
-            report_save_loc = save_loc[:-4] + '_report.txt'
+            report_save_loc = os.path.splitext(save_loc)[0] + '_report.txt'
             report = open(report_save_loc, 'w')
             new_img_size = os.path.getsize(save_loc)
 
