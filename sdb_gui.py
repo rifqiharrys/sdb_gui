@@ -55,7 +55,7 @@ class SDBWidget(QWidget):
 
 ####### Default Values #######
         global njobs
-        njobs = -1
+        njobs = -2
 
         global method_list
         method_list = [
