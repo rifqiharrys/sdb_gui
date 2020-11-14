@@ -660,7 +660,7 @@ class SDBWidget(QWidget):
         start_label = self.bandStartCB.currentText()
         end_label = self.bandEndCB.currentText()
 
-        test_data_size = (100 - self.trainPercentDSB.value()) / 100
+        train_data_size = self.trainPercentDSB.value() / 100
 
         positives_count = samples_edit[samples_edit[depth_label] > 0][depth_label].count()
         samples_count = samples_edit[depth_label].count()
@@ -683,7 +683,7 @@ class SDBWidget(QWidget):
         features = samples_edit.iloc[:, start_loc:end_loc+1]
         z = samples_edit[depth_label]
 
-        features_train, features_test, z_train, z_test = train_test_split(features, z, test_size=test_data_size, random_state=0)
+        features_train, features_test, z_train, z_test = train_test_split(features, z, train_size=train_data_size, random_state=0)
 
         samples_split = [features_train, features_test, z_train, z_test]
 
