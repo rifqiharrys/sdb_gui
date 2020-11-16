@@ -22,3 +22,6 @@ The adjustable hyperparameters for Random Forest method are the number of trees 
 
 ### Support Vector Machines
 The adjustable hyperparameters for SVM method are kernel type, kernel coefficient (gamma), and regularization parameter (C). The default hyperparameter values are rbf for kernel type, 0.1 for gamma, and 1.0 for C.
+
+## License
+See [LICENSE](https://github.com/rifqiharrys/sdb_gui/blob/main/LICENSE)
