@@ -823,8 +823,8 @@ class SDBWidget(QWidget):
             'Sample Data:' + '\t\t' + fileListPrint + ' (' +
             str(round(sample_size / 2**10 / 2**10, 2)) + ' MB)' + '\n\n' +
             print_limit + '\n' +
-            'Train Data:' + '\t\t' + str(self.trainPercentDSB.value()) + ' %' + '\n'
-            'Test Data:' + '\t\t' + str(100 - self.trainPercentDSB.value()) + ' %' + '\n\n'
+            'Train Data:' + '\t\t' + str(self.trainPercentDSB.value()) + ' %' + '\n' +
+            'Test Data:' + '\t\t' + str(100 - self.trainPercentDSB.value()) + ' %' + '\n\n' +
             'Method:' + '\t\t' + self.methodCB.currentText() + '\n' +
             print_parameters_info + '\n\n'
             'RMSE:' + '\t\t' + str(rmse) + '\n' +
@@ -835,9 +835,9 @@ class SDBWidget(QWidget):
             'Validating Runtime:' + '\t' + str(runtime[2]) + '\n' +
             'Overall Runtime:' + '\t' + str(runtime[3]) + '\n\n' +
             'CRS:' + '\t\t' + str(image_raw.crs) +'\n'
-            'Dimensions:' + '\t\t' + str(image_raw.width) + ' x ' + 
+            'Dimensions:' + '\t\t' + str(image_raw.width) + ' x ' +
             str(image_raw.height) + ' pixels' + '\n'
-            'Pixel Size:' + '\t\t' + str(pixel_size[0]) + ' , ' + 
+            'Pixel Size:' + '\t\t' + str(pixel_size[0]) + ' , ' +
             str(pixel_size[1]) + '\n\n'
         )
 
