@@ -836,7 +836,7 @@ class SDBWidget(QWidget):
             'Overall Runtime:' + '\t' + str(runtime[3]) + '\n\n' +
             'CRS:' + '\t\t' + str(image_raw.crs) +'\n'
             'Dimensions:' + '\t\t' + str(image_raw.width) + ' x ' +
-            str(image_raw.height) + ' pixels' + '\n'
+            str(image_raw.height) + ' pixels' + '\n' +
             'Pixel Size:' + '\t\t' + str(pixel_size[0]) + ' , ' +
             str(pixel_size[1]) + '\n\n'
         )
