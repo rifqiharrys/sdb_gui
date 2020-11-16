@@ -7,7 +7,7 @@ This is a GUI to make a bathimetric prediction using satellite imagery and some 
 4. [Scikit Learn](https://scikit-learn.org)
 5. [PyQt5](https://www.riverbankcomputing.com/static/Docs/PyQt5/)
 
-Prepare your own data before using this SDB GUI. The required data are georeferenced and corrected imagery and tabular data consisting depth samples and corresponding raster values in the form of text file (e.g. CSV, TXT, or DAT file). 
+Prepare your own data before using this SDB GUI. The required data are georeferenced and corrected imagery and tabular data consisting depth samples and corresponding raster values in the form of text file (e.g. CSV, TXT, or DAT file). If you don't have the second data, you could extract it from your depth sample and the first data using QGIS Plugin "Point Sampling Tool".
 
 Open SDB GUI and load both data. Choose one of the methods and decide how much of the sample you're going to use as training data. If you push `Make Prediction` button right away, the software will use default hyperparameters. If you want to tweak the hyperparameters, push `Options` button.
 
