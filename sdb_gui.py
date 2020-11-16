@@ -774,7 +774,7 @@ class SDBWidget(QWidget):
 
             time_fit = datetime.datetime.now()
             self.resultText.append('Predicting...\n')
-            self.progressBar.setValue(2)
+            self.progressBar.setValue(self.progressBar.value() + 1)
 
             global z_predict
             z_predict = regressor[4].predict(bands_array)
@@ -795,7 +795,7 @@ class SDBWidget(QWidget):
 
             time_predict = datetime.datetime.now()
             self.resultText.append('Calculating RMSE, MAE, and R\u00B2...\n')
-            self.progressBar.setValue(3)
+            self.progressBar.setValue(self.progressBar.value() + 1)
 
             z_validate = regressor[4].predict(regressor[1])
             rmse = np.sqrt(metrics.mean_squared_error(regressor[3], z_validate))
@@ -803,7 +803,7 @@ class SDBWidget(QWidget):
             r2 = metrics.r2_score(regressor[3], z_validate)
 
             time_test = datetime.datetime.now()
-            self.progressBar.setValue(4)
+            self.progressBar.setValue(self.progressBar.value() + 1)
 
         runtime = [
             time_fit - time_start,
@@ -838,6 +838,32 @@ class SDBWidget(QWidget):
         )
 
         self.resultText.setText(print_result_info)
+
+        self.completeDialog()
+
+
+    def completeDialog(self):
+
+        complete = QDialog()
+        complete.setWindowTitle('Complete')
+        complete.setWindowIcon(
+            QIcon(resource_path('complete-pngrepo-com.png')))
+        complete.resize(180, 30)
+
+        textLabel = QLabel('Tasks has been completed')
+        textLabel.setAlignment(Qt.AlignCenter)
+
+        okBUtton = QPushButton('OK')
+        okBUtton.clicked.connect(complete.close)
+
+        grid = QGridLayout()
+
+        grid.addWidget(textLabel, 1, 1, 1, 4)
+        grid.addWidget(okBUtton, 2, 2, 1, 2)
+
+        complete.setLayout(grid)
+
+        complete.exec_()
 
 
     def saveOptionDialog(self):
@@ -908,6 +934,7 @@ class SDBWidget(QWidget):
 
         self.locList.setText(save_loc)
 
+
     def reportCheckBoxState(self):
 
         if self.reportCheckBox.isChecked() == True:
@@ -949,7 +976,6 @@ class SDBWidget(QWidget):
             pass
 
 
-
     def aboutDialog(self):
 
         about = QDialog()
@@ -968,9 +994,7 @@ class SDBWidget(QWidget):
         grid = QGridLayout()
 
         grid.addWidget(licenseLabel, 1, 1, 1, 4)
-
         grid.addWidget(licenseText, 2, 1, 1, 4)
-
         grid.addWidget(okButton, 3, 4, 1, 1)
 
         about.setLayout(grid)
