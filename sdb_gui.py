@@ -26,7 +26,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import(QApplication, QWidget, QTextBrowser, QProgressBar, QFileDialog, QDialog,
                             QGridLayout, QMessageBox, QVBoxLayout, QComboBox, QLabel, QCheckBox,
                             QPushButton, QDoubleSpinBox, QSpinBox, QRadioButton, QTableWidgetItem,
-                            QTableWidget, QScrollArea, QHeaderView)
+                            QTableWidget, QScrollArea, QHeaderView, QErrorMessage)
 from PyQt5.QtGui import QIcon
 
 def resource_path(relative_path):
@@ -767,88 +767,102 @@ class SDBWidget(QWidget):
     def predict(self):
         print('prediction')
 
-        self.resultText.setText('Fitting...\n')
-        time_start = datetime.datetime.now()
+        try:
+            self.resultText.setText('Fitting...\n')
+            time_start = datetime.datetime.now()
 
-        if self.methodCB.currentText() == method_list[0]:
-            regressor = self.mlrPredict()
-        elif self.methodCB.currentText() == method_list[1]:
-            regressor = self.rfPredict()
-        else:
-            regressor = self.svmPredict()
-
-        with parallel_backend('threading', n_jobs=njobs):
-
-            regressor[4].fit(regressor[0], regressor[2])
-
-            time_fit = datetime.datetime.now()
-            self.resultText.append('Predicting...\n')
-            self.progressBar.setValue(self.progressBar.value() + 1)
-
-            global z_predict
-            z_predict = regressor[4].predict(bands_array)
-
-            if self.limitState.text() == 'unchecked':
-                print('checking prediction')
-                z_predict[z_predict < self.limitSB.value()] = np.nan
-                z_predict[z_predict > 0] = np.nan
-
-                print_limit = (
-                    'Depth Limit:' + '\t\t' + str(self.limitSB.value())
-                )
+            if self.methodCB.currentText() == method_list[0]:
+                regressor = self.mlrPredict()
+            elif self.methodCB.currentText() == method_list[1]:
+                regressor = self.rfPredict()
             else:
-                print_limit = (
-                    'Depth Limit:' + '\t\t' + 'Disabled'
-                )
-                pass
+                regressor = self.svmPredict()
 
-            time_predict = datetime.datetime.now()
-            self.resultText.append('Calculating RMSE, MAE, and R\u00B2...\n')
-            self.progressBar.setValue(self.progressBar.value() + 1)
+            with parallel_backend('threading', n_jobs=njobs):
 
-            z_validate = regressor[4].predict(regressor[1])
-            rmse = np.sqrt(metrics.mean_squared_error(regressor[3], z_validate))
-            mae = metrics.mean_absolute_error(regressor[3], z_validate)
-            r2 = metrics.r2_score(regressor[3], z_validate)
+                regressor[4].fit(regressor[0], regressor[2])
 
-            time_test = datetime.datetime.now()
-            self.progressBar.setValue(self.progressBar.value() + 1)
+                time_fit = datetime.datetime.now()
+                self.resultText.append('Predicting...\n')
+                self.progressBar.setValue(self.progressBar.value() + 1)
 
-        runtime = [
-            time_fit - time_start,
-            time_predict - time_fit,
-            time_test - time_predict,
-            time_test - time_start
-        ]
+                global z_predict
+                z_predict = regressor[4].predict(bands_array)
 
-        global print_result_info
-        print_result_info = (
-            'Image Input:' + '\t\t' + img_loc + ' (' +
-            str(round(img_size / 2**10 / 2**10, 2)) + ' MB)' + '\n' +
-            'Sample Data:' + '\t\t' + fileListPrint + ' (' +
-            str(round(sample_size / 2**10 / 2**10, 2)) + ' MB)' + '\n\n' +
-            print_limit + '\n' +
-            'Train Data:' + '\t\t' + str(self.trainPercentDSB.value()) + ' %' + '\n' +
-            'Test Data:' + '\t\t' + str(100 - self.trainPercentDSB.value()) + ' %' + '\n\n' +
-            'Method:' + '\t\t' + self.methodCB.currentText() + '\n' +
-            print_parameters_info + '\n\n'
-            'RMSE:' + '\t\t' + str(rmse) + '\n' +
-            'MAE:' + '\t\t' + str(mae) + '\n' +
-            'R\u00B2:' + '\t\t' + str(r2) + '\n\n' +
-            'Fitting Runtime:' + '\t\t' + str(runtime[0]) + '\n' +
-            'Prediction Runtime:' + '\t' + str(runtime[1]) + '\n' +
-            'Validating Runtime:' + '\t' + str(runtime[2]) + '\n' +
-            'Overall Runtime:' + '\t' + str(runtime[3]) + '\n\n' +
-            'CRS:' + '\t\t' + str(image_raw.crs) +'\n'
-            'Dimensions:' + '\t\t' + str(image_raw.width) + ' x ' +
-            str(image_raw.height) + ' pixels' + '\n' +
-            'Pixel Size:' + '\t\t' + str(pixel_size[0]) + ' , ' +
-            str(pixel_size[1]) + '\n\n'
-        )
+                if self.limitState.text() == 'unchecked':
+                    print('checking prediction')
+                    z_predict[z_predict < self.limitSB.value()] = np.nan
+                    z_predict[z_predict > 0] = np.nan
 
-        self.resultText.setText(print_result_info)
+                    print_limit = (
+                        'Depth Limit:' + '\t\t' + str(self.limitSB.value())
+                    )
+                else:
+                    print_limit = (
+                        'Depth Limit:' + '\t\t' + 'Disabled'
+                    )
+                    pass
 
-        self.completeDialog()
+                time_predict = datetime.datetime.now()
+                self.resultText.append('Calculating RMSE, MAE, and R\u00B2...\n')
+                self.progressBar.setValue(self.progressBar.value() + 1)
+
+                z_validate = regressor[4].predict(regressor[1])
+                rmse = np.sqrt(metrics.mean_squared_error(regressor[3], z_validate))
+                mae = metrics.mean_absolute_error(regressor[3], z_validate)
+                r2 = metrics.r2_score(regressor[3], z_validate)
+
+                time_test = datetime.datetime.now()
+                self.progressBar.setValue(self.progressBar.value() + 1)
+
+            runtime = [
+                time_fit - time_start,
+                time_predict - time_fit,
+                time_test - time_predict,
+                time_test - time_start
+            ]
+
+            global print_result_info
+            print_result_info = (
+                'Image Input:' + '\t\t' + img_loc + ' (' +
+                str(round(img_size / 2**10 / 2**10, 2)) + ' MB)' + '\n' +
+                'Sample Data:' + '\t\t' + fileListPrint + ' (' +
+                str(round(sample_size / 2**10 / 2**10, 2)) + ' MB)' + '\n\n' +
+                print_limit + '\n' +
+                'Train Data:' + '\t\t' + str(self.trainPercentDSB.value()) + ' %' + '\n' +
+                'Test Data:' + '\t\t' + str(100 - self.trainPercentDSB.value()) + ' %' + '\n\n' +
+                'Method:' + '\t\t' + self.methodCB.currentText() + '\n' +
+                print_parameters_info + '\n\n'
+                'RMSE:' + '\t\t' + str(rmse) + '\n' +
+                'MAE:' + '\t\t' + str(mae) + '\n' +
+                'R\u00B2:' + '\t\t' + str(r2) + '\n\n' +
+                'Fitting Runtime:' + '\t\t' + str(runtime[0]) + '\n' +
+                'Prediction Runtime:' + '\t' + str(runtime[1]) + '\n' +
+                'Validating Runtime:' + '\t' + str(runtime[2]) + '\n' +
+                'Overall Runtime:' + '\t' + str(runtime[3]) + '\n\n' +
+                'CRS:' + '\t\t' + str(image_raw.crs) +'\n'
+                'Dimensions:' + '\t\t' + str(image_raw.width) + ' x ' +
+                str(image_raw.height) + ' pixels' + '\n' +
+                'Pixel Size:' + '\t\t' + str(pixel_size[0]) + ' , ' +
+                str(pixel_size[1]) + '\n\n'
+            )
+
+            self.resultText.setText(print_result_info)
+
+            self.completeDialog()
+        except:
+            self.warningDialog()
+            self.resultText.clear()
+
+
+    def warningDialog(self):
+
+        warning = QErrorMessage()
+        warning.setWindowTitle('WARNING')
+        warning.setWindowIcon(QIcon(resource_path('icons/warning-pngrepo-com.png')))
+        warning.showMessage('Please input your data!')
+
+        warning.exec_()
 
 
     def completeDialog(self):
