@@ -89,7 +89,7 @@ class SDBWidget(QWidget):
 
         self.setGeometry(300, 100, 480, 640)
         self.setWindowTitle('Satellite Derived Bathymetry')
-        self.setWindowIcon(QIcon(resource_path('satellite.png')))
+        self.setWindowIcon(QIcon(resource_path('icons/satellite.png')))
 
         loadImageButton = QPushButton('Load Image')
         loadImageButton.clicked.connect(self.loadImageDialog)
@@ -246,7 +246,7 @@ class SDBWidget(QWidget):
 
         loadImage = QDialog()
         loadImage.setWindowTitle('Load Image')
-        loadImage.setWindowIcon(QIcon(resource_path('load-pngrepo-com.png')))
+        loadImage.setWindowIcon(QIcon(resource_path('icons/load-pngrepo-com.png')))
 
         openFilesButton = QPushButton('Open File')
         openFilesButton.clicked.connect(self.imageFileDialog)
@@ -318,7 +318,7 @@ class SDBWidget(QWidget):
 
         loadSample = QDialog()
         loadSample.setWindowTitle('Load Sample')
-        loadSample.setWindowIcon(QIcon(resource_path('load-pngrepo-com.png')))
+        loadSample.setWindowIcon(QIcon(resource_path('icons/load-pngrepo-com.png')))
 
         openFilesButton = QPushButton('Open File(s)')
         openFilesButton.clicked.connect(self.sampleFilesDialog)
@@ -500,7 +500,7 @@ class SDBWidget(QWidget):
 
         optionDialog = QDialog()
         optionDialog.setWindowTitle('Options (MLR)')
-        optionDialog.setWindowIcon(QIcon(resource_path('setting-tool-pngrepo-com.png')))
+        optionDialog.setWindowIcon(QIcon(resource_path('icons/setting-tool-pngrepo-com.png')))
 
         fitInterceptLabel = QLabel('Fit Intercept:')
         self.fitInterceptCB = QComboBox()
@@ -554,8 +554,7 @@ class SDBWidget(QWidget):
 
         optionDialog = QDialog()
         optionDialog.setWindowTitle('Options (Random Forest)')
-        optionDialog.setWindowIcon(
-            QIcon(resource_path('setting-tool-pngrepo-com.png')))
+        optionDialog.setWindowIcon(QIcon(resource_path('icons/setting-tool-pngrepo-com.png')))
 
         ntreeLabel = QLabel('Number of Trees:')
         self.ntreeSB = QSpinBox()
@@ -602,8 +601,7 @@ class SDBWidget(QWidget):
 
         optionDialog = QDialog()
         optionDialog.setWindowTitle('Options (SVM)')
-        optionDialog.setWindowIcon(
-            QIcon(resource_path('setting-tool-pngrepo-com.png')))
+        optionDialog.setWindowIcon(QIcon(resource_path('icons/setting-tool-pngrepo-com.png')))
 
         kernelLabel = QLabel('Kernel:')
         self.kernelCB = QComboBox()
@@ -857,7 +855,7 @@ class SDBWidget(QWidget):
 
         complete = QDialog()
         complete.setWindowTitle('Complete')
-        complete.setWindowIcon(QIcon(resource_path('complete-pngrepo-com.png')))
+        complete.setWindowIcon(QIcon(resource_path('icons/complete-pngrepo-com.png')))
         complete.resize(180, 30)
 
         textLabel = QLabel('Tasks has been completed')
@@ -880,7 +878,7 @@ class SDBWidget(QWidget):
 
         saveOption = QDialog()
         saveOption.setWindowTitle('Save Options')
-        saveOption.setWindowIcon(QIcon(resource_path('load-pngrepo-com.png')))
+        saveOption.setWindowIcon(QIcon(resource_path('icons/load-pngrepo-com.png')))
 
         saveFileButton = QPushButton('Save File Location')
         saveFileButton.clicked.connect(self.savePathDialog)
@@ -991,7 +989,7 @@ class SDBWidget(QWidget):
         about = QDialog()
         about.setWindowTitle('About')
         about.resize(500, 380)
-        about.setWindowIcon(QIcon(resource_path('information-pngrepo-com.png')))
+        about.setWindowIcon(QIcon(resource_path('icons/information-pngrepo-com.png')))
 
         okButton = QPushButton('OK')
         okButton.clicked.connect(about.close)
@@ -1016,8 +1014,7 @@ class SDBWidget(QWidget):
 
         readme = QDialog()
         readme.setWindowTitle('Readme')
-        readme.setWindowIcon(
-            QIcon(resource_path('information-pngrepo-com.png')))
+        readme.setWindowIcon(QIcon(resource_path('icons/information-pngrepo-com.png')))
         readme.resize(700, 400)
 
         okButton = QPushButton('OK')
