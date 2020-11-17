@@ -21,6 +21,7 @@ from pathlib import Path
 import glob
 import sys, os
 import datetime
+import webbrowser
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import(QApplication, QWidget, QTextBrowser, QProgressBar, QFileDialog, QDialog,
                             QGridLayout, QMessageBox, QVBoxLayout, QComboBox, QLabel, QCheckBox,
@@ -150,12 +151,20 @@ class SDBWidget(QWidget):
         self.resultText.setAlignment(Qt.AlignRight)
 
         self.progressBar = QProgressBar()
-        self.progressBar.setFormat('Step %v of %m completed')
+        self.progressBar.setFormat('%p%')
         self.progressBar.setMinimum(0)
         self.progressBar.setMaximum(4)
 
+        urlButton = QPushButton('Releases')
+        urlButton.clicked.connect(lambda: webbrowser.open(
+            'https://github.com/rifqiharrys/sdb_gui/releases'
+        ))
+
         aboutButton = QPushButton('About')
         aboutButton.clicked.connect(self.aboutDialog)
+
+        readmeButton = QPushButton('Readme')
+        readmeButton.clicked.connect(self.readmeDialog)
 
 
         grid = QGridLayout()
@@ -200,7 +209,9 @@ class SDBWidget(QWidget):
 
         grid.addWidget(self.progressBar, 22, 1, 1, 4)
 
-        grid.addWidget(aboutButton, 23, 1, 1, 4)
+        grid.addWidget(urlButton, 23, 1, 1, 1)
+        grid.addWidget(aboutButton, 23, 2, 1, 2)
+        grid.addWidget(readmeButton, 23, 4, 1, 1)
         self.setLayout(grid)
 
 
@@ -846,8 +857,7 @@ class SDBWidget(QWidget):
 
         complete = QDialog()
         complete.setWindowTitle('Complete')
-        complete.setWindowIcon(
-            QIcon(resource_path('complete-pngrepo-com.png')))
+        complete.setWindowIcon(QIcon(resource_path('complete-pngrepo-com.png')))
         complete.resize(180, 30)
 
         textLabel = QLabel('Tasks has been completed')
@@ -1000,6 +1010,33 @@ class SDBWidget(QWidget):
         about.setLayout(grid)
 
         about.exec_()
+
+
+    def readmeDialog(self):
+
+        readme = QDialog()
+        readme.setWindowTitle('Readme')
+        readme.setWindowIcon(
+            QIcon(resource_path('information-pngrepo-com.png')))
+        readme.resize(700, 400)
+
+        okButton = QPushButton('OK')
+        okButton.clicked.connect(readme.close)
+
+        readme_file = open(resource_path('README.html'), 'r')
+        readmeLabel = QLabel('Information')
+        readmeText = QTextBrowser()
+        readmeText.setText(readme_file.read())
+
+        grid = QGridLayout()
+
+        grid.addWidget(readmeLabel, 1, 1, 1, 4)
+        grid.addWidget(readmeText, 2, 1, 1, 4)
+        grid.addWidget(okButton, 3, 4, 1, 1)
+
+        readme.setLayout(grid)
+
+        readme.exec_()
 
 
 
