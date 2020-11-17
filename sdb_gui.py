@@ -861,13 +861,13 @@ class SDBWidget(QWidget):
         textLabel = QLabel('Tasks has been completed')
         textLabel.setAlignment(Qt.AlignCenter)
 
-        okBUtton = QPushButton('OK')
-        okBUtton.clicked.connect(complete.close)
+        okButton = QPushButton('OK')
+        okButton.clicked.connect(complete.close)
 
         grid = QGridLayout()
 
         grid.addWidget(textLabel, 1, 1, 1, 4)
-        grid.addWidget(okBUtton, 2, 2, 1, 2)
+        grid.addWidget(okButton, 2, 2, 1, 2)
 
         complete.setLayout(grid)
 
