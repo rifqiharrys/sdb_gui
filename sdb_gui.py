@@ -1014,15 +1014,21 @@ class SDBWidget(QWidget):
             new_img.write(z_img_ar, 1)
             new_img.close()
 
+            new_img_size = os.path.getsize(save_loc)
+            print_output_info = (
+                'Output:' + '\t\t' + save_loc + ' (' +
+                str(round(new_img_size / 2**10 / 2**10, 2)) + ' MB)'
+            )
+
+            self.resultText.append(print_output_info)
+
             if self.reportState.text() == 'checked':
                 report_save_loc = os.path.splitext(save_loc)[0] + '_report.txt'
                 report = open(report_save_loc, 'w')
-                new_img_size = os.path.getsize(save_loc)
 
                 report.write(
                     print_result_info +
-                    'Output:' + '\t\t' + save_loc + ' (' +
-                    str(round(new_img_size / 2**10 / 2**10, 2)) + ' MB)'
+                    print_output_info
                 )
             else:
                 pass
