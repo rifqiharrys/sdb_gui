@@ -92,12 +92,12 @@ class SDBWidget(QWidget):
         self.setWindowIcon(QIcon(resource_path('icons/satellite.png')))
 
         loadImageButton = QPushButton('Load Image')
-        loadImageButton.clicked.connect(self.loadImageDialog)
+        loadImageButton.clicked.connect(self.loadImageWindow)
         self.loadImageLabel = QLabel()
         self.loadImageLabel.setAlignment(Qt.AlignCenter)
 
         loadSampleButton = QPushButton('Load Sample')
-        loadSampleButton.clicked.connect(self.loadSampleDialog)
+        loadSampleButton.clicked.connect(self.loadSampleWindow)
         self.loadSampleLabel = QLabel()
         self.loadSampleLabel.setAlignment(Qt.AlignCenter)
 
@@ -243,11 +243,11 @@ class SDBWidget(QWidget):
             self.optionsButton.clicked.connect(self.svmOptionDialog)
 
 
-    def loadImageDialog(self):
+    def loadImageWindow(self):
 
-        self.loadImage = QDialog()
-        self.loadImage.setWindowTitle('Load Image')
-        self.loadImage.setWindowIcon(QIcon(resource_path('icons/load-pngrepo-com.png')))
+        self.loadImageDialog = QDialog()
+        self.loadImageDialog.setWindowTitle('Load Image')
+        self.loadImageDialog.setWindowIcon(QIcon(resource_path('icons/load-pngrepo-com.png')))
 
         openFilesButton = QPushButton('Open File')
         openFilesButton.clicked.connect(self.imageFileDialog)
@@ -256,10 +256,10 @@ class SDBWidget(QWidget):
         self.locList = QTextBrowser()
 
         cancelButton = QPushButton('Cancel')
-        cancelButton.clicked.connect(self.loadImage.close)
+        cancelButton.clicked.connect(self.loadImageDialog.close)
         loadButton = QPushButton('Load')
         loadButton.clicked.connect(self.loadImageAction)
-        loadButton.clicked.connect(self.loadImage.close)
+        loadButton.clicked.connect(self.loadImageDialog.close)
 
         grid = QGridLayout()
         grid.addWidget(openFilesButton, 1, 1, 1, 4)
@@ -271,9 +271,9 @@ class SDBWidget(QWidget):
         grid.addWidget(loadButton, 15, 3, 1, 1)
         grid.addWidget(cancelButton, 15, 4, 1, 1)
 
-        self.loadImage.setLayout(grid)
+        self.loadImageDialog.setLayout(grid)
 
-        self.loadImage.exec_()
+        self.loadImageDialog.exec_()
 
 
     def imageFileDialog(self):
@@ -315,16 +315,16 @@ class SDBWidget(QWidget):
 
             self.loadImageLabel.setText('Image Data Loaded')
         except:
-            self.loadImage.close()
+            self.loadImageDialog.close()
             self.noDataWarning()
-            self.loadImageDialog()
+            self.loadImageWindow()
 
 
-    def loadSampleDialog(self):
+    def loadSampleWindow(self):
 
-        self.loadSample = QDialog()
-        self.loadSample.setWindowTitle('Load Sample')
-        self.loadSample.setWindowIcon(QIcon(resource_path('icons/load-pngrepo-com.png')))
+        self.loadSampleDialog = QDialog()
+        self.loadSampleDialog.setWindowTitle('Load Sample')
+        self.loadSampleDialog.setWindowIcon(QIcon(resource_path('icons/load-pngrepo-com.png')))
 
         openFilesButton = QPushButton('Open File(s)')
         openFilesButton.clicked.connect(self.sampleFilesDialog)
@@ -358,10 +358,10 @@ class SDBWidget(QWidget):
         self.showState = QLabel()
 
         cancelButton = QPushButton('Cancel')
-        cancelButton.clicked.connect(self.loadSample.close)
+        cancelButton.clicked.connect(self.loadSampleDialog.close)
         loadButton = QPushButton('Load')
         loadButton.clicked.connect(self.loadSampleAction)
-        loadButton.clicked.connect(self.loadSample.close)
+        loadButton.clicked.connect(self.loadSampleDialog.close)
 
         grid = QGridLayout()
         grid.addWidget(openFilesButton, 1, 1, 1, 2)
@@ -385,9 +385,9 @@ class SDBWidget(QWidget):
         grid.addWidget(loadButton, 15, 3, 1, 1)
         grid.addWidget(cancelButton, 15, 4, 1, 1)
 
-        self.loadSample.setLayout(grid)
+        self.loadSampleDialog.setLayout(grid)
 
-        self.loadSample.exec_()
+        self.loadSampleDialog.exec_()
 
 
     def sampleFilesDialog(self):
@@ -439,7 +439,7 @@ class SDBWidget(QWidget):
             self.showState.setText('unchecked')
 
 
-    def loadSampleDict(self):
+    def loadSampleAction(self):
 
         try:
             head = self.headerLineSB.value() - 1
@@ -464,47 +464,42 @@ class SDBWidget(QWidget):
 
             global samples_raw
             samples_raw = pd.concat(dummy, ignore_index=True, sort=False)
+
+            raw = samples_raw.copy()
+
+            if self.showState.text() == 'checked':
+                data = raw
+            else:
+                data = raw.head(100)
+
+            self.depthHeaderCB.clear()
+            self.depthHeaderCB.addItems(data.columns)
+            self.bandStartCB.clear()
+            self.bandStartCB.addItems(data.columns)
+            self.bandStartCB.setCurrentIndex(1)
+            self.bandEndCB.clear()
+            self.bandEndCB.addItems(data.columns)
+            self.bandEndCB.setCurrentIndex(data.columns.size - 1)
+
+            self.table.setColumnCount(len(data.columns))
+            self.table.setRowCount(len(data.index))
+
+            for h in range(len(data.columns)):
+                self.table.setHorizontalHeaderItem(
+                    h, QTableWidgetItem(data.columns[h]))
+
+            for i in range(len(data.index)):
+                for j in range(len(data.columns)):
+                    self.table.setItem(i, j, QTableWidgetItem(str(data.iloc[i, j])))
+
+            self.table.resizeRowsToContents()
+            self.table.resizeColumnsToContents()
+
+            self.loadSampleLabel.setText('Sample Data Loaded')
         except:
-            self.loadSample.close()
+            self.loadSampleDialog.close()
             self.noDataWarning()
-            self.loadSampleDialog()
-
-        return samples_raw
-
-
-    def loadSampleAction(self):
-
-        raw = self.loadSampleDict()
-
-        if self.showState.text() == 'checked':
-            data = raw
-        else:
-            data = raw.head(100)
-
-        self.depthHeaderCB.clear()
-        self.depthHeaderCB.addItems(data.columns)
-        self.bandStartCB.clear()
-        self.bandStartCB.addItems(data.columns)
-        self.bandStartCB.setCurrentIndex(1)
-        self.bandEndCB.clear()
-        self.bandEndCB.addItems(data.columns)
-        self.bandEndCB.setCurrentIndex(data.columns.size - 1)
-
-        self.table.setColumnCount(len(data.columns))
-        self.table.setRowCount(len(data.index))
-
-        for h in range(len(data.columns)):
-            self.table.setHorizontalHeaderItem(
-                h, QTableWidgetItem(data.columns[h]))
-
-        for i in range(len(data.index)):
-            for j in range(len(data.columns)):
-                self.table.setItem(i, j, QTableWidgetItem(str(data.iloc[i, j])))
-
-        self.table.resizeRowsToContents()
-        self.table.resizeColumnsToContents()
-
-        self.loadSampleLabel.setText('Sample Data Loaded')
+            self.loadSampleWindow()
 
 
     def mlrOptionDialog(self):
