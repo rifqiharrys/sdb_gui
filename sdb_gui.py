@@ -804,7 +804,7 @@ class SDBWidget(QWidget):
                     pass
 
                 time_predict = datetime.datetime.now()
-                self.resultText.append('Calculating RMSE, MAE, and R\u00B2...\n')
+                self.resultText.append('Validating...\n')
                 self.progressBar.setValue(self.progressBar.value() + 1)
 
                 z_validate = regressor[4].predict(regressor[1])
