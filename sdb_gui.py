@@ -144,7 +144,7 @@ class SDBWidget(QWidget):
         makePredictionButton = QPushButton('Make Prediction')
         makePredictionButton.clicked.connect(self.predict)
         saveFileButton = QPushButton('Save Into File')
-        saveFileButton.clicked.connect(self.saveOptionDialog)
+        saveFileButton.clicked.connect(self.saveOptionWindow)
 
         resultInfo = QLabel('Result Information')
         self.resultText = QTextBrowser()
@@ -883,6 +883,17 @@ class SDBWidget(QWidget):
         self.resultText.clear()
 
 
+    def noSaveLocWarning(self):
+
+        warning = QErrorMessage()
+        warning.setWindowTitle('WARNING')
+        warning.setWindowIcon(QIcon(resource_path('icons/warning-pngrepo-com.png')))
+        warning.showMessage('Please insert save location!')
+
+        warning.exec_()
+        self.resultText.clear()
+
+
     def completeDialog(self):
 
         complete = QDialog()
@@ -906,11 +917,11 @@ class SDBWidget(QWidget):
         complete.exec_()
 
 
-    def saveOptionDialog(self):
+    def saveOptionWindow(self):
 
-        saveOption = QDialog()
-        saveOption.setWindowTitle('Save Options')
-        saveOption.setWindowIcon(QIcon(resource_path('icons/load-pngrepo-com.png')))
+        self.saveOptionDialog = QDialog()
+        self.saveOptionDialog.setWindowTitle('Save Options')
+        self.saveOptionDialog.setWindowIcon(QIcon(resource_path('icons/load-pngrepo-com.png')))
 
         saveFileButton = QPushButton('Save File Location')
         saveFileButton.clicked.connect(self.savePathDialog)
@@ -939,10 +950,10 @@ class SDBWidget(QWidget):
         self.reportState = QLabel('checked')
 
         cancelButton = QPushButton('Cancel')
-        cancelButton.clicked.connect(saveOption.close)
+        cancelButton.clicked.connect(self.saveOptionDialog.close)
         saveButton = QPushButton('Save')
         saveButton.clicked.connect(self.saveAction)
-        saveButton.clicked.connect(saveOption.close)
+        saveButton.clicked.connect(self.saveOptionDialog.close)
 
         grid = QGridLayout()
         grid.addWidget(dataTypeLabel, 1, 1, 1, 2)
@@ -957,9 +968,9 @@ class SDBWidget(QWidget):
         grid.addWidget(saveButton, 5, 3, 1, 1)
         grid.addWidget(cancelButton, 5, 4, 1, 1)
 
-        saveOption.setLayout(grid)
+        self.saveOptionDialog.setLayout(grid)
 
-        saveOption.exec_()
+        self.saveOptionDialog.exec_()
 
 
     def savePathDialog(self):
@@ -985,35 +996,40 @@ class SDBWidget(QWidget):
 
     def saveAction(self):
 
-        z_img_ar = z_predict.reshape(image_raw.height, image_raw.width)
+        try:
+            z_img_ar = z_predict.reshape(image_raw.height, image_raw.width)
 
-        new_img = rio.open(
-            save_loc,
-            'w',
-            driver=format_dict[self.dataTypeCB.currentText()],
-            height=image_raw.height,
-            width=image_raw.width,
-            count=1,
-            dtype=z_img_ar.dtype,
-            crs=image_raw.crs,
-            transform=image_raw.transform
-        )
-
-        new_img.write(z_img_ar, 1)
-        new_img.close()
-
-        if self.reportState.text() == 'checked':
-            report_save_loc = os.path.splitext(save_loc)[0] + '_report.txt'
-            report = open(report_save_loc, 'w')
-            new_img_size = os.path.getsize(save_loc)
-
-            report.write(
-                print_result_info +
-                'Output:' + '\t\t' + save_loc + ' (' +
-                str(round(new_img_size / 2**10 / 2**10, 2)) + ' MB)'
+            new_img = rio.open(
+                save_loc,
+                'w',
+                driver=format_dict[self.dataTypeCB.currentText()],
+                height=image_raw.height,
+                width=image_raw.width,
+                count=1,
+                dtype=z_img_ar.dtype,
+                crs=image_raw.crs,
+                transform=image_raw.transform
             )
-        else:
-            pass
+
+            new_img.write(z_img_ar, 1)
+            new_img.close()
+
+            if self.reportState.text() == 'checked':
+                report_save_loc = os.path.splitext(save_loc)[0] + '_report.txt'
+                report = open(report_save_loc, 'w')
+                new_img_size = os.path.getsize(save_loc)
+
+                report.write(
+                    print_result_info +
+                    'Output:' + '\t\t' + save_loc + ' (' +
+                    str(round(new_img_size / 2**10 / 2**10, 2)) + ' MB)'
+                )
+            else:
+                pass
+        except:
+            self.saveOptionDialog.close()
+            self.noSaveLocWarning()
+            self.saveOptionWindow()
 
 
     def aboutDialog(self):
