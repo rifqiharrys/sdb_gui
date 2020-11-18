@@ -485,8 +485,7 @@ class SDBWidget(QWidget):
             self.table.setRowCount(len(data.index))
 
             for h in range(len(data.columns)):
-                self.table.setHorizontalHeaderItem(
-                    h, QTableWidgetItem(data.columns[h]))
+                self.table.setHorizontalHeaderItem(h, QTableWidgetItem(data.columns[h]))
 
             for i in range(len(data.index)):
                 for j in range(len(data.columns)):
