@@ -15,6 +15,11 @@ Open SDB GUI and load both data. Choose one of the methods and decide how much o
 
 After the prediction complete, you can save it into georeferenced raster file or XYZ ASCII file containing coordinates of each center of pixel. The prediction will show you depth values even on land. So, you have to mask the prediction result in the end and extracting prediction result of only water body.
 
+## Workflow
+Image below is the workflow of predicting bathymetric depth using SDB GUI.
+
+![workflow](workflow_sdb_gui.png "Workflow")
+
 ## Methods
 I am using three methods to make the depth prediction at the time (this might be updated in the future), [Multiple Linear Regression](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html#sklearn.linear_model.LinearRegression), [Random Forest](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html#sklearn.ensemble.RandomForestRegressor "RF Regressor") and [Support Vector Machines](https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVR.html#sklearn.svm.SVR "SVM Regressor").
 
