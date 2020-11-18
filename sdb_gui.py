@@ -155,8 +155,8 @@ class SDBWidget(QWidget):
         self.progressBar.setMinimum(0)
         self.progressBar.setMaximum(4)
 
-        urlButton = QPushButton('Releases')
-        urlButton.clicked.connect(lambda: webbrowser.open(
+        releaseButton = QPushButton('Releases')
+        releaseButton.clicked.connect(lambda: webbrowser.open(
             'https://github.com/rifqiharrys/sdb_gui/releases'
         ))
 
@@ -164,8 +164,9 @@ class SDBWidget(QWidget):
         aboutButton.clicked.connect(self.aboutDialog)
 
         readmeButton = QPushButton('Readme')
-        readmeButton.clicked.connect(self.readmeDialog)
-
+        readmeButton.clicked.connect(lambda: webbrowser.open(
+            'https://github.com/rifqiharrys/sdb_gui/blob/main/README.md'
+        ))
 
         grid = QGridLayout()
         vbox = QVBoxLayout()
@@ -209,7 +210,7 @@ class SDBWidget(QWidget):
 
         grid.addWidget(self.progressBar, 22, 1, 1, 4)
 
-        grid.addWidget(urlButton, 23, 1, 1, 1)
+        grid.addWidget(releaseButton, 23, 1, 1, 1)
         grid.addWidget(aboutButton, 23, 2, 1, 2)
         grid.addWidget(readmeButton, 23, 4, 1, 1)
         self.setLayout(grid)
@@ -1035,32 +1036,6 @@ class SDBWidget(QWidget):
         about.setLayout(grid)
 
         about.exec_()
-
-
-    def readmeDialog(self):
-
-        readme = QDialog()
-        readme.setWindowTitle('Readme')
-        readme.setWindowIcon(QIcon(resource_path('icons/information-pngrepo-com.png')))
-        readme.resize(700, 400)
-
-        okButton = QPushButton('OK')
-        okButton.clicked.connect(readme.close)
-
-        readme_file = open(resource_path('README.html'), 'r')
-        readmeLabel = QLabel('Information')
-        readmeText = QTextBrowser()
-        readmeText.setText(readme_file.read())
-
-        grid = QGridLayout()
-
-        grid.addWidget(readmeLabel, 1, 1, 1, 4)
-        grid.addWidget(readmeText, 2, 1, 1, 4)
-        grid.addWidget(okButton, 3, 4, 1, 1)
-
-        readme.setLayout(grid)
-
-        readme.exec_()
 
 
 
