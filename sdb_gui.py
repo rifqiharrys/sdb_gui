@@ -852,10 +852,8 @@ class SDBWidget(QWidget):
             self.completeDialog()
         except NameError:
             self.noDataWarning()
-            self.resultText.clear()
         except ValueError:
-            self.dimensionError()
-            self.resultText.clear()
+            self.headerWarning()
 
 
     def noDataWarning(self):
@@ -863,19 +861,21 @@ class SDBWidget(QWidget):
         warning = QErrorMessage()
         warning.setWindowTitle('WARNING')
         warning.setWindowIcon(QIcon(resource_path('icons/warning-pngrepo-com.png')))
-        warning.showMessage('Please input your data!')
+        warning.showMessage('No data loaded. Please input your data!')
 
         warning.exec_()
+        self.resultText.clear()
 
 
-    def dimensionError(self):
+    def headerWarning(self):
 
         warning = QErrorMessage()
         warning.setWindowTitle('WARNING')
         warning.setWindowIcon(QIcon(resource_path('icons/warning-pngrepo-com.png')))
-        warning.showMessage('Dimension does not match!')
+        warning.showMessage('Please select headers correctly!')
 
         warning.exec_()
+        self.resultText.clear()
 
 
     def completeDialog(self):
