@@ -605,7 +605,7 @@ class SDBWidget(QWidget):
 
         kernelLabel = QLabel('Kernel:')
         self.kernelCB = QComboBox()
-        self.kernelCB.addItems(['linear', 'poly', 'rbf', 'sigmoid', 'precomputed'])
+        self.kernelCB.addItems(['linear', 'poly', 'rbf', 'sigmoid'])
         self.kernelCB.setCurrentIndex(2)
 
         gammaLabel = QLabel('Gamma:')
