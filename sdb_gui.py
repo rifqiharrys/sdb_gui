@@ -245,9 +245,9 @@ class SDBWidget(QWidget):
 
     def loadImageDialog(self):
 
-        loadImage = QDialog()
-        loadImage.setWindowTitle('Load Image')
-        loadImage.setWindowIcon(QIcon(resource_path('icons/load-pngrepo-com.png')))
+        self.loadImage = QDialog()
+        self.loadImage.setWindowTitle('Load Image')
+        self.loadImage.setWindowIcon(QIcon(resource_path('icons/load-pngrepo-com.png')))
 
         openFilesButton = QPushButton('Open File')
         openFilesButton.clicked.connect(self.imageFileDialog)
@@ -256,10 +256,10 @@ class SDBWidget(QWidget):
         self.locList = QTextBrowser()
 
         cancelButton = QPushButton('Cancel')
-        cancelButton.clicked.connect(loadImage.close)
+        cancelButton.clicked.connect(self.loadImage.close)
         loadButton = QPushButton('Load')
         loadButton.clicked.connect(self.loadImageAction)
-        loadButton.clicked.connect(loadImage.close)
+        loadButton.clicked.connect(self.loadImage.close)
 
         grid = QGridLayout()
         grid.addWidget(openFilesButton, 1, 1, 1, 4)
@@ -271,9 +271,9 @@ class SDBWidget(QWidget):
         grid.addWidget(loadButton, 15, 3, 1, 1)
         grid.addWidget(cancelButton, 15, 4, 1, 1)
 
-        loadImage.setLayout(grid)
+        self.loadImage.setLayout(grid)
 
-        loadImage.exec_()
+        self.loadImage.exec_()
 
 
     def imageFileDialog(self):
@@ -291,35 +291,40 @@ class SDBWidget(QWidget):
 
     def loadImageAction(self):
 
-        global img_size
-        img_size = os.path.getsize(img_loc)
+        try:
+            global img_size
+            img_size = os.path.getsize(img_loc)
 
-        global image_raw
-        image_raw = rio.open(img_loc)
+            global image_raw
+            image_raw = rio.open(img_loc)
 
-        nbands = len(image_raw.indexes)
-        ndata = image_raw.read(1).size
-        bands_dummy = np.zeros((nbands, ndata))
-        for i in range(1, nbands + 1):
-            bands_dummy[i - 1, :] = np.ravel(image_raw.read(i))
+            nbands = len(image_raw.indexes)
+            ndata = image_raw.read(1).size
+            bands_dummy = np.zeros((nbands, ndata))
+            for i in range(1, nbands + 1):
+                bands_dummy[i - 1, :] = np.ravel(image_raw.read(i))
 
-        global bands_array
-        bands_array = bands_dummy.T
+            global bands_array
+            bands_array = bands_dummy.T
 
-        coord1 = np.array(image_raw.transform * (0, 0))
-        coord2 = np.array(image_raw.transform * (1, 1))
+            coord1 = np.array(image_raw.transform * (0, 0))
+            coord2 = np.array(image_raw.transform * (1, 1))
 
-        global pixel_size
-        pixel_size = coord2 - coord1
+            global pixel_size
+            pixel_size = coord2 - coord1
 
-        self.loadImageLabel.setText('Image Data Loaded')
+            self.loadImageLabel.setText('Image Data Loaded')
+        except:
+            self.loadImage.close()
+            self.noDataWarning()
+            self.loadImageDialog()
 
 
     def loadSampleDialog(self):
 
-        loadSample = QDialog()
-        loadSample.setWindowTitle('Load Sample')
-        loadSample.setWindowIcon(QIcon(resource_path('icons/load-pngrepo-com.png')))
+        self.loadSample = QDialog()
+        self.loadSample.setWindowTitle('Load Sample')
+        self.loadSample.setWindowIcon(QIcon(resource_path('icons/load-pngrepo-com.png')))
 
         openFilesButton = QPushButton('Open File(s)')
         openFilesButton.clicked.connect(self.sampleFilesDialog)
@@ -353,10 +358,10 @@ class SDBWidget(QWidget):
         self.showState = QLabel()
 
         cancelButton = QPushButton('Cancel')
-        cancelButton.clicked.connect(loadSample.close)
+        cancelButton.clicked.connect(self.loadSample.close)
         loadButton = QPushButton('Load')
         loadButton.clicked.connect(self.loadSampleAction)
-        loadButton.clicked.connect(loadSample.close)
+        loadButton.clicked.connect(self.loadSample.close)
 
         grid = QGridLayout()
         grid.addWidget(openFilesButton, 1, 1, 1, 2)
@@ -380,9 +385,9 @@ class SDBWidget(QWidget):
         grid.addWidget(loadButton, 15, 3, 1, 1)
         grid.addWidget(cancelButton, 15, 4, 1, 1)
 
-        loadSample.setLayout(grid)
+        self.loadSample.setLayout(grid)
 
-        loadSample.exec_()
+        self.loadSample.exec_()
 
 
     def sampleFilesDialog(self):
@@ -436,28 +441,33 @@ class SDBWidget(QWidget):
 
     def loadSampleDict(self):
 
-        head = self.headerLineSB.value() - 1
-        start_data = self.dataLineSB.value() - 1
-        sepDict = {'Tab': '\t', 'Comma': ',', 'Space': ' ', 'Semicolon': ';'}
-        sepSelect = sepDict[self.sepCB.currentText()]
+        try:
+            head = self.headerLineSB.value() - 1
+            start_data = self.dataLineSB.value() - 1
+            sepDict = {'Tab': '\t', 'Comma': ',', 'Space': ' ', 'Semicolon': ';'}
+            sepSelect = sepDict[self.sepCB.currentText()]
 
-        dummy = []
+            dummy = []
 
-        global sample_size
-        sample_size = np.ones(len(filesList))
+            global sample_size
+            sample_size = np.ones(len(filesList))
 
-        for file in filesList:
-            raw_single = pd.read_csv(file, sep=sepSelect, header=head)
-            raw_single = raw_single.iloc[start_data:, 0:]
+            for file in filesList:
+                raw_single = pd.read_csv(file, sep=sepSelect, header=head)
+                raw_single = raw_single.iloc[start_data:, 0:]
 
-            dummy.append(raw_single)
+                dummy.append(raw_single)
 
-            sample_size[filesList.index(file)] = os.path.getsize(file)
+                sample_size[filesList.index(file)] = os.path.getsize(file)
 
-        sample_size = sample_size.sum()
+            sample_size = sample_size.sum()
 
-        global samples_raw
-        samples_raw = pd.concat(dummy, ignore_index=True, sort=False)
+            global samples_raw
+            samples_raw = pd.concat(dummy, ignore_index=True, sort=False)
+        except:
+            self.loadSample.close()
+            self.noDataWarning()
+            self.loadSampleDialog()
 
         return samples_raw
 
