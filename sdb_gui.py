@@ -850,17 +850,30 @@ class SDBWidget(QWidget):
             self.resultText.setText(print_result_info)
 
             self.completeDialog()
-        except:
-            self.warningDialog()
+        except NameError:
+            self.noDataWarning()
+            self.resultText.clear()
+        except ValueError:
+            self.dimensionError()
             self.resultText.clear()
 
 
-    def warningDialog(self):
+    def noDataWarning(self):
 
         warning = QErrorMessage()
         warning.setWindowTitle('WARNING')
         warning.setWindowIcon(QIcon(resource_path('icons/warning-pngrepo-com.png')))
         warning.showMessage('Please input your data!')
+
+        warning.exec_()
+
+
+    def dimensionError(self):
+
+        warning = QErrorMessage()
+        warning.setWindowTitle('WARNING')
+        warning.setWindowIcon(QIcon(resource_path('icons/warning-pngrepo-com.png')))
+        warning.showMessage('Dimension does not match!')
 
         warning.exec_()
 
