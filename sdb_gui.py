@@ -285,13 +285,13 @@ class SDBWidget(QWidget):
         global img_loc
         img_loc = fname[0]
 
-        global img_size
-        img_size = os.path.getsize(img_loc)
-
         self.locList.setText(img_loc)
 
 
     def loadImageAction(self):
+
+        global img_size
+        img_size = os.path.getsize(img_loc)
 
         global image_raw
         image_raw = rio.open(img_loc)
