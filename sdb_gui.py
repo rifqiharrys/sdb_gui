@@ -22,11 +22,11 @@ import glob
 import sys, os
 import datetime
 import webbrowser
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import (Qt, QThread, pyqtSignal)
 from PyQt5.QtWidgets import(QApplication, QWidget, QTextBrowser, QProgressBar, QFileDialog, QDialog,
-                            QGridLayout, QMessageBox, QVBoxLayout, QComboBox, QLabel, QCheckBox,
-                            QPushButton, QDoubleSpinBox, QSpinBox, QRadioButton, QTableWidgetItem,
-                            QTableWidget, QScrollArea, QHeaderView, QErrorMessage)
+                            QGridLayout, QPushButton, QVBoxLayout, QComboBox, QLabel, QCheckBox,
+                            QDoubleSpinBox, QSpinBox, QRadioButton, QTableWidgetItem, QTableWidget,
+                            QScrollArea, QHeaderView, QErrorMessage)
 from PyQt5.QtGui import QIcon
 
 def resource_path(relative_path):
@@ -45,6 +45,8 @@ os.environ['GDAL_DATA'] = resource_path('share')
 
 
 class SDBWidget(QWidget):
+
+    widget_signal = pyqtSignal(list)
 
     def __init__(self):
 
@@ -155,7 +157,7 @@ class SDBWidget(QWidget):
         self.progressBar.setMinimum(0)
         self.progressBar.setMaximum(4)
 
-        releaseButton = QPushButton('Releases')
+        releaseButton =  QPushButton('Releases')
         releaseButton.clicked.connect(lambda: webbrowser.open(
             'https://github.com/rifqiharrys/sdb_gui/releases'
         ))
@@ -444,7 +446,8 @@ class SDBWidget(QWidget):
         try:
             head = self.headerLineSB.value() - 1
             start_data = self.dataLineSB.value() - 1
-            sepDict = {'Tab': '\t', 'Comma': ',', 'Space': ' ', 'Semicolon': ';'}
+            sepDict = {'Tab': '\t', 'Comma': ',',
+                       'Space': ' ', 'Semicolon': ';'}
             sepSelect = sepDict[self.sepCB.currentText()]
 
             dummy = []
@@ -489,7 +492,8 @@ class SDBWidget(QWidget):
 
             for i in range(len(data.index)):
                 for j in range(len(data.columns)):
-                    self.table.setItem(i, j, QTableWidgetItem(str(data.iloc[i, j])))
+                    self.table.setItem(
+                        i, j, QTableWidgetItem(str(data.iloc[i, j])))
 
             self.table.resizeRowsToContents()
             self.table.resizeColumnsToContents()
@@ -774,7 +778,9 @@ class SDBWidget(QWidget):
 
         try:
             self.resultText.setText('Fitting...\n')
-            time_start = datetime.datetime.now()
+            self.time_start = datetime.datetime.now()
+            global time_list
+            time_list = [self.time_start]
 
             if self.methodCB.currentText() == method_list[0]:
                 regressor = self.mlrPredict()
@@ -783,82 +789,85 @@ class SDBWidget(QWidget):
             else:
                 regressor = self.svmPredict()
 
-            with parallel_backend('threading', n_jobs=njobs):
-
-                regressor[4].fit(regressor[0], regressor[2])
-
-                time_fit = datetime.datetime.now()
-                self.resultText.append('Predicting...\n')
-                self.progressBar.setValue(self.progressBar.value() + 1)
-
-                global z_predict
-                z_predict = regressor[4].predict(bands_array)
-
-                if self.limitState.text() == 'unchecked':
-                    print('checking prediction')
-                    z_predict[z_predict < self.limitSB.value()] = np.nan
-                    z_predict[z_predict > 0] = np.nan
-
-                    print_limit = (
-                        'Depth Limit:' + '\t\t' + str(self.limitSB.value())
-                    )
-                else:
-                    print_limit = (
-                        'Depth Limit:' + '\t\t' + 'Disabled'
-                    )
-                    pass
-
-                time_predict = datetime.datetime.now()
-                self.resultText.append('Validating...\n')
-                self.progressBar.setValue(self.progressBar.value() + 1)
-
-                z_validate = regressor[4].predict(regressor[1])
-                rmse = np.sqrt(metrics.mean_squared_error(regressor[3], z_validate))
-                mae = metrics.mean_absolute_error(regressor[3], z_validate)
-                r2 = metrics.r2_score(regressor[3], z_validate)
-
-                time_test = datetime.datetime.now()
-                self.progressBar.setValue(self.progressBar.value() + 1)
-
-            runtime = [
-                time_fit - time_start,
-                time_predict - time_fit,
-                time_test - time_predict,
-                time_test - time_start
-            ]
-
-            global print_result_info
-            print_result_info = (
-                'Image Input:' + '\t\t' + img_loc + ' (' +
-                str(round(img_size / 2**10 / 2**10, 2)) + ' MB)' + '\n' +
-                'Sample Data:' + '\t\t' + fileListPrint + ' (' +
-                str(round(sample_size / 2**10 / 2**10, 2)) + ' MB)' + '\n\n' +
-                print_limit + '\n' +
-                'Train Data:' + '\t\t' + str(self.trainPercentDSB.value()) + ' %' + '\n' +
-                'Test Data:' + '\t\t' + str(100 - self.trainPercentDSB.value()) + ' %' + '\n\n' +
-                'Method:' + '\t\t' + self.methodCB.currentText() + '\n' +
-                print_parameters_info + '\n\n'
-                'RMSE:' + '\t\t' + str(rmse) + '\n' +
-                'MAE:' + '\t\t' + str(mae) + '\n' +
-                'R\u00B2:' + '\t\t' + str(r2) + '\n\n' +
-                'Fitting Runtime:' + '\t\t' + str(runtime[0]) + '\n' +
-                'Prediction Runtime:' + '\t' + str(runtime[1]) + '\n' +
-                'Validating Runtime:' + '\t' + str(runtime[2]) + '\n' +
-                'Overall Runtime:' + '\t' + str(runtime[3]) + '\n\n' +
-                'CRS:' + '\t\t' + str(image_raw.crs) +'\n'
-                'Dimensions:' + '\t\t' + str(image_raw.width) + ' x ' +
-                str(image_raw.height) + ' pixels' + '\n' +
-                'Pixel Size:' + '\t\t' + str(pixel_size[0]) + ' , ' +
-                str(pixel_size[1]) + '\n\n'
-            )
-
-            self.resultText.setText(print_result_info)
-
-            self.completeDialog()
+            self.sdbProcess = SDBProcess()
+            self.widget_signal.connect(self.sdbProcess.inputs)
+            self.widget_signal.emit(regressor)
+            self.sdbProcess.start()
+            self.sdbProcess.time_signal.connect(self.timeCounting)
+            self.sdbProcess.thread_signal.connect(self.results)
+            self.sdbProcess.error_signal.connect(self.headerWarning)
         except NameError:
             self.noDataWarning()
         except ValueError:
             self.headerWarning()
+
+
+    def timeCounting(self, time_text):
+
+        time_list.append(time_text[0])
+        self.resultText.append(time_text[1])
+        self.progressBar.setValue(self.progressBar.value() + 1)
+
+        if self.progressBar.value() == 4:
+            self.completeDialog()
+        else:
+            pass
+
+
+    def results(self, result_list):
+
+        global z_predict
+        z_predict = result_list[0]
+        rmse = result_list[1]
+        mae = result_list[2]
+        r2 = result_list[3]
+
+        if self.limitState.text() == 'unchecked':
+            print('checking prediction')
+            z_predict[z_predict < self.limitSB.value()] = np.nan
+            z_predict[z_predict > 0] = np.nan
+
+            print_limit = (
+                'Depth Limit:' + '\t\t' + str(self.limitSB.value())
+            )
+        else:
+            print_limit = (
+                'Depth Limit:' + '\t\t' + 'Disabled'
+            )
+
+        runtime = [
+            time_list[1] - time_list[0],
+            time_list[2] - time_list[1],
+            time_list[3] - time_list[2],
+            time_list[3] - time_list[0]
+        ]
+
+        global print_result_info
+        print_result_info = (
+            'Image Input:' + '\t\t' + img_loc + ' (' +
+            str(round(img_size / 2**10 / 2**10, 2)) + ' MB)' + '\n' +
+            'Sample Data:' + '\t\t' + fileListPrint + ' (' +
+            str(round(sample_size / 2**10 / 2**10, 2)) + ' MB)' + '\n\n' +
+            print_limit + '\n' +
+            'Train Data:' + '\t\t' + str(self.trainPercentDSB.value()) + ' %' + '\n' +
+            'Test Data:' + '\t\t' + str(100 - self.trainPercentDSB.value()) + ' %' + '\n\n' +
+            'Method:' + '\t\t' + self.methodCB.currentText() + '\n' +
+            print_parameters_info + '\n\n'
+            'RMSE:' + '\t\t' + str(rmse) + '\n' +
+            'MAE:' + '\t\t' + str(mae) + '\n' +
+            'R\u00B2:' + '\t\t' + str(r2) + '\n\n' +
+            'Fitting Runtime:' + '\t\t' + str(runtime[0]) + '\n' +
+            'Prediction Runtime:' + '\t' + str(runtime[1]) + '\n' +
+            'Validating Runtime:' + '\t' + str(runtime[2]) + '\n' +
+            'Overall Runtime:' + '\t' + str(runtime[3]) + '\n\n' +
+            'CRS:' + '\t\t' + str(image_raw.crs) + '\n'
+            'Dimensions:' + '\t\t' + str(image_raw.width) + ' x ' +
+            str(image_raw.height) + ' pixels' + '\n' +
+            'Pixel Size:' + '\t\t' + str(pixel_size[0]) + ' , ' +
+            str(pixel_size[1]) + '\n\n'
+        )
+
+        self.resultText.setText(print_result_info)
 
 
     def noDataWarning(self):
@@ -899,7 +908,7 @@ class SDBWidget(QWidget):
         complete = QDialog()
         complete.setWindowTitle('Complete')
         complete.setWindowIcon(QIcon(resource_path('icons/complete-pngrepo-com.png')))
-        complete.resize(180, 30)
+        complete.resize(180,30)
 
         textLabel = QLabel('Tasks has been completed')
         textLabel.setAlignment(Qt.AlignCenter)
@@ -1042,8 +1051,8 @@ class SDBWidget(QWidget):
 
         about = QDialog()
         about.setWindowTitle('About')
-        about.resize(500, 380)
         about.setWindowIcon(QIcon(resource_path('icons/information-pngrepo-com.png')))
+        about.resize(500, 380)
 
         okButton = QPushButton('OK')
         okButton.clicked.connect(about.close)
@@ -1062,6 +1071,62 @@ class SDBWidget(QWidget):
         about.setLayout(grid)
 
         about.exec_()
+
+
+
+class SDBProcess(QThread):
+
+    thread_signal = pyqtSignal(list)
+    time_signal = pyqtSignal(list)
+    error_signal = pyqtSignal()
+
+    def __init__(self):
+
+        QThread.__init__(self)
+
+
+    def inputs(self, input_list):
+
+        self.features_train = input_list[0]
+        self.features_test = input_list[1]
+        self.z_train = input_list[2]
+        self.z_test = input_list[3]
+        self.regressor = input_list[4]
+
+
+    def run(self):
+
+        try:
+            with parallel_backend('threading', n_jobs=njobs):
+
+                self.regressor.fit(self.features_train, self.z_train)
+                time_fit = datetime.datetime.now()
+                fit_list = [time_fit, 'Predicting...\n']
+                self.time_signal.emit(fit_list)
+
+                z_predict = self.regressor.predict(bands_array)
+                time_predict = datetime.datetime.now()
+                predict_list = [time_predict,'Validating...\n']
+                self.time_signal.emit(predict_list)
+
+                z_validate = self.regressor.predict(self.features_test)
+                rmse = np.sqrt(metrics.mean_squared_error(self.z_test, z_validate))
+                mae = metrics.mean_absolute_error(self.z_test, z_validate)
+                r2 = metrics.r2_score(self.z_test, z_validate)
+                time_test = datetime.datetime.now()
+                test_list = [time_test, 'Done.']
+                self.time_signal.emit(test_list)
+
+                result = [
+                    z_predict,
+                    rmse,
+                    mae,
+                    r2
+                ]
+
+                self.thread_signal.emit(result)
+        except ValueError:
+            self.error_signal.emit()
 
 
 
