@@ -330,16 +330,10 @@ class SDBWidget(QWidget):
 
         openFilesButton = QPushButton('Open File(s)')
         openFilesButton.clicked.connect(self.sampleFilesDialog)
-        openFolderButton = QPushButton('Open Folder')
-        openFolderButton.clicked.connect(self.sampleFolderDialog)
 
         sepLabel = QLabel('Separator:')
         self.sepCB = QComboBox()
         self.sepCB.addItems(['Comma', 'Tab', 'Space', 'Semicolon'])
-
-        textTypeLabel = QLabel('Text Type')
-        self.textTypeCB = QComboBox()
-        self.textTypeCB.addItems(['.csv', '.txt', '.dat'])
 
         headerLineLabel = QLabel('Header Starting Line:')
         self.headerLineSB = QSpinBox()
@@ -366,13 +360,10 @@ class SDBWidget(QWidget):
         loadButton.clicked.connect(self.loadSampleDialog.close)
 
         grid = QGridLayout()
-        grid.addWidget(openFilesButton, 1, 1, 1, 2)
-        grid.addWidget(openFolderButton, 1, 3, 1, 2)
+        grid.addWidget(openFilesButton, 1, 1, 1, 4)
 
         grid.addWidget(sepLabel, 2, 1, 1, 1)
-        grid.addWidget(self.sepCB, 2, 2, 1, 1)
-        grid.addWidget(textTypeLabel, 2, 3, 1, 1)
-        grid.addWidget(self.textTypeCB, 2, 4, 1, 1)
+        grid.addWidget(self.sepCB, 2, 2, 1, 3)
 
         grid.addWidget(headerLineLabel, 3, 1, 1, 1)
         grid.addWidget(self.headerLineSB, 3, 2, 1, 1)
@@ -401,28 +392,6 @@ class SDBWidget(QWidget):
 
         global filesList
         filesList = fname[0]
-
-        global fileListPrint
-        fileListPrint = ''
-
-        for file in filesList:
-            fileListPrint += file + '\n'
-
-        self.locList.setText(fileListPrint)
-
-
-    def sampleFolderDialog(self):
-
-        home_dir = str(Path.home())
-        fname = QFileDialog.getExistingDirectory(self, 'Open Folder', home_dir)
-
-        textTypeDict = {'.txt': '.[Tt][Xx][Tt]', '.csv': '.[Cc][Ss][Vv]', '.dat': '.[Dd][Aa][Tt]'}
-        textTypeSelect = textTypeDict[self.textTypeCB.currentText()]
-
-        pathName = fname + '/**/*' + textTypeSelect
-
-        global filesList
-        filesList = glob.glob(pathName, recursive=True)
 
         global fileListPrint
         fileListPrint = ''
