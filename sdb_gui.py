@@ -22,6 +22,22 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 '''
+###############################################################################
+#################### For Auto PY to EXE or PyInstaller Use ####################
+
+import sklearn.neighbors
+import sklearn.utils._cython_blas
+import sklearn.tree
+import sklearn.tree._utils
+import rasterio._features
+import rasterio._shim
+import rasterio.control
+import rasterio.crs
+import rasterio.sample
+import rasterio.vrt
+
+###############################################################################
+###############################################################################
 
 from sklearn import metrics
 from sklearn.linear_model import LinearRegression
@@ -29,19 +45,9 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import SVR
 from sklearn.model_selection import train_test_split
 from joblib import parallel_backend
-import sklearn.neighbors
-import sklearn.utils._cython_blas
-import sklearn.tree
-import sklearn.tree._utils
 import pandas as pd
 import numpy as np
 import rasterio as rio
-import rasterio._features
-import rasterio._shim
-import rasterio.control
-import rasterio.crs
-import rasterio.sample
-import rasterio.vrt
 from pathlib import Path
 import glob
 import sys, os
