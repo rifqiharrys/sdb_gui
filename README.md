@@ -30,7 +30,7 @@ In Scikit Learn modules, this method called only with the name Linear Regression
 The adjustable hyperparameters for Random Forest method are the number of trees and the function to measure the quality of a split (criterion). The default values respectively are 300 and mse (Mean Square Error). The other value for the criterion is mae (Mean Absolute Error).
 
 ### Support Vector Machines
-The adjustable hyperparameters for SVM method are kernel type, kernel coefficient (gamma), and regularization parameter (C). The default hyperparameter values are rbf for kernel type, 0.1 for gamma, and 1.0 for C.
+The adjustable hyperparameters for SVM method are kernel type, kernel coefficient (gamma), regularization parameter (C), and degree (which working for polynomial kernel only). The default hyperparameter values are poly for kernel type, 0.1 for gamma, 1.0 for C, and 3 for degree.
 
 ## License
 See [LICENSE](https://github.com/rifqiharrys/sdb_gui/blob/main/LICENSE)
