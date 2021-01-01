@@ -103,9 +103,10 @@ class SDBWidget(QWidget):
 
         global svm_op_list
         svm_op_list = [
-            'rbf', # kernel
+            'poly', # kernel
             .1, # gamma
-            1000.0 # C
+            1000.0, # C
+            3 # degree
         ]
 ####### Default Values #######
 
@@ -609,7 +610,7 @@ class SDBWidget(QWidget):
         kernelLabel = QLabel('Kernel:')
         self.kernelCB = QComboBox()
         self.kernelCB.addItems(['linear', 'poly', 'rbf', 'sigmoid'])
-        self.kernelCB.setCurrentIndex(2)
+        self.kernelCB.setCurrentIndex(1)
 
         gammaLabel = QLabel('Gamma:')
         self.gammaDSB = QDoubleSpinBox()
@@ -624,6 +625,12 @@ class SDBWidget(QWidget):
         self.cDSB.setDecimals(3)
         self.cDSB.setValue(1000.0)
         self.cDSB.setAlignment(Qt.AlignRight)
+
+        degreeLabel = QLabel('degree (poly):')
+        self.degreeSB = QSpinBox()
+        self.degreeSB.setRange(2, 20)
+        self.degreeSB.setValue(3)
+        self.degreeSB.setAlignment(Qt.AlignRight)
 
         cancelButton = QPushButton('Cancel')
         cancelButton.clicked.connect(optionDialog.close)
@@ -642,8 +649,11 @@ class SDBWidget(QWidget):
         grid.addWidget(cLabel, 3, 1, 1, 2)
         grid.addWidget(self.cDSB, 3, 3, 1, 2)
 
-        grid.addWidget(loadButton, 4, 3, 1, 1)
-        grid.addWidget(cancelButton, 4, 4, 1, 1)
+        grid.addWidget(degreeLabel, 4, 1, 1, 2)
+        grid.addWidget(self.degreeSB, 4, 3, 1, 2)
+
+        grid.addWidget(loadButton, 5, 3, 1, 1)
+        grid.addWidget(cancelButton, 5, 4, 1, 1)
 
         optionDialog.setLayout(grid)
 
@@ -656,7 +666,8 @@ class SDBWidget(QWidget):
         svm_op_list = [
             self.kernelCB.currentText(),
             self.gammaDSB.value(),
-            self.cDSB.value()
+            self.cDSB.value(),
+            self.degreeSB.value()
         ]
 
 
@@ -753,6 +764,7 @@ class SDBWidget(QWidget):
             kernel=svm_op_list[0],
             gamma=svm_op_list[1],
             C=svm_op_list[2],
+            degree=svm_op_list[3],
             cache_size=8000)
 
         samples_split.append(regressor)
@@ -763,6 +775,14 @@ class SDBWidget(QWidget):
             'Gamma:' + '\t\t' + str(svm_op_list[1]) + '\n' +
             'C:' + '\t\t' + str(svm_op_list[2])
         )
+
+        if svm_op_list[0] == 'poly':
+            print_parameters_info = (
+                print_parameters_info + '\n' +
+                'Degree:' + '\t\t' + str(svm_op_list[3])
+            )
+        else:
+            print_parameters_info = print_parameters_info
 
         return samples_split
 
