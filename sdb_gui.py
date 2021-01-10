@@ -45,6 +45,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import SVR
 from sklearn.model_selection import train_test_split
 from joblib import parallel_backend
+from scipy import ndimage
 import pandas as pd
 import numpy as np
 import rasterio as rio
@@ -147,16 +148,17 @@ class SDBWidget(QWidget):
         scroll = QScrollArea()
         scroll.setWidget(self.table)
 
-        self.limitCheckBox = QCheckBox('Disable Depth Limitation')
-        self.limitCheckBox.setChecked(False)
-        self.limitCheckBox.toggled.connect(self.limitCheckBoxState)
-        self.limitState = QLabel('unchecked')
-
         limitLabel = QLabel('Depth Limit Value:')
         self.limitSB = QSpinBox()
         self.limitSB.setRange(-100, 0)
         self.limitSB.setValue(-30)
+        self.limitSB.setSuffix(' m')
         self.limitSB.setAlignment(Qt.AlignRight)
+
+        self.limitCheckBox = QCheckBox('Disable Depth Limitation')
+        self.limitCheckBox.setChecked(False)
+        self.limitCheckBox.toggled.connect(self.limitCheckBoxState)
+        self.limitState = QLabel('unchecked')
 
         methodLabel = QLabel('Regression Method:')
         self.methodCB = QComboBox()
@@ -164,11 +166,12 @@ class SDBWidget(QWidget):
         self.methodCB.addItems(method_list)
         self.methodCB.activated.connect(self.methodSelection)
 
-        trainPercentLabel = QLabel('Train Data (Percent):')
+        trainPercentLabel = QLabel('Train Data:')
         self.trainPercentDSB = QDoubleSpinBox()
         self.trainPercentDSB.setRange(10.0, 90.0)
         self.trainPercentDSB.setDecimals(2)
         self.trainPercentDSB.setValue(75.0)
+        self.trainPercentDSB.setSuffix(' %')
         self.trainPercentDSB.setAlignment(Qt.AlignRight)
 
         self.optionsButton = QPushButton('Options')
@@ -696,7 +699,7 @@ class SDBWidget(QWidget):
             pass
 
         if self.limitState.text() == 'unchecked':
-            print('checking input')
+            print('checking input depth limit')
             samples_edit = samples_edit[samples_edit[depth_label] >= self.limitSB.value()]
             samples_edit = samples_edit[samples_edit[depth_label] <= 0]
         else:
@@ -970,6 +973,18 @@ class SDBWidget(QWidget):
         self.dataTypeCB.addItems(format_list)
         self.dataTypeCB.setCurrentText('GeoTIFF (*.tif)')
 
+        medianFilterLabel = QLabel('Median Filter Size:')
+        self.medianFilterSB = QSpinBox()
+        self.medianFilterSB.setRange(3, 33)
+        self.medianFilterSB.setValue(3)
+        self.medianFilterSB.setSingleStep(2)
+        self.medianFilterSB.setAlignment(Qt.AlignRight)
+
+        self.medianFilterCheckBox = QCheckBox('Disable Median Filter')
+        self.medianFilterCheckBox.setChecked(False)
+        self.medianFilterCheckBox.toggled.connect(self.medianFilterCheckBoxState)
+        self.medianFilterState = QLabel('unchecked')
+
         locLabel = QLabel('Location:')
         self.locList = QTextBrowser()
 
@@ -988,14 +1003,18 @@ class SDBWidget(QWidget):
         grid.addWidget(dataTypeLabel, 1, 1, 1, 2)
         grid.addWidget(self.dataTypeCB, 1, 3, 1, 2)
 
-        grid.addWidget(saveFileButton, 2, 1, 1, 4)
+        grid.addWidget(medianFilterLabel, 2, 1, 1, 1)
+        grid.addWidget(self.medianFilterSB, 2, 2, 1, 1)
+        grid.addWidget(self.medianFilterCheckBox, 2, 3, 1, 2)
 
-        grid.addWidget(locLabel, 3, 1, 1, 4)
-        grid.addWidget(self.locList, 4, 1, 1, 4)
+        grid.addWidget(saveFileButton, 3, 1, 1, 4)
 
-        grid.addWidget(self.reportCheckBox, 5, 1, 1, 2)
-        grid.addWidget(saveButton, 5, 3, 1, 1)
-        grid.addWidget(cancelButton, 5, 4, 1, 1)
+        grid.addWidget(locLabel, 4, 1, 1, 4)
+        grid.addWidget(self.locList, 5, 1, 1, 4)
+
+        grid.addWidget(self.reportCheckBox, 6, 1, 1, 2)
+        grid.addWidget(saveButton, 6, 3, 1, 1)
+        grid.addWidget(cancelButton, 6, 4, 1, 1)
 
         self.saveOptionDialog.setLayout(grid)
 
@@ -1015,6 +1034,14 @@ class SDBWidget(QWidget):
         self.locList.setText(save_loc)
 
 
+    def medianFilterCheckBoxState(self):
+
+        if self.medianFilterCheckBox.isChecked() == True:
+            self.medianFilterState.setText('checked')
+        else:
+            self.medianFilterState.setText('unchecked')
+
+
     def reportCheckBoxState(self):
 
         if self.reportCheckBox.isChecked() == True:
@@ -1027,6 +1054,16 @@ class SDBWidget(QWidget):
 
         try:
             z_img_ar = z_predict.reshape(image_raw.height, image_raw.width)
+
+            if self.medianFilterState.text() == 'unchecked':
+                print_filter_info = (
+                    'Median Filter Size:' + '\t' + str(self.medianFilterSB.value())
+                )
+                z_img_ar = ndimage.median_filter(z_img_ar, size=self.medianFilterSB.value())
+            else:
+                print_filter_info = (
+                    'Median Filter Size:' + '\t' + 'Disabled'
+                )
 
             new_img = rio.open(
                 save_loc,
@@ -1045,6 +1082,7 @@ class SDBWidget(QWidget):
 
             new_img_size = os.path.getsize(save_loc)
             print_output_info = (
+                print_filter_info + '\n\n'
                 'Output:' + '\t\t' + save_loc + ' (' +
                 str(round(new_img_size / 2**10 / 2**10, 2)) + ' MB)'
             )

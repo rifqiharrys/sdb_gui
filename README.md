@@ -4,10 +4,11 @@ Mainly, there are two methods to create a bathymetric prediction using satellite
 This is a GUI to make a bathimetric prediction using satellite imagery and some depth samples corresponding to the imagery. If you wish to use the GUI, please download the latest [release](https://github.com/rifqiharrys/sdb_gui/releases). Or if you want to run the source code (`sdb_gui.py`) instead, please install `python 3.6.x` and the following libraries first:
 
 1. [Numpy](https://numpy.org/)
-2. [Pandas](https://pandas.pydata.org/)
-3. [Rasterio](https://rasterio.readthedocs.io/)
-4. [Scikit Learn](https://scikit-learn.org)
-5. [PyQt5](https://www.riverbankcomputing.com/static/Docs/PyQt5/)
+2. [Scipy](https://www.scipy.org/)
+3. [Pandas](https://pandas.pydata.org/)
+4. [Rasterio](https://rasterio.readthedocs.io/)
+5. [Scikit Learn](https://scikit-learn.org)
+6. [PyQt5](https://www.riverbankcomputing.com/static/Docs/PyQt5/)
 
 Prepare your own data before using this SDB GUI. The required data are georeferenced and corrected imagery and tabular data consisting depth samples and corresponding raster values in the form of text file (e.g. CSV, TXT, or DAT file). If you don't have the second data, you could extract it from your depth sample and the first data using QGIS Plugin "Point Sampling Tool".
 
@@ -31,6 +32,18 @@ The adjustable hyperparameters for Random Forest method are the number of trees 
 
 ### Support Vector Machines
 The adjustable hyperparameters for SVM method are kernel type, kernel coefficient (gamma), regularization parameter (C), and degree (which working for polynomial kernel only). The default hyperparameter values are poly for kernel type, 0.1 for gamma, 1.0 for C, and 3 for degree.
+
+## Features
+SDB GUI has some features that helps in making prediction and saving output data. These features are Depth Limitation and Median Filter. User could disable one or both these features when they are not needed.
+
+### Depth Limitation
+Visible light that comes from the sun and goes through sea surface will weaken as it goes into the water body. The maximum depth the visible light could penetrate into water body varies depend on its water properties. Depth Limitation will filter depth on input sample and prediction output by creating accepted depth window from zero depth until selected depth limit (default value is -30).
+
+### Median Filter
+Median Filter is an image filter that will clear outliers (salt-and-pepper noise) that seems out of place from the depth prediction process. The default value of Median Filter size is 3. The filter size value should only in odd numbers because the matrix size of odd numbers will always have one array as the center.
+
+## Releases
+See [RELEASES](https://github.com/rifqiharrys/sdb_gui/releases)
 
 ## License
 See [LICENSE](https://github.com/rifqiharrys/sdb_gui/blob/main/LICENSE)
