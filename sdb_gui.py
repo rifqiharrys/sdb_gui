@@ -787,6 +787,7 @@ class SDBWidget(QWidget):
 
         warning.exec_()
         self.resultText.clear()
+        self.progressBar.setValue(0)
 
 
     def headerWarning(self):
@@ -798,6 +799,7 @@ class SDBWidget(QWidget):
 
         warning.exec_()
         self.resultText.clear()
+        self.progressBar.setValue(0)
 
 
     def noSaveLocWarning(self):
@@ -808,7 +810,6 @@ class SDBWidget(QWidget):
         warning.showMessage('Please insert save location!')
 
         warning.exec_()
-        self.resultText.clear()
 
 
     def completeDialog(self):
