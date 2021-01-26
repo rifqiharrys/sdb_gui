@@ -1,7 +1,7 @@
 '''
 MIT License
 
-Copyright (c) 2020 Rifqi Muhammad Harrys
+Copyright (c) 2020-present Rifqi Muhammad Harrys
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -166,7 +166,7 @@ class SDBWidget(QWidget):
         self.methodCB.addItems(method_list)
         self.methodCB.activated.connect(self.methodSelection)
 
-        trainPercentLabel = QLabel('Train Data:')
+        trainPercentLabel = QLabel('Train Data (Percent):')
         self.trainPercentDSB = QDoubleSpinBox()
         self.trainPercentDSB.setRange(10.0, 90.0)
         self.trainPercentDSB.setDecimals(2)
@@ -190,7 +190,7 @@ class SDBWidget(QWidget):
         self.progressBar = QProgressBar()
         self.progressBar.setFormat('%p%')
         self.progressBar.setMinimum(0)
-        self.progressBar.setMaximum(4)
+        self.progressBar.setMaximum(5)
 
         releaseButton =  QPushButton('Releases')
         releaseButton.clicked.connect(lambda: webbrowser.open(
@@ -619,7 +619,7 @@ class SDBWidget(QWidget):
         kernelLabel = QLabel('Kernel:')
         self.kernelCB = QComboBox()
         self.kernelCB.addItems(['linear', 'poly', 'rbf', 'sigmoid'])
-        self.kernelCB.setCurrentIndex(1)
+        self.kernelCB.setCurrentIndex(2)
 
         gammaLabel = QLabel('Gamma:')
         self.gammaDSB = QDoubleSpinBox()
@@ -680,149 +680,32 @@ class SDBWidget(QWidget):
         ]
 
 
-    def inputDict(self):
-
-        samples_edit = samples_raw.copy()
-
-        depth_label = self.depthHeaderCB.currentText()
-        start_label = self.bandStartCB.currentText()
-        end_label = self.bandEndCB.currentText()
-
-        train_data_size = self.trainPercentDSB.value() / 100
-
-        positives_count = samples_edit[samples_edit[depth_label] > 0][depth_label].count()
-        samples_count = samples_edit[depth_label].count()
-
-        if positives_count > samples_count / 2:
-            samples_edit[depth_label] = samples_edit[depth_label] * -1
-        else:
-            pass
-
-        if self.limitState.text() == 'unchecked':
-            print('checking input depth limit')
-            samples_edit = samples_edit[samples_edit[depth_label] >= self.limitSB.value()]
-            samples_edit = samples_edit[samples_edit[depth_label] <= 0]
-        else:
-            pass
-
-        start_loc = samples_edit.columns.get_loc(start_label)
-        end_loc = samples_edit.columns.get_loc(end_label)
-
-        features = samples_edit.iloc[:, start_loc:end_loc+1]
-        z = samples_edit[depth_label]
-
-        features_train, features_test, z_train, z_test = train_test_split(features, z, train_size=train_data_size, random_state=0)
-
-        samples_split = [features_train, features_test, z_train, z_test]
-
-        self.progressBar.setValue(1)
-
-        return samples_split
-
-
-    def mlrPredict(self):
-        print('mlrPredict')
-
-        samples_split = self.inputDict()
-
-        regressor = LinearRegression(
-            fit_intercept=mlr_op_list[0],
-            normalize=mlr_op_list[1],
-            copy_X=mlr_op_list[2]
-        )
-
-        samples_split.append(regressor)
-
-        global print_parameters_info
-        print_parameters_info = (
-            'Fit Intercept:' + '\t\t' + str(mlr_op_list[0]) + '\n' +
-            'Normalize:' + '\t\t' + str(mlr_op_list[1]) + '\n' +
-            'Copy X:' + '\t\t' + str(mlr_op_list[2])
-        )
-
-        return samples_split
-
-
-    def rfPredict(self):
-        print('rfPredict')
-
-        samples_split = self.inputDict()
-
-        regressor = RandomForestRegressor(
-            n_estimators=rf_op_list[0],
-            criterion=rf_op_list[1],
-            random_state=0)
-
-        samples_split.append(regressor)
-
-        global print_parameters_info
-        print_parameters_info = (
-            'N Trees:' + '\t\t' + str(rf_op_list[0]) + '\n' +
-            'Criterion:' + '\t\t' + str(rf_op_list[1])
-        )
-
-        return samples_split
-
-
-    def svmPredict(self):
-        print('svmPredict')
-
-        samples_split = self.inputDict()
-
-        regressor = SVR(
-            kernel=svm_op_list[0],
-            gamma=svm_op_list[1],
-            C=svm_op_list[2],
-            degree=svm_op_list[3],
-            cache_size=8000)
-
-        samples_split.append(regressor)
-
-        global print_parameters_info
-        print_parameters_info = (
-            'Kernel:' + '\t\t' + str(svm_op_list[0]) +'\n' +
-            'Gamma:' + '\t\t' + str(svm_op_list[1]) + '\n' +
-            'C:' + '\t\t' + str(svm_op_list[2])
-        )
-
-        if svm_op_list[0] == 'poly':
-            print_parameters_info = (
-                print_parameters_info + '\n' +
-                'Degree:' + '\t\t' + str(svm_op_list[3])
-            )
-        else:
-            print_parameters_info = print_parameters_info
-
-        return samples_split
-
-
     def predict(self):
-        print('prediction')
+        print('widget predict')
 
-        try:
-            self.resultText.setText('Fitting...\n')
-            self.time_start = datetime.datetime.now()
-            global time_list
-            time_list = [self.time_start]
+        self.resultText.clear()
+        self.progressBar.setValue(0)
 
-            if self.methodCB.currentText() == method_list[0]:
-                regressor = self.mlrPredict()
-            elif self.methodCB.currentText() == method_list[1]:
-                regressor = self.rfPredict()
-            else:
-                regressor = self.svmPredict()
+        global time_list
+        time_list = []
+        init_input = [
+            self.depthHeaderCB.currentText(),
+            self.bandStartCB.currentText(),
+            self.bandEndCB.currentText(),
+            self.trainPercentDSB.value() / 100,
+            self.limitState.text(),
+            self.limitSB.value(),
+            self.methodCB.currentText()
+        ]
 
-            self.sdbProcess = SDBProcess()
-            self.widget_signal.connect(self.sdbProcess.inputs)
-            self.widget_signal.emit(regressor)
-            self.sdbProcess.start()
-            self.sdbProcess.time_signal.connect(self.timeCounting)
-            self.sdbProcess.thread_signal.connect(self.results)
-            self.sdbProcess.error_signal.connect(self.headerWarning)
-        except NameError:
-            self.noDataWarning()
-        except ValueError:
-            self.headerWarning()
+        self.sdbProcess = Process()
+        self.widget_signal.connect(self.sdbProcess.inputs)
+        self.widget_signal.emit(init_input)
+        self.sdbProcess.start()
+        self.sdbProcess.time_signal.connect(self.timeCounting)
+        self.sdbProcess.thread_signal.connect(self.results)
+        self.sdbProcess.no_data_signal.connect(self.noDataWarning)
+        self.sdbProcess.header_warning_signal.connect(self.headerWarning)
 
 
     def timeCounting(self, time_text):
@@ -831,7 +714,7 @@ class SDBWidget(QWidget):
         self.resultText.append(time_text[1])
         self.progressBar.setValue(self.progressBar.value() + 1)
 
-        if self.progressBar.value() == 4:
+        if self.progressBar.value() == 5:
             self.completeDialog()
         else:
             pass
@@ -862,7 +745,8 @@ class SDBWidget(QWidget):
             time_list[1] - time_list[0],
             time_list[2] - time_list[1],
             time_list[3] - time_list[2],
-            time_list[3] - time_list[0]
+            time_list[4] - time_list[3],
+            time_list[4] - time_list[0]
         ]
 
         global print_result_info
@@ -879,10 +763,11 @@ class SDBWidget(QWidget):
             'RMSE:' + '\t\t' + str(rmse) + '\n' +
             'MAE:' + '\t\t' + str(mae) + '\n' +
             'R\u00B2:' + '\t\t' + str(r2) + '\n\n' +
-            'Fitting Runtime:' + '\t\t' + str(runtime[0]) + '\n' +
-            'Prediction Runtime:' + '\t' + str(runtime[1]) + '\n' +
-            'Validating Runtime:' + '\t' + str(runtime[2]) + '\n' +
-            'Overall Runtime:' + '\t' + str(runtime[3]) + '\n\n' +
+            'Preparation Runtime:' + '\t' + str(runtime[0]) + '\n' +
+            'Fitting Runtime:' + '\t\t' + str(runtime[1]) + '\n' +
+            'Prediction Runtime:' + '\t' + str(runtime[2]) + '\n' +
+            'Validating Runtime:' + '\t' + str(runtime[3]) + '\n' +
+            'Overall Runtime:' + '\t' + str(runtime[4]) + '\n\n' +
             'CRS:' + '\t\t' + str(image_raw.crs) + '\n'
             'Dimensions:' + '\t\t' + str(image_raw.width) + ' x ' +
             str(image_raw.height) + ' pixels' + '\n' +
@@ -1132,11 +1017,12 @@ class SDBWidget(QWidget):
 
 
 
-class SDBProcess(QThread):
+class Process(QThread):
 
     thread_signal = pyqtSignal(list)
     time_signal = pyqtSignal(list)
-    error_signal = pyqtSignal()
+    no_data_signal = pyqtSignal()
+    header_warning_signal = pyqtSignal()
 
     def __init__(self):
 
@@ -1145,46 +1031,182 @@ class SDBProcess(QThread):
 
     def inputs(self, input_list):
 
-        self.features_train = input_list[0]
-        self.features_test = input_list[1]
-        self.z_train = input_list[2]
-        self.z_test = input_list[3]
-        self.regressor = input_list[4]
+        self.depth_label = input_list[0]
+        self.band_start = input_list[1]
+        self.band_end = input_list[2]
+        self.train_size = input_list[3]
+        self.limitState = input_list[4]
+        self.limitValue = input_list[5]
+        self.method = input_list[6]
+
+
+    def sampling(self):
+        print('Process sampling')
+
+        time_start = datetime.datetime.now()
+        start_list = [time_start, 'Preparing...\n']
+        self.time_signal.emit(start_list)
+
+        samples_edit = samples_raw.copy()
+
+        positives_count = samples_edit[samples_edit[self.depth_label] > 0][self.depth_label].count()
+        samples_count = samples_edit[self.depth_label].count()
+
+        if positives_count > samples_count / 2:
+            samples_edit[self.depth_label] = samples_edit[self.depth_label] * -1
+        else:
+            pass
+
+        if self.limitState == 'unchecked':
+            print('depth limit')
+            samples_edit = samples_edit[samples_edit[self.depth_label] >= self.limitValue]
+            samples_edit = samples_edit[samples_edit[self.depth_label] <= 0]
+        else:
+            pass
+
+        start_loc = samples_edit.columns.get_loc(self.band_start)
+        end_loc = samples_edit.columns.get_loc(self.band_end)
+
+        features = samples_edit.iloc[:, start_loc:end_loc+1]
+        z = samples_edit[self.depth_label]
+
+        features_train, features_test, z_train, z_test = train_test_split(features, z, train_size=self.train_size, random_state=0)
+
+        samples_split = [features_train, features_test, z_train, z_test]
+
+        return samples_split
+
+
+    def mlrPredict(self):
+        print('mlrPredict')
+
+        parameters = self.sampling()
+
+        regressor = LinearRegression(
+            fit_intercept=mlr_op_list[0],
+            normalize=mlr_op_list[1],
+            copy_X=mlr_op_list[2]
+        )
+
+        parameters.append(regressor)
+
+        global print_parameters_info
+        print_parameters_info = (
+            'Fit Intercept:' + '\t\t' + str(mlr_op_list[0]) + '\n' +
+            'Normalize:' + '\t\t' + str(mlr_op_list[1]) + '\n' +
+            'Copy X:' + '\t\t' + str(mlr_op_list[2])
+        )
+
+        return parameters
+
+
+    def rfPredict(self):
+        print('rfPredict')
+
+        parameters = self.sampling()
+
+        regressor = RandomForestRegressor(
+            n_estimators=rf_op_list[0],
+            criterion=rf_op_list[1],
+            random_state=0)
+
+        parameters.append(regressor)
+
+        global print_parameters_info
+        print_parameters_info = (
+            'N Trees:' + '\t\t' + str(rf_op_list[0]) + '\n' +
+            'Criterion:' + '\t\t' + str(rf_op_list[1])
+        )
+
+        return parameters
+
+
+    def svmPredict(self):
+        print('svmPredict')
+
+        parameters = self.sampling()
+
+        regressor = SVR(
+            kernel=svm_op_list[0],
+            gamma=svm_op_list[1],
+            C=svm_op_list[2],
+            cache_size=8000)
+
+        parameters.append(regressor)
+
+        global print_parameters_info
+        print_parameters_info = (
+            'Kernel:' + '\t\t' + str(svm_op_list[0]) +'\n' +
+            'Gamma:' + '\t\t' + str(svm_op_list[1]) + '\n' +
+            'C:' + '\t\t' + str(svm_op_list[2])
+        )
+
+        if svm_op_list[0] == 'poly':
+            print_parameters_info = (
+                print_parameters_info + '\n' +
+                'Degree:' + '\t\t' + str(svm_op_list[3])
+            )
+        else:
+            print_parameters_info = print_parameters_info
+
+        return parameters
 
 
     def run(self):
+        print('Process run')
 
         try:
+            if self.method == method_list[0]:
+                parameters = self.mlrPredict()
+            elif self.method == method_list[1]:
+                parameters = self.rfPredict()
+            else:
+                parameters = self.svmPredict()
+
+            features_train = parameters[0]
+            features_test = parameters[1]
+            z_train = parameters[2]
+            z_test = parameters[3]
+            regressor = parameters[4]
+
+            time_sampling = datetime.datetime.now()
+            sampling_list = [time_sampling, 'Fitting...\n']
+            self.time_signal.emit(sampling_list)
+
             with parallel_backend('threading', n_jobs=njobs):
 
-                self.regressor.fit(self.features_train, self.z_train)
+                regressor.fit(features_train, z_train)
                 time_fit = datetime.datetime.now()
                 fit_list = [time_fit, 'Predicting...\n']
                 self.time_signal.emit(fit_list)
 
-                z_predict = self.regressor.predict(bands_array)
+                z_predict = regressor.predict(bands_array)
                 time_predict = datetime.datetime.now()
                 predict_list = [time_predict,'Validating...\n']
                 self.time_signal.emit(predict_list)
 
-                z_validate = self.regressor.predict(self.features_test)
-                rmse = np.sqrt(metrics.mean_squared_error(self.z_test, z_validate))
-                mae = metrics.mean_absolute_error(self.z_test, z_validate)
-                r2 = metrics.r2_score(self.z_test, z_validate)
+                z_validate = regressor.predict(features_test)
+                rmse = np.sqrt(metrics.mean_squared_error(z_test, z_validate))
+                mae = metrics.mean_absolute_error(z_test, z_validate)
+                r2 = metrics.r2_score(z_test, z_validate)
                 time_test = datetime.datetime.now()
                 test_list = [time_test, 'Done.']
                 self.time_signal.emit(test_list)
 
-                result = [
-                    z_predict,
-                    rmse,
-                    mae,
-                    r2
-                ]
+            result = [
+                z_predict,
+                rmse,
+                mae,
+                r2
+            ]
 
-                self.thread_signal.emit(result)
+            self.thread_signal.emit(result)
+        except NameError:
+            self.no_data_signal.emit()
+        except TypeError:
+            self.header_warning_signal.emit()
         except ValueError:
-            self.error_signal.emit()
+            self.header_warning_signal.emit()
 
 
 
