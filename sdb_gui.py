@@ -425,18 +425,6 @@ class SDBWidget(QWidget):
         home_dir = str(Path.home())
         fileFilter = 'All Files (*.*) ;; Text Files (*.txt) ;; Comma Separated Value (*.csv) ;; DAT Files (*.dat)'
         selectedFilter = 'Comma Separated Value (*.csv)'
-        # fname = QFileDialog.getOpenFileNames(self, 'Open File(s)', home_dir, fileFilter, selectedFilter)
-
-        # global filesList
-        # filesList = fname[0]
-
-        # global fileListPrint
-        # fileListPrint = ''
-
-        # for file in filesList:
-        #     fileListPrint += file + '\n'
-
-        # self.locList.setText(fileListPrint)
 
         fname = QFileDialog.getOpenFileName(self, 'Open File(s)', home_dir, fileFilter, selectedFilter)
 
@@ -462,24 +450,6 @@ class SDBWidget(QWidget):
             sepDict = {'Tab': '\t', 'Comma': ',',
                        'Space': ' ', 'Semicolon': ';'}
             sepSelect = sepDict[self.sepCB.currentText()]
-
-            # dummy = []
-
-            # global sample_size
-            # sample_size = np.ones(len(filesList))
-
-            # for file in filesList:
-            #     raw_single = pd.read_csv(file, sep=sepSelect, header=head)
-            #     raw_single = raw_single.iloc[start_data:, 0:]
-
-            #     dummy.append(raw_single)
-
-            #     sample_size[filesList.index(file)] = os.path.getsize(file)
-
-            # sample_size = sample_size.sum()
-
-            # global sample_raw
-            # sample_raw = pd.concat(dummy, ignore_index=True, sort=False)
 
             global sample_size
             sample_size = os.path.getsize(sample_loc)
