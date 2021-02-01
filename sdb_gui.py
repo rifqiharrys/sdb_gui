@@ -1147,7 +1147,7 @@ class Process(QThread):
                 parameters = self.mlrPredict()
             elif self.method == method_list[1]:
                 parameters = self.rfPredict()
-            else:
+            elif self.method == method_list[2]:
                 parameters = self.svmPredict()
 
             features_train = parameters[0]
