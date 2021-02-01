@@ -40,6 +40,7 @@ import rasterio.vrt
 ###############################################################################
 
 from sklearn import metrics
+from sklearn.neighbors import KNeighborsRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import SVR
@@ -90,9 +91,18 @@ class SDBWidget(QWidget):
 
         global method_list
         method_list = [
+            'K-Nearest Neighbors',
             'Multiple Linear Regression',
-            'Random Forest', 
+            'Random Forest',
             'Support Vector Machines'
+        ]
+
+        global knn_op_list
+        knn_op_list = [
+            5,
+            'uniform',
+            'auto',
+            30
         ]
 
         global mlr_op_list
@@ -177,7 +187,7 @@ class SDBWidget(QWidget):
         self.trainPercentDSB.setAlignment(Qt.AlignRight)
 
         self.optionsButton = QPushButton('Options')
-        self.optionsButton.clicked.connect(self.mlrOptionDialog)
+        self.optionsButton.clicked.connect(self.knnOptionDialog)
         self.optionsButton.clicked.connect(self.methodSelection)
 
         makePredictionButton = QPushButton('Make Prediction')
@@ -273,11 +283,14 @@ class SDBWidget(QWidget):
 
         if self.methodCB.currentText() == method_list[0]:
             self.optionsButton.clicked.disconnect()
-            self.optionsButton.clicked.connect(self.mlrOptionDialog)
+            self.optionsButton.clicked.connect(self.knnOptionDialog)
         elif self.methodCB.currentText() == method_list[1]:
             self.optionsButton.clicked.disconnect()
-            self.optionsButton.clicked.connect(self.rfOptionDialog)
+            self.optionsButton.clicked.connect(self.mlrOptionDialog)
         elif self.methodCB.currentText() == method_list[2]:
+            self.optionsButton.clicked.disconnect()
+            self.optionsButton.clicked.connect(self.rfOptionDialog)
+        elif self.methodCB.currentText() == method_list[3]:
             self.optionsButton.clicked.disconnect()
             self.optionsButton.clicked.connect(self.svmOptionDialog)
 
@@ -493,6 +506,71 @@ class SDBWidget(QWidget):
             self.loadSampleDialog.close()
             self.noDataWarning()
             self.loadSampleWindow()
+
+
+    def knnOptionDialog(self):
+
+        optionDialog = QDialog()
+        optionDialog.setWindowTitle('Options (K Neighbors)')
+        optionDialog.setWindowIcon(QIcon(resource_path('icons/setting-tool-pngrepo-com.png')))
+
+        nneighborLabel = QLabel('Number of Neighbors:')
+        self.nneighborSB = QSpinBox()
+        self.nneighborSB.setRange(1, 1000)
+        self.nneighborSB.setValue(5)
+        self.nneighborSB.setAlignment(Qt.AlignRight)
+
+        weightsLabel = QLabel('Weights:')
+        self.weightsCB = QComboBox()
+        self.weightsCB.addItems(['uniform', 'distance'])
+
+        algorithmLabel = QLabel('Algorithm:')
+        self.algorithmCB = QComboBox()
+        self.algorithmCB.addItems(['auto', 'ball_tree', 'kd_tree', 'brute'])
+
+        leafSizeLabel = QLabel('Leaf Size:')
+        self.leafSizeSB = QSpinBox()
+        self.leafSizeSB.setRange(1, 1000)
+        self.leafSizeSB.setValue(30)
+        self.leafSizeSB.setAlignment(Qt.AlignRight)
+
+        cancelButton = QPushButton('Cancel')
+        cancelButton.clicked.connect(optionDialog.close)
+        loadButton = QPushButton('Load')
+        loadButton.clicked.connect(self.loadKNNOptionAction)
+        loadButton.clicked.connect(optionDialog.close)
+
+        grid = QGridLayout()
+
+        grid.addWidget(nneighborLabel, 1, 1, 1, 2)
+        grid.addWidget(self.nneighborSB, 1, 3, 1, 2)
+
+        grid.addWidget(weightsLabel, 2, 1, 1, 2)
+        grid.addWidget(self.weightsCB, 2, 3, 1, 2)
+
+        grid.addWidget(algorithmLabel, 3, 1, 1, 2)
+        grid.addWidget(self.algorithmCB, 3, 3, 1, 2)
+
+        grid.addWidget(leafSizeLabel, 4, 1, 1, 2)
+        grid.addWidget(self.leafSizeSB, 4, 3, 1, 2)
+
+        grid.addWidget(loadButton, 5, 3, 1, 1)
+        grid.addWidget(cancelButton, 5, 4, 1, 1)
+
+        optionDialog.setLayout(grid)
+
+        optionDialog.exec_()
+
+
+    def loadKNNOptionAction(self):
+
+        global knn_op_list
+        knn_op_list = [
+            self.nneighborSB.value(),
+            self.weightsCB.currentText(),
+            self.algorithmCB.currentText(),
+            self.leafSizeSB.value()
+        ]
 
 
     def mlrOptionDialog(self):
@@ -1064,6 +1142,31 @@ class Process(QThread):
         return samples_split
 
 
+    def knnPredict(self):
+        print('knnPredict')
+
+        parameters = self.sampling()
+
+        regressor = KNeighborsRegressor(
+            n_neighbors=knn_op_list[0],
+            weights=knn_op_list[1],
+            algorithm=knn_op_list[2],
+            leaf_size=knn_op_list[3]
+        )
+
+        parameters.append(regressor)
+
+        global print_parameters_info
+        print_parameters_info = (
+            'N Neighbors:\t\t' + str(knn_op_list[0]) + '\n' +
+            'Weights:\t\t' + str(knn_op_list[1]) + '\n' +
+            'Algorithm:\t\t' + str(knn_op_list[2]) + '\n' +
+            'Leaf Size:\t\t' + str(knn_op_list[3])
+        )
+
+        return parameters
+
+
     def mlrPredict(self):
         print('mlrPredict')
 
@@ -1144,10 +1247,12 @@ class Process(QThread):
 
         try:
             if self.method == method_list[0]:
-                parameters = self.mlrPredict()
+                parameters = self.knnPredict()
             elif self.method == method_list[1]:
-                parameters = self.rfPredict()
+                parameters = self.mlrPredict()
             elif self.method == method_list[2]:
+                parameters = self.rfPredict()
+            elif self.method == method_list[3]:
                 parameters = self.svmPredict()
 
             features_train = parameters[0]
