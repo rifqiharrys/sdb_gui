@@ -720,11 +720,11 @@ class SDBWidget(QWidget):
             z_predict[z_predict > 0] = np.nan
 
             print_limit = (
-                'Depth Limit:' + '\t\t' + str(self.limitSB.value())
+                'Depth Limit:\t\t' + str(self.limitSB.value())
             )
         else:
             print_limit = (
-                'Depth Limit:' + '\t\t' + 'Disabled'
+                'Depth Limit:\t\tDisabled'
             )
 
         runtime = [
@@ -737,27 +737,27 @@ class SDBWidget(QWidget):
 
         global print_result_info
         print_result_info = (
-            'Image Input:' + '\t\t' + img_loc + ' (' +
-            str(round(img_size / 2**10 / 2**10, 2)) + ' MB)' + '\n' +
-            'Sample Data:' + '\t\t' + sample_loc + ' (' +
-            str(round(sample_size / 2**10 / 2**10, 2)) + ' MB)' + '\n\n' +
+            'Image Input:\t\t' + img_loc + ' (' +
+            str(round(img_size / 2**10 / 2**10, 2)) + ' MB)\n' +
+            'Sample Data:\t\t' + sample_loc + ' (' +
+            str(round(sample_size / 2**10 / 2**10, 2)) + ' MB)\n\n' +
             print_limit + '\n' +
-            'Train Data:' + '\t\t' + str(self.trainPercentDSB.value()) + ' %' + '\n' +
-            'Test Data:' + '\t\t' + str(100 - self.trainPercentDSB.value()) + ' %' + '\n\n' +
-            'Method:' + '\t\t' + self.methodCB.currentText() + '\n' +
+            'Train Data:\t\t' + str(self.trainPercentDSB.value()) + ' %\n' +
+            'Test Data:\t\t' + str(100 - self.trainPercentDSB.value()) + ' %\n\n' +
+            'Method:\t\t' + self.methodCB.currentText() + '\n' +
             print_parameters_info + '\n\n'
-            'RMSE:' + '\t\t' + str(rmse) + '\n' +
-            'MAE:' + '\t\t' + str(mae) + '\n' +
-            'R\u00B2:' + '\t\t' + str(r2) + '\n\n' +
-            'Preparation Runtime:' + '\t' + str(runtime[0]) + '\n' +
-            'Fitting Runtime:' + '\t\t' + str(runtime[1]) + '\n' +
-            'Prediction Runtime:' + '\t' + str(runtime[2]) + '\n' +
-            'Validating Runtime:' + '\t' + str(runtime[3]) + '\n' +
-            'Overall Runtime:' + '\t' + str(runtime[4]) + '\n\n' +
-            'CRS:' + '\t\t' + str(image_raw.crs) + '\n'
-            'Dimensions:' + '\t\t' + str(image_raw.width) + ' x ' +
-            str(image_raw.height) + ' pixels' + '\n' +
-            'Pixel Size:' + '\t\t' + str(pixel_size[0]) + ' , ' +
+            'RMSE:\t\t' + str(rmse) + '\n' +
+            'MAE:\t\t' + str(mae) + '\n' +
+            'R\u00B2:\t\t' + str(r2) + '\n\n' +
+            'Preparation Runtime:\t' + str(runtime[0]) + '\n' +
+            'Fitting Runtime:\t\t' + str(runtime[1]) + '\n' +
+            'Prediction Runtime:\t' + str(runtime[2]) + '\n' +
+            'Validating Runtime:\t' + str(runtime[3]) + '\n' +
+            'Overall Runtime:\t' + str(runtime[4]) + '\n\n' +
+            'CRS:\t\t' + str(image_raw.crs) + '\n'
+            'Dimensions:\t\t' + str(image_raw.width) + ' x ' +
+            str(image_raw.height) + ' pixels\n' +
+            'Pixel Size:\t\t' + str(pixel_size[0]) + ' , ' +
             str(pixel_size[1]) + '\n\n'
         )
 
@@ -929,12 +929,12 @@ class SDBWidget(QWidget):
 
             if self.medianFilterState.text() == 'unchecked':
                 print_filter_info = (
-                    'Median Filter Size:' + '\t' + str(self.medianFilterSB.value())
+                    'Median Filter Size:\t' + str(self.medianFilterSB.value())
                 )
                 z_img_ar = ndimage.median_filter(z_img_ar, size=self.medianFilterSB.value())
             else:
                 print_filter_info = (
-                    'Median Filter Size:' + '\t' + 'Disabled'
+                    'Median Filter Size:\tDisabled'
                 )
 
             new_img = rio.open(
@@ -955,7 +955,7 @@ class SDBWidget(QWidget):
             new_img_size = os.path.getsize(save_loc)
             print_output_info = (
                 print_filter_info + '\n\n'
-                'Output:' + '\t\t' + save_loc + ' (' +
+                'Output:\t\t' + save_loc + ' (' +
                 str(round(new_img_size / 2**10 / 2**10, 2)) + ' MB)'
             )
 
@@ -1079,9 +1079,9 @@ class Process(QThread):
 
         global print_parameters_info
         print_parameters_info = (
-            'Fit Intercept:' + '\t\t' + str(mlr_op_list[0]) + '\n' +
-            'Normalize:' + '\t\t' + str(mlr_op_list[1]) + '\n' +
-            'Copy X:' + '\t\t' + str(mlr_op_list[2])
+            'Fit Intercept:\t\t' + str(mlr_op_list[0]) + '\n' +
+            'Normalize:\t\t' + str(mlr_op_list[1]) + '\n' +
+            'Copy X:\t\t' + str(mlr_op_list[2])
         )
 
         return parameters
@@ -1101,8 +1101,8 @@ class Process(QThread):
 
         global print_parameters_info
         print_parameters_info = (
-            'N Trees:' + '\t\t' + str(rf_op_list[0]) + '\n' +
-            'Criterion:' + '\t\t' + str(rf_op_list[1])
+            'N Trees:\t\t' + str(rf_op_list[0]) + '\n' +
+            'Criterion:\t\t' + str(rf_op_list[1])
         )
 
         return parameters
@@ -1123,15 +1123,15 @@ class Process(QThread):
 
         global print_parameters_info
         print_parameters_info = (
-            'Kernel:' + '\t\t' + str(svm_op_list[0]) +'\n' +
-            'Gamma:' + '\t\t' + str(svm_op_list[1]) + '\n' +
-            'C:' + '\t\t' + str(svm_op_list[2])
+            'Kernel:\t\t' + str(svm_op_list[0]) +'\n' +
+            'Gamma:\t\t' + str(svm_op_list[1]) + '\n' +
+            'C:\t\t' + str(svm_op_list[2])
         )
 
         if svm_op_list[0] == 'poly':
             print_parameters_info = (
                 print_parameters_info + '\n' +
-                'Degree:' + '\t\t' + str(svm_op_list[3])
+                'Degree:\t\t' + str(svm_op_list[3])
             )
         else:
             print_parameters_info = print_parameters_info
