@@ -129,11 +129,13 @@ class SDBWidget(QWidget):
         loadImageButton = QPushButton('Load Image')
         loadImageButton.clicked.connect(self.loadImageWindow)
         self.loadImageLabel = QLabel()
+        self.loadImageLabel.setText('No Image Loaded')
         self.loadImageLabel.setAlignment(Qt.AlignCenter)
 
         loadSampleButton = QPushButton('Load Sample')
         loadSampleButton.clicked.connect(self.loadSampleWindow)
         self.loadSampleLabel = QLabel()
+        self.loadSampleLabel.setText('No Sample Loaded')
         self.loadSampleLabel.setAlignment(Qt.AlignCenter)
 
         depthHeaderLabel = QLabel('Depth Header:')
@@ -350,7 +352,7 @@ class SDBWidget(QWidget):
             global pixel_size
             pixel_size = coord2 - coord1
 
-            self.loadImageLabel.setText('Image Data Loaded')
+            self.loadImageLabel.setText(os.path.split(img_loc)[1])
         except:
             self.loadImageDialog.close()
             self.noDataWarning()
@@ -363,7 +365,7 @@ class SDBWidget(QWidget):
         self.loadSampleDialog.setWindowTitle('Load Sample')
         self.loadSampleDialog.setWindowIcon(QIcon(resource_path('icons/load-pngrepo-com.png')))
 
-        openFilesButton = QPushButton('Open File(s)')
+        openFilesButton = QPushButton('Open File')
         openFilesButton.clicked.connect(self.sampleFilesDialog)
 
         sepLabel = QLabel('Separator:')
@@ -423,18 +425,25 @@ class SDBWidget(QWidget):
         home_dir = str(Path.home())
         fileFilter = 'All Files (*.*) ;; Text Files (*.txt) ;; Comma Separated Value (*.csv) ;; DAT Files (*.dat)'
         selectedFilter = 'Comma Separated Value (*.csv)'
-        fname = QFileDialog.getOpenFileNames(self, 'Open File(s)', home_dir, fileFilter, selectedFilter)
+        # fname = QFileDialog.getOpenFileNames(self, 'Open File(s)', home_dir, fileFilter, selectedFilter)
 
-        global filesList
-        filesList = fname[0]
+        # global filesList
+        # filesList = fname[0]
 
-        global fileListPrint
-        fileListPrint = ''
+        # global fileListPrint
+        # fileListPrint = ''
 
-        for file in filesList:
-            fileListPrint += file + '\n'
+        # for file in filesList:
+        #     fileListPrint += file + '\n'
 
-        self.locList.setText(fileListPrint)
+        # self.locList.setText(fileListPrint)
+
+        fname = QFileDialog.getOpenFileName(self, 'Open File(s)', home_dir, fileFilter, selectedFilter)
+
+        global sample_loc
+        sample_loc = fname[0]
+
+        self.locList.setText(sample_loc)
 
 
     def showCheckBoxState(self):
@@ -454,25 +463,32 @@ class SDBWidget(QWidget):
                        'Space': ' ', 'Semicolon': ';'}
             sepSelect = sepDict[self.sepCB.currentText()]
 
-            dummy = []
+            # dummy = []
+
+            # global sample_size
+            # sample_size = np.ones(len(filesList))
+
+            # for file in filesList:
+            #     raw_single = pd.read_csv(file, sep=sepSelect, header=head)
+            #     raw_single = raw_single.iloc[start_data:, 0:]
+
+            #     dummy.append(raw_single)
+
+            #     sample_size[filesList.index(file)] = os.path.getsize(file)
+
+            # sample_size = sample_size.sum()
+
+            # global sample_raw
+            # sample_raw = pd.concat(dummy, ignore_index=True, sort=False)
 
             global sample_size
-            sample_size = np.ones(len(filesList))
+            sample_size = os.path.getsize(sample_loc)
 
-            for file in filesList:
-                raw_single = pd.read_csv(file, sep=sepSelect, header=head)
-                raw_single = raw_single.iloc[start_data:, 0:]
+            global sample_raw
+            sample_raw = pd.read_csv(sample_loc, sep=sepSelect, header=head)
+            sample_raw = sample_raw.iloc[start_data:, 0:]
 
-                dummy.append(raw_single)
-
-                sample_size[filesList.index(file)] = os.path.getsize(file)
-
-            sample_size = sample_size.sum()
-
-            global samples_raw
-            samples_raw = pd.concat(dummy, ignore_index=True, sort=False)
-
-            raw = samples_raw.copy()
+            raw = sample_raw.copy()
 
             if self.showState.text() == 'checked':
                 data = raw
@@ -502,7 +518,7 @@ class SDBWidget(QWidget):
             self.table.resizeRowsToContents()
             self.table.resizeColumnsToContents()
 
-            self.loadSampleLabel.setText('Sample Data Loaded')
+            self.loadSampleLabel.setText(os.path.split(sample_loc)[1])
         except:
             self.loadSampleDialog.close()
             self.noDataWarning()
@@ -753,7 +769,7 @@ class SDBWidget(QWidget):
         print_result_info = (
             'Image Input:' + '\t\t' + img_loc + ' (' +
             str(round(img_size / 2**10 / 2**10, 2)) + ' MB)' + '\n' +
-            'Sample Data:' + '\t\t' + fileListPrint + ' (' +
+            'Sample Data:' + '\t\t' + sample_loc + ' (' +
             str(round(sample_size / 2**10 / 2**10, 2)) + ' MB)' + '\n\n' +
             print_limit + '\n' +
             'Train Data:' + '\t\t' + str(self.trainPercentDSB.value()) + ' %' + '\n' +
@@ -1048,7 +1064,7 @@ class Process(QThread):
         start_list = [time_start, 'Preparing...\n']
         self.time_signal.emit(start_list)
 
-        samples_edit = samples_raw.copy()
+        samples_edit = sample_raw.copy()
 
         positives_count = samples_edit[samples_edit[self.depth_label] > 0][self.depth_label].count()
         samples_count = samples_edit[self.depth_label].count()
