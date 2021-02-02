@@ -1105,8 +1105,8 @@ class Process(QThread):
         self.method = input_list[6]
 
 
-    def sampling(self):
-        print('Process sampling')
+    def preparing(self):
+        print('Preparing')
 
         time_start = datetime.datetime.now()
         start_list = [time_start, 'Preparing...\n']
@@ -1145,7 +1145,7 @@ class Process(QThread):
     def knnPredict(self):
         print('knnPredict')
 
-        parameters = self.sampling()
+        parameters = self.preparing()
 
         regressor = KNeighborsRegressor(
             n_neighbors=knn_op_list[0],
@@ -1170,7 +1170,7 @@ class Process(QThread):
     def mlrPredict(self):
         print('mlrPredict')
 
-        parameters = self.sampling()
+        parameters = self.preparing()
 
         regressor = LinearRegression(
             fit_intercept=mlr_op_list[0],
@@ -1193,7 +1193,7 @@ class Process(QThread):
     def rfPredict(self):
         print('rfPredict')
 
-        parameters = self.sampling()
+        parameters = self.preparing()
 
         regressor = RandomForestRegressor(
             n_estimators=rf_op_list[0],
@@ -1214,7 +1214,7 @@ class Process(QThread):
     def svmPredict(self):
         print('svmPredict')
 
-        parameters = self.sampling()
+        parameters = self.preparing()
 
         regressor = SVR(
             kernel=svm_op_list[0],
