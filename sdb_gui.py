@@ -99,10 +99,10 @@ class SDBWidget(QWidget):
 
         global knn_op_list
         knn_op_list = [
-            5,
-            'distance',
-            'auto',
-            30
+            5,  # n_neighbors
+            'distance',  # weights
+            'auto',  # algorithm
+            30  # leaf size
         ]
 
         global mlr_op_list
