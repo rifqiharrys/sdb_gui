@@ -100,7 +100,7 @@ class SDBWidget(QWidget):
         global knn_op_list
         knn_op_list = [
             5,
-            'uniform',
+            'distance',
             'auto',
             30
         ]
@@ -523,6 +523,7 @@ class SDBWidget(QWidget):
         weightsLabel = QLabel('Weights:')
         self.weightsCB = QComboBox()
         self.weightsCB.addItems(['uniform', 'distance'])
+        self.weightsCB.setCurrentIndex(1)
 
         algorithmLabel = QLabel('Algorithm:')
         self.algorithmCB = QComboBox()
@@ -683,7 +684,7 @@ class SDBWidget(QWidget):
         kernelLabel = QLabel('Kernel:')
         self.kernelCB = QComboBox()
         self.kernelCB.addItems(['linear', 'poly', 'rbf', 'sigmoid'])
-        self.kernelCB.setCurrentIndex(2)
+        self.kernelCB.setCurrentIndex(1)
 
         gammaLabel = QLabel('Gamma:')
         self.gammaDSB = QDoubleSpinBox()
