@@ -51,15 +51,14 @@ import pandas as pd
 import numpy as np
 import rasterio as rio
 from pathlib import Path
-import glob
 import sys, os
 import datetime
 import webbrowser
 from PyQt5.QtCore import (Qt, QThread, pyqtSignal)
 from PyQt5.QtWidgets import(QApplication, QWidget, QTextBrowser, QProgressBar, QFileDialog, QDialog,
                             QGridLayout, QPushButton, QVBoxLayout, QComboBox, QLabel, QCheckBox,
-                            QDoubleSpinBox, QSpinBox, QRadioButton, QTableWidgetItem, QTableWidget,
-                            QScrollArea, QHeaderView, QErrorMessage)
+                            QDoubleSpinBox, QSpinBox, QTableWidgetItem, QTableWidget, QScrollArea,
+                            QErrorMessage)
 from PyQt5.QtGui import QIcon
 
 def resource_path(relative_path):
