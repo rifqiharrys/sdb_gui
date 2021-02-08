@@ -159,12 +159,23 @@ class SDBWidget(QWidget):
         scroll = QScrollArea()
         scroll.setWidget(self.table)
 
-        limitLabel = QLabel('Depth Limit Value:')
-        self.limitSB = QSpinBox()
-        self.limitSB.setRange(-100, 0)
-        self.limitSB.setValue(-30)
-        self.limitSB.setSuffix(' m')
-        self.limitSB.setAlignment(Qt.AlignRight)
+        limitLabel = QLabel('Depth Limit Window:')
+
+        limitALabel = QLabel('Upper Limit:')
+        self.limitADSB = QDoubleSpinBox()
+        self.limitADSB.setRange(-100, 0)
+        self.limitADSB.setDecimals(1)
+        self.limitADSB.setValue(0)
+        self.limitADSB.setSuffix(' m')
+        self.limitADSB.setAlignment(Qt.AlignRight)
+
+        limitBLabel = QLabel('Bottom Limit:')
+        self.limitBDSB = QDoubleSpinBox()
+        self.limitBDSB.setRange(-100, 0)
+        self.limitBDSB.setDecimals(1)
+        self.limitBDSB.setValue(-30)
+        self.limitBDSB.setSuffix(' m')
+        self.limitBDSB.setAlignment(Qt.AlignRight)
 
         self.limitCheckBox = QCheckBox('Disable Depth Limitation')
         self.limitCheckBox.setChecked(False)
@@ -235,23 +246,27 @@ class SDBWidget(QWidget):
 
         grid.addWidget(self.table, 5, 1, 5, 4)
 
-        grid.addWidget(limitLabel, 10, 1, 1, 1)
-        grid.addWidget(self.limitSB, 10, 2, 1, 1)
-        grid.addWidget(self.limitCheckBox, 10, 3, 1, 2)
+        grid.addWidget(limitLabel, 10, 1, 1, 2)
+        grid.addWidget(self.limitCheckBox, 11, 1, 1, 2)
 
-        grid.addWidget(methodLabel, 11, 1, 1, 1)
-        grid.addWidget(self.methodCB, 11, 2, 1, 3)
+        grid.addWidget(limitALabel, 10, 3, 1, 1)
+        grid.addWidget(self.limitADSB, 10, 4, 1, 1)
+        grid.addWidget(limitBLabel, 11, 3, 1, 1)
+        grid.addWidget(self.limitBDSB, 11, 4, 1, 1)
 
-        grid.addWidget(trainPercentLabel, 12, 1, 1, 1)
-        grid.addWidget(self.trainPercentDSB, 12, 2, 1, 1)
+        grid.addWidget(methodLabel, 12, 1, 1, 1)
+        grid.addWidget(self.methodCB, 12, 2, 1, 3)
 
-        grid.addWidget(self.optionsButton, 12, 3, 1, 2)
+        grid.addWidget(trainPercentLabel, 13, 1, 1, 1)
+        grid.addWidget(self.trainPercentDSB, 13, 2, 1, 1)
 
-        grid.addWidget(makePredictionButton, 13, 1, 1, 2)
-        grid.addWidget(saveFileButton, 13, 3, 1, 2)
+        grid.addWidget(self.optionsButton, 13, 3, 1, 2)
 
-        grid.addWidget(resultInfo, 14, 1, 1, 2)
-        grid.addWidget(self.resultText, 15, 1, 1, 4)
+        grid.addWidget(makePredictionButton, 14, 1, 1, 2)
+        grid.addWidget(saveFileButton, 14, 3, 1, 2)
+
+        grid.addWidget(resultInfo, 15, 1, 1, 2)
+        grid.addWidget(self.resultText, 16, 1, 1, 4)
 
         vbox.addStretch(1)
         grid.addLayout(vbox, 21, 1)
@@ -750,6 +765,13 @@ class SDBWidget(QWidget):
         self.resultText.clear()
         self.progressBar.setValue(0)
 
+        if self.limitADSB.value() < self.limitBDSB.value():
+            a = self.limitADSB.value()
+            b = self.limitBDSB.value()
+
+            self.limitADSB.setValue(b)
+            self.limitBDSB.setValue(a)
+
         global time_list
         time_list = []
         init_input = [
@@ -758,7 +780,8 @@ class SDBWidget(QWidget):
             self.bandEndCB.currentText(),
             self.trainPercentDSB.value() / 100,
             self.limitState.text(),
-            self.limitSB.value(),
+            self.limitADSB.value(),
+            self.limitBDSB.value(),
             self.methodCB.currentText()
         ]
 
@@ -780,8 +803,6 @@ class SDBWidget(QWidget):
 
         if self.progressBar.value() == 5:
             self.completeDialog()
-        else:
-            pass
 
 
     def results(self, result_list):
@@ -794,11 +815,12 @@ class SDBWidget(QWidget):
 
         if self.limitState.text() == 'unchecked':
             print('checking prediction')
-            z_predict[z_predict < self.limitSB.value()] = np.nan
-            z_predict[z_predict > 0] = np.nan
+            z_predict[z_predict < self.limitBDSB.value()] = np.nan
+            z_predict[z_predict > self.limitADSB.value()] = np.nan
 
             print_limit = (
-                'Depth Limit:\t\t' + str(self.limitSB.value())
+                'Depth Limit:\t\tfrom ' + str(self.limitADSB.value()) + ' m ' +
+                'to ' + str(self.limitBDSB.value()) +' m'
             )
         else:
             print_limit = (
@@ -1047,8 +1069,6 @@ class SDBWidget(QWidget):
                     print_result_info +
                     print_output_info
                 )
-            else:
-                pass
         except:
             self.saveOptionDialog.close()
             self.noSaveLocWarning()
@@ -1101,8 +1121,9 @@ class Process(QThread):
         self.band_end = input_list[2]
         self.train_size = input_list[3]
         self.limitState = input_list[4]
-        self.limitValue = input_list[5]
-        self.method = input_list[6]
+        self.limitAValue = input_list[5]
+        self.limitBValue = input_list[6]
+        self.method = input_list[7]
 
 
     def preparing(self):
@@ -1119,15 +1140,11 @@ class Process(QThread):
 
         if positives_count > samples_count / 2:
             samples_edit[self.depth_label] = samples_edit[self.depth_label] * -1
-        else:
-            pass
 
         if self.limitState == 'unchecked':
             print('depth limit')
-            samples_edit = samples_edit[samples_edit[self.depth_label] >= self.limitValue]
-            samples_edit = samples_edit[samples_edit[self.depth_label] <= 0]
-        else:
-            pass
+            samples_edit = samples_edit[samples_edit[self.depth_label] >= self.limitBValue]
+            samples_edit = samples_edit[samples_edit[self.depth_label] <= self.limitAValue]
 
         start_loc = samples_edit.columns.get_loc(self.band_start)
         end_loc = samples_edit.columns.get_loc(self.band_end)
