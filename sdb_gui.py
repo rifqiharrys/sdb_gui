@@ -62,7 +62,7 @@ from PyQt5.QtWidgets import(QApplication, QWidget, QTextBrowser, QProgressBar, Q
 from PyQt5.QtGui import QIcon
 
 def resource_path(relative_path):
-    """ Get the absolute path to the resource, works for dev and for PyInstaller """
+    '''Get the absolute path to the resource, works for dev and for PyInstaller'''
     try:
         # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS
