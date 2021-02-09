@@ -184,7 +184,6 @@ class SDBWidget(QWidget):
 
         methodLabel = QLabel('Regression Method:')
         self.methodCB = QComboBox()
-
         self.methodCB.addItems(method_list)
         self.methodCB.activated.connect(self.methodSelection)
 
@@ -367,6 +366,7 @@ class SDBWidget(QWidget):
             nbands = len(image_raw.indexes)
             ndata = image_raw.read(1).size
             bands_dummy = np.zeros((nbands, ndata))
+
             for i in range(1, nbands + 1):
                 bands_dummy[i - 1, :] = np.ravel(image_raw.read(i))
 
