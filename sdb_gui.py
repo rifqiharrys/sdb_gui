@@ -1253,8 +1253,6 @@ class Process(QThread):
                 print_parameters_info + '\n' +
                 'Degree:\t\t' + str(svm_op_list[3])
             )
-        else:
-            print_parameters_info = print_parameters_info
 
         return parameters
 
