@@ -371,7 +371,7 @@ class SDBWidget(QWidget):
             coord2 = np.array(image_raw.transform * (1, 1))
 
             global pixel_size
-            pixel_size = coord2 - coord1
+            pixel_size = abs(coord2 - coord1)
 
             self.loadImageLabel.setText(os.path.split(img_loc)[1])
             print(image_raw.crs)
