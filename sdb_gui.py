@@ -74,6 +74,10 @@ def resource_path(relative_path):
 os.environ['PROJ_LIB'] = resource_path('share/proj')
 os.environ['GDAL_DATA'] = resource_path('share')
 
+import fiona._shim
+import fiona.schema
+import geopandas as gpd
+
 
 
 class SDBWidget(QWidget):
@@ -92,16 +96,16 @@ class SDBWidget(QWidget):
         method_list = [
             'K-Nearest Neighbors',
             'Multiple Linear Regression',
-            'Random Forest',
+            'Random Forest', 
             'Support Vector Machines'
         ]
 
         global knn_op_list
         knn_op_list = [
-            5,  # n_neighbors
-            'distance',  # weights
-            'auto',  # algorithm
-            30  # leaf size
+            5, # n_neighbors
+            'distance', # weights
+            'auto', # algorithm
+            30 # leaf size
         ]
 
         global mlr_op_list
@@ -149,11 +153,6 @@ class SDBWidget(QWidget):
 
         depthHeaderLabel = QLabel('Depth Header:')
         self.depthHeaderCB = QComboBox()
-
-        bandStartLabel = QLabel('First Band Column:')
-        self.bandStartCB = QComboBox()
-        bandEndLabel = QLabel('Last Band Column:')
-        self.bandEndCB = QComboBox()
 
         self.table = QTableWidget()
         scroll = QScrollArea()
@@ -237,11 +236,6 @@ class SDBWidget(QWidget):
 
         grid.addWidget(depthHeaderLabel, 3, 1, 1, 1)
         grid.addWidget(self.depthHeaderCB, 3, 2, 1, 3)
-
-        grid.addWidget(bandStartLabel, 4, 1, 1, 1)
-        grid.addWidget(self.bandStartCB, 4, 2, 1, 1)
-        grid.addWidget(bandEndLabel, 4, 3, 1, 1)
-        grid.addWidget(self.bandEndCB, 4, 4, 1, 1)
 
         grid.addWidget(self.table, 5, 1, 5, 4)
 
@@ -380,6 +374,7 @@ class SDBWidget(QWidget):
             pixel_size = coord2 - coord1
 
             self.loadImageLabel.setText(os.path.split(img_loc)[1])
+            print(image_raw.crs)
         except:
             self.loadImageDialog.close()
             self.noDataWarning()
@@ -394,20 +389,6 @@ class SDBWidget(QWidget):
 
         openFilesButton = QPushButton('Open File')
         openFilesButton.clicked.connect(self.sampleFilesDialog)
-
-        sepLabel = QLabel('Separator:')
-        self.sepCB = QComboBox()
-        self.sepCB.addItems(['Comma', 'Tab', 'Space', 'Semicolon'])
-
-        headerLineLabel = QLabel('Header Starting Line:')
-        self.headerLineSB = QSpinBox()
-        self.headerLineSB.setMinimum(1)
-        self.headerLineSB.setAlignment(Qt.AlignRight)
-
-        dataLineLabel = QLabel('Data Starting Line:')
-        self.dataLineSB = QSpinBox()
-        self.dataLineSB.setMinimum(1)
-        self.dataLineSB.setAlignment(Qt.AlignRight)
 
         locLabel = QLabel('Location:')
         self.locList = QTextBrowser()
@@ -426,14 +407,6 @@ class SDBWidget(QWidget):
         grid = QGridLayout()
         grid.addWidget(openFilesButton, 1, 1, 1, 4)
 
-        grid.addWidget(sepLabel, 2, 1, 1, 1)
-        grid.addWidget(self.sepCB, 2, 2, 1, 3)
-
-        grid.addWidget(headerLineLabel, 3, 1, 1, 1)
-        grid.addWidget(self.headerLineSB, 3, 2, 1, 1)
-        grid.addWidget(dataLineLabel, 3, 3, 1, 1)
-        grid.addWidget(self.dataLineSB, 3, 4, 1, 1)
-
         grid.addWidget(locLabel, 4, 1, 1, 1)
 
         grid.addWidget(self.locList, 5, 1, 10, 4)
@@ -450,9 +423,8 @@ class SDBWidget(QWidget):
     def sampleFilesDialog(self):
 
         home_dir = str(Path.home())
-        fileFilter = 'All Files (*.*) ;; Text Files (*.txt) ;; Comma Separated Value (*.csv) ;; DAT Files (*.dat)'
-        selectedFilter = 'Comma Separated Value (*.csv)'
-
+        fileFilter = 'All Files (*.*) ;; ESRI Shapefile (*.shp)'
+        selectedFilter = 'ESRI Shapefile (*.shp)'
         fname = QFileDialog.getOpenFileName(self, 'Open File(s)', home_dir, fileFilter, selectedFilter)
 
         global sample_loc
@@ -472,18 +444,11 @@ class SDBWidget(QWidget):
     def loadSampleAction(self):
 
         try:
-            head = self.headerLineSB.value() - 1
-            start_data = self.dataLineSB.value() - 1
-            sepDict = {'Tab': '\t', 'Comma': ',',
-                       'Space': ' ', 'Semicolon': ';'}
-            sepSelect = sepDict[self.sepCB.currentText()]
-
             global sample_size
             sample_size = os.path.getsize(sample_loc)
 
             global sample_raw
-            sample_raw = pd.read_csv(sample_loc, sep=sepSelect, header=head)
-            sample_raw = sample_raw.iloc[start_data:, 0:]
+            sample_raw = gpd.read_file(sample_loc)
 
             raw = sample_raw.copy()
 
@@ -494,12 +459,6 @@ class SDBWidget(QWidget):
 
             self.depthHeaderCB.clear()
             self.depthHeaderCB.addItems(data.columns)
-            self.bandStartCB.clear()
-            self.bandStartCB.addItems(data.columns)
-            self.bandStartCB.setCurrentIndex(1)
-            self.bandEndCB.clear()
-            self.bandEndCB.addItems(data.columns)
-            self.bandEndCB.setCurrentIndex(data.columns.size - 1)
 
             self.table.setColumnCount(len(data.columns))
             self.table.setRowCount(len(data.index))
@@ -516,6 +475,7 @@ class SDBWidget(QWidget):
             self.table.resizeColumnsToContents()
 
             self.loadSampleLabel.setText(os.path.split(sample_loc)[1])
+            print(sample_raw.crs)
         except:
             self.loadSampleDialog.close()
             self.noDataWarning()
@@ -776,8 +736,6 @@ class SDBWidget(QWidget):
         time_list = []
         init_input = [
             self.depthHeaderCB.currentText(),
-            self.bandStartCB.currentText(),
-            self.bandEndCB.currentText(),
             self.trainPercentDSB.value() / 100,
             self.limitState.text(),
             self.limitADSB.value(),
@@ -820,7 +778,7 @@ class SDBWidget(QWidget):
 
             print_limit = (
                 'Depth Limit:\t\tfrom ' + str(self.limitADSB.value()) + ' m ' +
-                'to ' + str(self.limitBDSB.value()) +' m'
+                'to ' + str(self.limitBDSB.value()) + ' m'
             )
         else:
             print_limit = (
@@ -849,7 +807,7 @@ class SDBWidget(QWidget):
             'RMSE:\t\t' + str(rmse) + '\n' +
             'MAE:\t\t' + str(mae) + '\n' +
             'R\u00B2:\t\t' + str(r2) + '\n\n' +
-            'Preparation Runtime:\t' + str(runtime[0]) + '\n' +
+            'Sampling Runtime:\t' + str(runtime[0]) + '\n' +
             'Fitting Runtime:\t\t' + str(runtime[1]) + '\n' +
             'Prediction Runtime:\t' + str(runtime[2]) + '\n' +
             'Validating Runtime:\t' + str(runtime[3]) + '\n' +
@@ -1117,40 +1075,56 @@ class Process(QThread):
     def inputs(self, input_list):
 
         self.depth_label = input_list[0]
-        self.band_start = input_list[1]
-        self.band_end = input_list[2]
-        self.train_size = input_list[3]
-        self.limitState = input_list[4]
-        self.limitAValue = input_list[5]
-        self.limitBValue = input_list[6]
-        self.method = input_list[7]
+        self.train_size = input_list[1]
+        self.limitState = input_list[2]
+        self.limitAValue = input_list[3]
+        self.limitBValue = input_list[4]
+        self.method = input_list[5]
 
 
-    def preparing(self):
-        print('Preparing')
+    def sampling(self):
+        print('Process sampling')
 
         time_start = datetime.datetime.now()
-        start_list = [time_start, 'Preparing...\n']
+        start_list = [time_start, 'Point Sampling...\n']
         self.time_signal.emit(start_list)
 
-        samples_edit = sample_raw.copy()
+        shp_geo = sample_raw['geometry']
 
-        positives_count = samples_edit[samples_edit[self.depth_label] > 0][self.depth_label].count()
-        samples_count = samples_edit[self.depth_label].count()
+        nbands = len(image_raw.indexes)
+        nsample = len(sample_raw.index)
+
+        row = np.ones(nsample, dtype=int)
+        col = np.ones(nsample, dtype=int)
+
+        sample_bands = np.ones((nsample, nbands))
+        col_names = []
+
+        with parallel_backend('threading', n_jobs=njobs):
+
+            for i in sample_raw.index:
+                row[i], col[i] = image_raw.index(shp_geo[i].xy[0][0], shp_geo[i].xy[1][0])
+
+            for i in image_raw.indexes:
+                sample_bands[:, i - 1] = image_raw.read(i)[row, col]
+                col_names.append('band' + str(i))
+
+        samples_edit = pd.DataFrame(sample_bands, columns=col_names)
+        samples_edit['z'] = sample_raw[self.depth_label]
+
+        positives_count = samples_edit[samples_edit['z'] > 0]['z'].count()
+        samples_count = samples_edit['z'].count()
 
         if positives_count > samples_count / 2:
-            samples_edit[self.depth_label] = samples_edit[self.depth_label] * -1
+            samples_edit['z'] = samples_edit['z'] * -1
 
         if self.limitState == 'unchecked':
             print('depth limit')
-            samples_edit = samples_edit[samples_edit[self.depth_label] >= self.limitBValue]
-            samples_edit = samples_edit[samples_edit[self.depth_label] <= self.limitAValue]
+            samples_edit = samples_edit[samples_edit['z'] >= self.limitBValue]
+            samples_edit = samples_edit[samples_edit['z'] <= self.limitAValue]
 
-        start_loc = samples_edit.columns.get_loc(self.band_start)
-        end_loc = samples_edit.columns.get_loc(self.band_end)
-
-        features = samples_edit.iloc[:, start_loc:end_loc+1]
-        z = samples_edit[self.depth_label]
+        features = samples_edit.iloc[:, 0:-1]
+        z = samples_edit['z']
 
         features_train, features_test, z_train, z_test = train_test_split(features, z, train_size=self.train_size, random_state=0)
 
@@ -1162,7 +1136,7 @@ class Process(QThread):
     def knnPredict(self):
         print('knnPredict')
 
-        parameters = self.preparing()
+        parameters = self.sampling()
 
         regressor = KNeighborsRegressor(
             n_neighbors=knn_op_list[0],
@@ -1187,7 +1161,7 @@ class Process(QThread):
     def mlrPredict(self):
         print('mlrPredict')
 
-        parameters = self.preparing()
+        parameters = self.sampling()
 
         regressor = LinearRegression(
             fit_intercept=mlr_op_list[0],
@@ -1210,7 +1184,7 @@ class Process(QThread):
     def rfPredict(self):
         print('rfPredict')
 
-        parameters = self.preparing()
+        parameters = self.sampling()
 
         regressor = RandomForestRegressor(
             n_estimators=rf_op_list[0],
@@ -1231,7 +1205,7 @@ class Process(QThread):
     def svmPredict(self):
         print('svmPredict')
 
-        parameters = self.preparing()
+        parameters = self.sampling()
 
         regressor = SVR(
             kernel=svm_op_list[0],
