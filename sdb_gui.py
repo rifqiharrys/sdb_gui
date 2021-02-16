@@ -785,13 +785,14 @@ class SDBWidget(QWidget):
                 'Depth Limit:\t\tDisabled'
             )
 
-        runtime = [
-            time_list[1] - time_list[0],
-            time_list[2] - time_list[1],
-            time_list[3] - time_list[2],
-            time_list[4] - time_list[3],
-            time_list[4] - time_list[0]
-        ]
+        time_array = np.array(time_list)
+        time_diff = time_array[1:] - time_array[:-1]
+        runtime = []
+
+        for i in range(len(time_diff)):
+            runtime.append(time_diff[i])
+
+        runtime.append(time_list[-1] - time_list[0])
 
         global print_result_info
         print_result_info = (
