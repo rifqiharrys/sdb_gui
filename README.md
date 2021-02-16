@@ -7,17 +7,18 @@ This is a GUI to make a bathimetric prediction using satellite imagery and some 
 2. [Scipy](https://www.scipy.org/)
 3. [Pandas](https://pandas.pydata.org/)
 4. [Rasterio](https://rasterio.readthedocs.io/)
-5. [Scikit Learn](https://scikit-learn.org)
-6. [PyQt5](https://www.riverbankcomputing.com/static/Docs/PyQt5/)
+5. [Geopandas](https://geopandas.readthedocs.io/)
+6. [Scikit Learn](https://scikit-learn.org)
+7. [PyQt5](https://www.riverbankcomputing.com/static/Docs/PyQt5/)
 
-Prepare your own data before using this SDB GUI. The required data are georeferenced and corrected imagery and tabular data consisting depth samples and corresponding raster values in the form of text file (e.g. CSV, TXT, or DAT file). If you don't have the second data, you could extract it from your depth sample and the first data using QGIS Plugin "Point Sampling Tool".
+Prepare your own data before using this SDB GUI. If you're running the latest [release](https://github.com/rifqiharrys/sdb_gui/releases), the required data are georeferenced and corrected imagery and tabular data consisting depth samples and corresponding raster values in the form of text file (e.g. CSV, TXT, or DAT file). If you don't have the second data, you could extract it from your depth sample and the first data using QGIS Plugin "Point Sampling Tool". If you're running from the source code, you have to load your depth samples in the form of ESRI Shapefile format and then SDB GUI will sample the depth for you.
 
 Open SDB GUI and load both data. Choose one of the methods and decide how much of the sample you're going to use as training data. If you push `Make Prediction` button right away, the software will use default hyperparameters. If you want to tweak the hyperparameters, push `Options` button and it will show you some changeable hyperparameters depends on which method is selected.
 
 After the prediction complete, you can save it into georeferenced raster file or XYZ ASCII file containing coordinates of each center of pixel. The prediction will show you depth values even on land. So, you have to mask the prediction result in the end and extracting prediction result of only water body.
 
 ## Workflow
-Image below is the workflow of predicting bathymetric depth using SDB GUI.
+Image below is the workflow of predicting bathymetric depth using SDB GUI if you're running the latest [release](https://github.com/rifqiharrys/sdb_gui/releases). If you're running directly from the latest source code, the point sampling process goes into "SDB GUI Processing".
 
 ![workflow](workflow_sdb_gui.png "Workflow")
 
