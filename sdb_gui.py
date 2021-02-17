@@ -468,8 +468,7 @@ class SDBWidget(QWidget):
 
             for i in range(len(data.index)):
                 for j in range(len(data.columns)):
-                    self.table.setItem(
-                        i, j, QTableWidgetItem(str(data.iloc[i, j])))
+                    self.table.setItem(i, j, QTableWidgetItem(str(data.iloc[i, j])))
 
             self.table.resizeRowsToContents()
             self.table.resizeColumnsToContents()
@@ -1137,7 +1136,6 @@ class Process(QThread):
             samples_edit['z'] = samples_edit['z'] * -1
 
         if self.limitState == 'unchecked':
-            print('depth limit')
             samples_edit = samples_edit[samples_edit['z'] >= self.limitBValue]
             samples_edit = samples_edit[samples_edit['z'] <= self.limitAValue]
 
