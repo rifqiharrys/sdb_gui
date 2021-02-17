@@ -210,7 +210,7 @@ class SDBWidget(QWidget):
         self.progressBar = QProgressBar()
         self.progressBar.setFormat('%p%')
         self.progressBar.setMinimum(0)
-        self.progressBar.setMaximum(5)
+        self.progressBar.setMaximum(6)
 
         releaseButton =  QPushButton('Releases')
         releaseButton.clicked.connect(lambda: webbrowser.open(
@@ -759,7 +759,7 @@ class SDBWidget(QWidget):
         self.resultText.append(time_text[1])
         self.progressBar.setValue(self.progressBar.value() + 1)
 
-        if self.progressBar.value() == 5:
+        if self.progressBar.value() == self.progressBar.maximum():
             self.completeDialog()
 
 
@@ -808,11 +808,12 @@ class SDBWidget(QWidget):
             'RMSE:\t\t' + str(rmse) + '\n' +
             'MAE:\t\t' + str(mae) + '\n' +
             'R\u00B2:\t\t' + str(r2) + '\n\n' +
-            'Sampling Runtime:\t' + str(runtime[0]) + '\n' +
-            'Fitting Runtime:\t\t' + str(runtime[1]) + '\n' +
-            'Prediction Runtime:\t' + str(runtime[2]) + '\n' +
-            'Validating Runtime:\t' + str(runtime[3]) + '\n' +
-            'Overall Runtime:\t' + str(runtime[4]) + '\n\n' +
+            'Reproject Runtime:\t' + str(runtime[0]) + '\n' +
+            'Sampling Runtime:\t' + str(runtime[1]) + '\n' +
+            'Fitting Runtime:\t\t' + str(runtime[2]) + '\n' +
+            'Prediction Runtime:\t' + str(runtime[3]) + '\n' +
+            'Validating Runtime:\t' + str(runtime[4]) + '\n' +
+            'Overall Runtime:\t' + str(runtime[5]) + '\n\n' +
             'CRS:\t\t' + str(image_raw.crs) + '\n'
             'Dimensions:\t\t' + str(image_raw.width) + ' x ' +
             str(image_raw.height) + ' pixels\n' +
@@ -1087,13 +1088,29 @@ class Process(QThread):
         print('Process sampling')
 
         time_start = datetime.datetime.now()
-        start_list = [time_start, 'Point Sampling...\n']
-        self.time_signal.emit(start_list)
 
-        shp_geo = sample_raw['geometry']
+        image_crs = str(image_raw.crs).upper()
+        sample_crs = str(sample_raw.crs).upper()
+
+        if image_crs != sample_crs:
+            start_list = [time_start, 'Reprojecting...\n']
+            self.time_signal.emit(start_list)
+
+            sample_reproj = sample_raw.to_crs(image_crs)
+        else:
+            start_list = [time_start, 'Skip Reproject...\n']
+            self.time_signal.emit(start_list)
+
+            sample_reproj = sample_raw.copy()
+
+        time_reproj = datetime.datetime.now()
+        reproj_list = [time_reproj, 'Point Sampling...\n']
+        self.time_signal.emit(reproj_list)
+
+        shp_geo = sample_reproj['geometry']
 
         nbands = len(image_raw.indexes)
-        nsample = len(sample_raw.index)
+        nsample = len(sample_reproj.index)
 
         row = np.ones(nsample, dtype=int)
         col = np.ones(nsample, dtype=int)
@@ -1103,7 +1120,7 @@ class Process(QThread):
 
         with parallel_backend('threading', n_jobs=njobs):
 
-            for i in sample_raw.index:
+            for i in sample_reproj.index:
                 row[i], col[i] = image_raw.index(shp_geo[i].xy[0][0], shp_geo[i].xy[1][0])
 
             for i in image_raw.indexes:
@@ -1111,7 +1128,7 @@ class Process(QThread):
                 col_names.append('band' + str(i))
 
         samples_edit = pd.DataFrame(sample_bands, columns=col_names)
-        samples_edit['z'] = sample_raw[self.depth_label]
+        samples_edit['z'] = sample_reproj[self.depth_label]
 
         positives_count = samples_edit[samples_edit['z'] > 0]['z'].count()
         samples_count = samples_edit['z'].count()
