@@ -1,6 +1,8 @@
 # Satellite Derived Bathymetry (SDB) GUI
 Mainly, there are two methods to create a bathymetric prediction using satellite imagery. Two of which are analytical method and empirical method. The former predict depth using water body properties and calculate depth using some formula and those properties as variable input. The latter predict depth using depth training samples and fit the sample into some model and predict the depth using the model based on the depth sample training.
 
+## Getting Started
+
 This is a GUI to make a bathimetric prediction using satellite imagery and some depth samples corresponding to the imagery. If you wish to use the GUI, please download the latest [release](https://github.com/rifqiharrys/sdb_gui/releases). Or if you want to run the source code (`sdb_gui.py`) instead, please install `python 3.6.x` and the following libraries first:
 
 1. [Numpy](https://numpy.org/)
@@ -11,14 +13,18 @@ This is a GUI to make a bathimetric prediction using satellite imagery and some 
 6. [Scikit Learn](https://scikit-learn.org)
 7. [PyQt5](https://www.riverbankcomputing.com/static/Docs/PyQt5/)
 
-Prepare your own data before using this SDB GUI. If you're running the latest [release](https://github.com/rifqiharrys/sdb_gui/releases), the required data are georeferenced and corrected imagery and tabular data consisting depth samples and corresponding raster values in the form of text file (e.g. CSV, TXT, or DAT file). If you don't have the second data, you could extract it from your depth sample and the first data using QGIS Plugin "Point Sampling Tool". If you're running from the source code, you have to load your depth samples in the form of ESRI Shapefile format, then SDB GUI will sample the depth for you
+Prepare your own data before using this SDB GUI. In general, there are two types of data needed in order to use SDB GUI, which are georeferenced and corrected imagery and depth samples. There are differences in how the depth samples should be prepared before loading when you're running SDB GUI version 2.x.x and below or running the latest source code and SDB GUI after version 2.x.x release.
 
-Open SDB GUI and load both data. Choose one of the methods and decide how much of the sample you're going to use as training data. If you push `Make Prediction` button right away, the software will use default hyperparameters. If you want to tweak the hyperparameters, push `Options` button and it will show you some changeable hyperparameters depends on which method is selected.
+If you're running SDB GUI version 2.x.x and below, the depth samples must be in tabular data consisting depth samples and corresponding raster values in the form of text file (e.g. CSV, TXT, or DAT file). If you don't have that kind of dwpth samples, you could extract it from your depth sample and the imagery using QGIS Plugin "Point Sampling Tool". If you're running the latest source code or SDB GUI after version 2.x.x release, you have to load your depth samples in the form of ESRI Shapefile format, then SDB GUI will sample the depth for you.
+
+## How To Use
+
+Open SDB GUI and load both data, then select the header of your depth samples. Choose one of the methods and decide how much of the sample you're going to use as training data. If you push `Make Prediction` button right away, the software will use default hyperparameters. If you want to tweak the hyperparameters, push `Options` button and it will show you some changeable hyperparameters depends on which method is selected.
 
 After the prediction complete, you can save it into georeferenced raster file or XYZ ASCII file containing coordinates of each center of pixel. The prediction will show you depth values even on land. So, you have to mask the prediction result in the end and extracting prediction result of only water body.
 
 ## Workflow
-Image below is the workflow of predicting bathymetric depth using SDB GUI if you're running the latest [release](https://github.com/rifqiharrys/sdb_gui/releases). If you're running directly from the latest source code, the point sampling process goes into "SDB GUI Processing".
+Image below is the workflow of predicting bathymetric depth using SDB GUI if you're running the latest [release](https://github.com/rifqiharrys/sdb_gui/releases) and the latest source code.
 
 ![workflow](workflow_sdb_gui.png "Workflow")
 
