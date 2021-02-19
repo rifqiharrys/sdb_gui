@@ -19,7 +19,7 @@ If you're running SDB GUI version 2.x.x and below, the depth samples must be in 
 
 ## How To Use
 
-Open SDB GUI and load both data, then select the header of your depth samples. Choose one of the methods and decide how much of the sample you're going to use as training data. If you push `Make Prediction` button right away, the software will use default hyperparameters. If you want to tweak the hyperparameters, push `Options` button and it will show you some changeable hyperparameters depends on which method is selected.
+Open SDB GUI and load both data, and then select the header of your depth samples. Choose one of the methods and decide how much of the sample you're going to use as training data. If you push `Make Prediction` button right away, the software will use default hyperparameters. If you want to tweak the hyperparameters, push `Options` button and it will show you some changeable hyperparameters depends on which method is selected.
 
 After the prediction complete, you can save it into georeferenced raster file or XYZ ASCII file containing coordinates of each center of pixel. The prediction will show you depth values even on land. So, you have to mask the prediction result in the end and extracting prediction result of only water body.
 
