@@ -89,8 +89,12 @@ class SDBWidget(QWidget):
         super(SDBWidget, self).__init__()
 
 ####### Default Values #######
-        global njobs
-        njobs = -2
+        global proc_op_list
+        proc_op_list = [
+            'threading',
+            -2,
+            0
+        ]
 
         global method_list
         method_list = [
@@ -194,14 +198,17 @@ class SDBWidget(QWidget):
         self.trainPercentDSB.setSuffix(' %')
         self.trainPercentDSB.setAlignment(Qt.AlignRight)
 
-        self.optionsButton = QPushButton('Options')
-        self.optionsButton.clicked.connect(self.knnOptionDialog)
+        self.optionsButton = QPushButton('Method Options')
+        self.optionsButton.clicked.connect(self.knnOptionWindow)
         self.optionsButton.clicked.connect(self.methodSelection)
 
         makePredictionButton = QPushButton('Make Prediction')
         makePredictionButton.clicked.connect(self.predict)
         saveFileButton = QPushButton('Save Into File')
         saveFileButton.clicked.connect(self.saveOptionWindow)
+
+        processingOptionsButton = QPushButton('Processing Options')
+        processingOptionsButton.clicked.connect(self.processingOptionWindow)
 
         resultInfo = QLabel('Result Information')
         self.resultText = QTextBrowser()
@@ -248,12 +255,14 @@ class SDBWidget(QWidget):
         grid.addWidget(self.limitBDSB, 11, 4, 1, 1)
 
         grid.addWidget(methodLabel, 12, 1, 1, 1)
-        grid.addWidget(self.methodCB, 12, 2, 1, 3)
+        grid.addWidget(self.methodCB, 12, 2, 1, 1)
+
+        grid.addWidget(self.optionsButton, 12, 3, 1, 2)
 
         grid.addWidget(trainPercentLabel, 13, 1, 1, 1)
         grid.addWidget(self.trainPercentDSB, 13, 2, 1, 1)
 
-        grid.addWidget(self.optionsButton, 13, 3, 1, 2)
+        grid.addWidget(processingOptionsButton, 13, 3, 1, 2)
 
         grid.addWidget(makePredictionButton, 14, 1, 1, 2)
         grid.addWidget(saveFileButton, 14, 3, 1, 2)
@@ -290,16 +299,16 @@ class SDBWidget(QWidget):
 
         if self.methodCB.currentText() == method_list[0]:
             self.optionsButton.clicked.disconnect()
-            self.optionsButton.clicked.connect(self.knnOptionDialog)
+            self.optionsButton.clicked.connect(self.knnOptionWindow)
         elif self.methodCB.currentText() == method_list[1]:
             self.optionsButton.clicked.disconnect()
-            self.optionsButton.clicked.connect(self.mlrOptionDialog)
+            self.optionsButton.clicked.connect(self.mlrOptionWindow)
         elif self.methodCB.currentText() == method_list[2]:
             self.optionsButton.clicked.disconnect()
-            self.optionsButton.clicked.connect(self.rfOptionDialog)
+            self.optionsButton.clicked.connect(self.rfOptionWIndow)
         elif self.methodCB.currentText() == method_list[3]:
             self.optionsButton.clicked.disconnect()
-            self.optionsButton.clicked.connect(self.svmOptionDialog)
+            self.optionsButton.clicked.connect(self.svmOptionWindow)
 
 
     def loadImageWindow(self):
@@ -481,7 +490,7 @@ class SDBWidget(QWidget):
             self.loadSampleWindow()
 
 
-    def knnOptionDialog(self):
+    def knnOptionWindow(self):
 
         optionDialog = QDialog()
         optionDialog.setWindowTitle('Options (K Neighbors)')
@@ -547,7 +556,7 @@ class SDBWidget(QWidget):
         ]
 
 
-    def mlrOptionDialog(self):
+    def mlrOptionWindow(self):
 
         optionDialog = QDialog()
         optionDialog.setWindowTitle('Options (MLR)')
@@ -601,7 +610,7 @@ class SDBWidget(QWidget):
         ]
 
 
-    def rfOptionDialog(self):
+    def rfOptionWIndow(self):
 
         optionDialog = QDialog()
         optionDialog.setWindowTitle('Options (Random Forest)')
@@ -648,7 +657,7 @@ class SDBWidget(QWidget):
         ]
 
 
-    def svmOptionDialog(self):
+    def svmOptionWindow(self):
 
         optionDialog = QDialog()
         optionDialog.setWindowTitle('Options (SVM)')
@@ -716,6 +725,69 @@ class SDBWidget(QWidget):
             self.cDSB.value(),
             self.degreeSB.value()
         ]
+
+
+    def processingOptionWindow(self):
+
+        self.processingOptionDialog = QDialog()
+        self.processingOptionDialog.setWindowTitle('Processing Options')
+        self.processingOptionDialog.setWindowIcon(QIcon(resource_path('icons/setting-tool-pngrepo-com.png')))
+
+        backendLabel = QLabel('Parallel Backend:')
+        self.backendCB = QComboBox()
+        self.backendCB.addItems(['loky', 'threading', 'multiprocessing'])
+        self.backendCB.setCurrentIndex(1)
+
+        njobsLabel = QLabel('Processing Cores:')
+        self.njobsSB = QSpinBox()
+        self.njobsSB.setRange(-100, 100)
+        self.njobsSB.setValue(-2)
+        self.njobsSB.setAlignment(Qt.AlignRight)
+
+        randomStateLabel = QLabel('Random State:')
+        self.randomStateSB = QSpinBox()
+        self.randomStateSB.setRange(0, 1000)
+        self.randomStateSB.setValue(0)
+        self.randomStateSB.setAlignment(Qt.AlignRight)
+
+        cancelButton = QPushButton('Cancel')
+        cancelButton.clicked.connect(self.processingOptionDialog.close)
+        loadButton = QPushButton('Load')
+        loadButton.clicked.connect(self.loadProcessingOptionAction)
+        loadButton.clicked.connect(self.processingOptionDialog.close)
+
+        grid = QGridLayout()
+
+        grid.addWidget(backendLabel, 1, 1, 1, 2)
+        grid.addWidget(self.backendCB, 1, 3, 1, 2)
+
+        grid.addWidget(njobsLabel, 2, 1, 1, 2)
+        grid.addWidget(self.njobsSB, 2, 3, 1, 2)
+
+        grid.addWidget(randomStateLabel, 3, 1, 1, 2)
+        grid.addWidget(self.randomStateSB, 3, 3, 1, 2)
+
+        grid.addWidget(loadButton, 4, 3, 1, 1)
+        grid.addWidget(cancelButton,4, 4, 1, 1)
+
+        self.processingOptionDialog.setLayout(grid)
+
+        self.processingOptionDialog.exec_()
+
+
+    def loadProcessingOptionAction(self):
+
+        if self.njobsSB.value() == 0:
+            self.processingOptionDialog.close()
+            self.noZeroWarning()
+            self.processingOptionWindow()
+        else:
+            global proc_op_list
+            proc_op_list = [
+                self.backendCB.currentText(),
+                self.njobsSB.value(),
+                self.randomStateSB.value()
+                ]
 
 
     def predict(self):
@@ -807,6 +879,9 @@ class SDBWidget(QWidget):
             'RMSE:\t\t' + str(rmse) + '\n' +
             'MAE:\t\t' + str(mae) + '\n' +
             'R\u00B2:\t\t' + str(r2) + '\n\n' +
+            'Parallel Backend:\t' + str(proc_op_list[0]) + '\n' +
+            'Processing Cores:\t' + str(proc_op_list[1]) + '\n' +
+            'Random State:\t\t' + str(proc_op_list[2]) + '\n\n' +
             'Reproject Runtime:\t' + str(runtime[0]) + '\n' +
             'Sampling Runtime:\t' + str(runtime[1]) + '\n' +
             'Fitting Runtime:\t\t' + str(runtime[2]) + '\n' +
@@ -845,6 +920,16 @@ class SDBWidget(QWidget):
         warning.exec_()
         self.resultText.clear()
         self.progressBar.setValue(0)
+
+
+    def noZeroWarning(self):
+
+        warning = QErrorMessage()
+        warning.setWindowTitle('WARNING')
+        warning.setWindowIcon(QIcon(resource_path('icons/warning-pngrepo-com.png')))
+        warning.showMessage('Insert any integer but Zero!')
+
+        warning.exec_()
 
 
     def noSaveLocWarning(self):
@@ -1117,7 +1202,7 @@ class Process(QThread):
         sample_bands = np.ones((nsample, nbands))
         col_names = []
 
-        with parallel_backend('threading', n_jobs=njobs):
+        with parallel_backend(proc_op_list[0], n_jobs=proc_op_list[1]):
 
             for i in sample_reproj.index:
                 row[i], col[i] = image_raw.index(shp_geo[i].xy[0][0], shp_geo[i].xy[1][0])
@@ -1142,7 +1227,12 @@ class Process(QThread):
         features = samples_edit.iloc[:, 0:-1]
         z = samples_edit['z']
 
-        features_train, features_test, z_train, z_test = train_test_split(features, z, train_size=self.train_size, random_state=0)
+        features_train, features_test, z_train, z_test = train_test_split(
+            features,
+            z,
+            train_size=self.train_size,
+            random_state=proc_op_list[2]
+            )
 
         samples_split = [features_train, features_test, z_train, z_test]
 
@@ -1205,7 +1295,7 @@ class Process(QThread):
         regressor = RandomForestRegressor(
             n_estimators=rf_op_list[0],
             criterion=rf_op_list[1],
-            random_state=0)
+            random_state=proc_op_list[2])
 
         parameters.append(regressor)
 
@@ -1270,7 +1360,7 @@ class Process(QThread):
             sampling_list = [time_sampling, 'Fitting...\n']
             self.time_signal.emit(sampling_list)
 
-            with parallel_backend('threading', n_jobs=njobs):
+            with parallel_backend(proc_op_list[0], n_jobs=proc_op_list[1]):
 
                 regressor.fit(features_train, z_train)
                 time_fit = datetime.datetime.now()
