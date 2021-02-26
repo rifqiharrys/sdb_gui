@@ -468,7 +468,7 @@ class SDBWidget(QWidget):
                 self.table.clearContents()
 
                 self.loadSampleDialog.close()
-                self.noDataWarning()
+                self.pointDataWarning()
                 self.loadSampleWindow()
             else:
 
@@ -915,7 +915,19 @@ class SDBWidget(QWidget):
         warning = QErrorMessage()
         warning.setWindowTitle('WARNING')
         warning.setWindowIcon(QIcon(resource_path('icons/warning-pngrepo-com.png')))
-        warning.showMessage('No data loaded. Please input your data!')
+        warning.showMessage('No data loaded. Please load your data!')
+
+        warning.exec_()
+        self.resultText.clear()
+        self.progressBar.setValue(0)
+
+
+    def pointDataWarning(self):
+
+        warning = QErrorMessage()
+        warning.setWindowTitle('WARNING')
+        warning.setWindowIcon(QIcon(resource_path('icons/warning-pngrepo-com.png')))
+        warning.showMessage('Your data is not Point type. Please load another data!')
 
         warning.exec_()
         self.resultText.clear()
