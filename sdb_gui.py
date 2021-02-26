@@ -1204,8 +1204,7 @@ class Process(QThread):
 
         with parallel_backend(proc_op_list[0], n_jobs=proc_op_list[1]):
 
-            for i in sample_reproj.index:
-                row[i], col[i] = image_raw.index(shp_geo[i].xy[0][0], shp_geo[i].xy[1][0])
+            row, col = np.array(image_raw.index(shp_geo.x, shp_geo.y))
 
             for i in image_raw.indexes:
                 sample_bands[:, i - 1] = image_raw.read(i)[row, col]
