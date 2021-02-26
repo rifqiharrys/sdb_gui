@@ -471,7 +471,6 @@ class SDBWidget(QWidget):
                 self.pointDataWarning()
                 self.loadSampleWindow()
             else:
-
                 raw = sample_raw.copy()
 
                 if self.showState.text() == 'checked':
