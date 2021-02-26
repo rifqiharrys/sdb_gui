@@ -459,31 +459,43 @@ class SDBWidget(QWidget):
             global sample_raw
             sample_raw = gpd.read_file(sample_loc)
 
-            raw = sample_raw.copy()
-
-            if self.showState.text() == 'checked':
-                data = raw
-            else:
-                data = raw.head(100)
-
-            self.depthHeaderCB.clear()
-            self.depthHeaderCB.addItems(data.columns)
-
-            self.table.setColumnCount(len(data.columns))
-            self.table.setRowCount(len(data.index))
-
-            for h in range(len(data.columns)):
-                self.table.setHorizontalHeaderItem(h, QTableWidgetItem(data.columns[h]))
-
-            for i in range(len(data.index)):
-                for j in range(len(data.columns)):
-                    self.table.setItem(i, j, QTableWidgetItem(str(data.iloc[i, j])))
-
-            self.table.resizeRowsToContents()
-            self.table.resizeColumnsToContents()
-
             self.loadSampleLabel.setText(os.path.split(sample_loc)[1])
-            print(sample_raw.crs)
+
+            if (sample_raw.geom_type != 'Point').any():
+                del sample_raw
+                self.loadSampleLabel.setText('Sample Retracted')
+                self.depthHeaderCB.clear()
+                self.table.clearContents()
+
+                self.loadSampleDialog.close()
+                self.noDataWarning()
+                self.loadSampleWindow()
+            else:
+
+                raw = sample_raw.copy()
+
+                if self.showState.text() == 'checked':
+                    data = raw
+                else:
+                    data = raw.head(100)
+
+                self.depthHeaderCB.clear()
+                self.depthHeaderCB.addItems(data.columns)
+
+                self.table.setColumnCount(len(data.columns))
+                self.table.setRowCount(len(data.index))
+
+                for h in range(len(data.columns)):
+                    self.table.setHorizontalHeaderItem(h, QTableWidgetItem(data.columns[h]))
+
+                for i in range(len(data.index)):
+                    for j in range(len(data.columns)):
+                        self.table.setItem(i, j, QTableWidgetItem(str(data.iloc[i, j])))
+
+                self.table.resizeRowsToContents()
+                self.table.resizeColumnsToContents()
+
+                print(sample_raw.crs)
         except:
             self.loadSampleDialog.close()
             self.noDataWarning()
