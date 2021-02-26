@@ -1196,9 +1196,6 @@ class Process(QThread):
         nbands = len(image_raw.indexes)
         nsample = len(sample_reproj.index)
 
-        row = np.ones(nsample, dtype=int)
-        col = np.ones(nsample, dtype=int)
-
         sample_bands = np.ones((nsample, nbands))
         col_names = []
 
