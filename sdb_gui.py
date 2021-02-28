@@ -1219,7 +1219,7 @@ class Process(QThread):
         nbands = len(image_raw.indexes)
         nsample = len(sample_reproj.index)
 
-        sample_bands = np.ones((nsample, nbands))
+        sample_bands = np.empty((nsample, nbands))
         col_names = []
 
         with parallel_backend(proc_op_list[0], n_jobs=proc_op_list[1]):
