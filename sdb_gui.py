@@ -51,10 +51,11 @@ from PyQt5.QtGui import QIcon
 ###############################################################################
 #################### For Auto PY to EXE or PyInstaller Use ####################
 
-import sklearn.neighbors
-import sklearn.utils._cython_blas
-import sklearn.tree
-import sklearn.tree._utils
+# import sklearn.neighbors
+# import sklearn.utils._cython_blas
+import sklearn.utils._weight_vector
+# import sklearn.tree
+# import sklearn.tree._utils
 import fiona._shim
 import fiona.schema
 import rasterio._features
