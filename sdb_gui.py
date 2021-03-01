@@ -1233,10 +1233,7 @@ class Process(QThread):
         samples_edit = pd.DataFrame(sample_bands, columns=col_names)
         samples_edit['z'] = sample_reproj[self.depth_label]
 
-        positives_count = samples_edit[samples_edit['z'] > 0]['z'].count()
-        samples_count = samples_edit['z'].count()
-
-        if positives_count > samples_count / 2:
+        if np.median(samples_edit['z']) > 0:
             samples_edit['z'] = samples_edit['z'] * -1
 
         if self.limitState == 'unchecked':
