@@ -23,21 +23,7 @@ SOFTWARE.
 
 '''
 ###############################################################################
-#################### For Auto PY to EXE or PyInstaller Use ####################
-
-import sklearn.neighbors
-import sklearn.utils._cython_blas
-import sklearn.tree
-import sklearn.tree._utils
-import rasterio._features
-import rasterio._shim
-import rasterio.control
-import rasterio.crs
-import rasterio.sample
-import rasterio.vrt
-
-###############################################################################
-###############################################################################
+################################# Main Imports ################################
 
 from sklearn import metrics
 from sklearn.neighbors import KNeighborsRegressor
@@ -49,6 +35,7 @@ from joblib import parallel_backend
 from scipy import ndimage
 import pandas as pd
 import numpy as np
+import geopandas as gpd
 import rasterio as rio
 from pathlib import Path
 import sys, os
@@ -61,6 +48,25 @@ from PyQt5.QtWidgets import(QApplication, QWidget, QTextBrowser, QProgressBar, Q
                             QErrorMessage)
 from PyQt5.QtGui import QIcon
 
+###############################################################################
+#################### For Auto PY to EXE or PyInstaller Use ####################
+
+import sklearn.neighbors
+import sklearn.utils._cython_blas
+import sklearn.tree
+import sklearn.tree._utils
+import fiona._shim
+import fiona.schema
+import rasterio._features
+import rasterio._shim
+import rasterio.control
+import rasterio.crs
+import rasterio.sample
+import rasterio.vrt
+
+###############################################################################
+###############################################################################
+
 def resource_path(relative_path):
     '''Get the absolute path to the resource, works for dev and for PyInstaller'''
     try:
@@ -69,14 +75,6 @@ def resource_path(relative_path):
     except Exception:
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
-
-
-os.environ['PROJ_LIB'] = resource_path('share/proj')
-os.environ['GDAL_DATA'] = resource_path('share')
-
-import fiona._shim
-import fiona.schema
-import geopandas as gpd
 
 
 
