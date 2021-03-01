@@ -489,8 +489,8 @@ class SDBWidget(QWidget):
                     for j in range(len(data.columns)):
                         self.table.setItem(i, j, QTableWidgetItem(str(data.iloc[i, j])))
 
-                self.table.resizeRowsToContents()
                 self.table.resizeColumnsToContents()
+                self.table.resizeRowsToContents()
 
                 print(sample_raw.crs)
         except:
