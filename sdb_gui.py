@@ -907,6 +907,11 @@ class SDBWidget(QWidget):
 
 
     def timeCounting(self, time_text):
+        '''
+        Receive time value on every step and its corresponding
+        processing text to show in result text browser and 
+        increase progress bar.
+        '''
 
         time_list.append(time_text[0])
         self.resultText.append(time_text[1])
@@ -917,6 +922,12 @@ class SDBWidget(QWidget):
 
 
     def results(self, result_list):
+        '''
+        Recieve processing results and filter the predicted value
+        to depth limit window (if enabled).
+        Counting runtimes using saved time values and printing
+        result info
+        '''
 
         global z_predict
         z_predict = result_list[0]
