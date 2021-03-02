@@ -87,7 +87,8 @@ class SDBWidget(QWidget):
 
         super(SDBWidget, self).__init__()
 
-####### Default Values #######
+        ####### Default Values #######
+
         global proc_op_list
         proc_op_list = [
             'threading',
@@ -131,7 +132,8 @@ class SDBWidget(QWidget):
             1000.0, # C
             3 # degree
         ]
-####### Default Values #######
+
+        ####### Default Values #######
 
         self.initUI()
 
