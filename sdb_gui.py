@@ -1071,6 +1071,9 @@ class SDBWidget(QWidget):
 
 
     def saveOptionWindow(self):
+        '''
+        Saving option window
+        '''
 
         self.saveOptionDialog = QDialog()
         self.saveOptionDialog.setWindowTitle('Save Options')
@@ -1143,6 +1146,9 @@ class SDBWidget(QWidget):
 
 
     def savePathDialog(self):
+        '''
+        File saving location dialog
+        '''
 
         home_dir = str(Path.home())
         fileFilter = 'All Files(*.*) ;; ' + self.dataTypeCB.currentText()
@@ -1172,6 +1178,11 @@ class SDBWidget(QWidget):
 
 
     def saveAction(self):
+        '''
+        Saving predicted depth and report (optional) into file.
+        Applying median filter (or not) to the predicted depth array
+        before saving.
+        '''
 
         try:
             z_img_ar = z_predict.reshape(image_raw.height, image_raw.width)
@@ -1225,6 +1236,9 @@ class SDBWidget(QWidget):
 
 
     def aboutDialog(self):
+        '''
+        Showing the license of SDB GUI
+        '''
 
         about = QDialog()
         about.setWindowTitle('About')
