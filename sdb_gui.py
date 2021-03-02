@@ -80,10 +80,16 @@ def resource_path(relative_path):
 
 
 class SDBWidget(QWidget):
+    '''
+    PyQt5 widget of SDB GUI
+    '''
 
     widget_signal = pyqtSignal(list)
 
     def __init__(self):
+        '''
+        Initialize widget and default values
+        '''
 
         super(SDBWidget, self).__init__()
 
@@ -139,6 +145,9 @@ class SDBWidget(QWidget):
 
 
     def initUI(self):
+        '''
+        Initialize User Interface for SDB GUI Widget
+        '''
 
         self.setGeometry(300, 100, 480, 640)
         self.setWindowTitle('Satellite Derived Bathymetry')
@@ -283,7 +292,9 @@ class SDBWidget(QWidget):
 
 
     def str2bool(self, v):
-        '''Transform string to boolean'''
+        '''
+        Transform string True or False to boolean type
+        '''
 
         return v in ('True')
 
@@ -297,6 +308,10 @@ class SDBWidget(QWidget):
 
 
     def methodSelection(self):
+        '''
+        Method selection connection from option button
+        to each methods' option window
+        '''
 
         if self.methodCB.currentText() == method_list[0]:
             self.optionsButton.clicked.disconnect()
@@ -313,6 +328,9 @@ class SDBWidget(QWidget):
 
 
     def loadImageWindow(self):
+        '''
+        Image loading User Interface
+        '''
 
         self.loadImageDialog = QDialog()
         self.loadImageDialog.setWindowTitle('Load Image')
@@ -346,6 +364,9 @@ class SDBWidget(QWidget):
 
 
     def imageFileDialog(self):
+        '''
+        Selecting image dialog
+        '''
 
         home_dir = str(Path.home())
         fileFilter = 'All Files (*.*) ;; GeoTIFF (*.tif)'
@@ -359,6 +380,12 @@ class SDBWidget(QWidget):
 
 
     def loadImageAction(self):
+        '''
+        Loading selected image and retrieve some metadata
+        such as file size, band quantity, array size, 
+        pixel size, etc. Then, recreate image 3D array into
+        a simple column and row array.
+        '''
 
         try:
             global img_size
@@ -392,6 +419,9 @@ class SDBWidget(QWidget):
 
 
     def loadSampleWindow(self):
+        '''
+        Sample loading User Interface 
+        '''
 
         self.loadSampleDialog = QDialog()
         self.loadSampleDialog.setWindowTitle('Load Sample')
@@ -431,6 +461,9 @@ class SDBWidget(QWidget):
 
 
     def sampleFilesDialog(self):
+        '''
+        Selecting sample dialog
+        '''
 
         home_dir = str(Path.home())
         fileFilter = 'All Files (*.*) ;; ESRI Shapefile (*.shp)'
@@ -452,6 +485,10 @@ class SDBWidget(QWidget):
 
 
     def loadSampleAction(self):
+        '''
+        Loading selected sample and retrieve file size. 
+        Then, some or all data on selected sample to the widget.
+        '''
 
         try:
             global sample_size
@@ -503,6 +540,9 @@ class SDBWidget(QWidget):
 
 
     def knnOptionWindow(self):
+        '''
+        K-Nearest Neighbor option User Interface
+        '''
 
         optionDialog = QDialog()
         optionDialog.setWindowTitle('Options (K Neighbors)')
@@ -558,6 +598,9 @@ class SDBWidget(QWidget):
 
 
     def loadKNNOptionAction(self):
+        '''
+        Loading defined KNN option input
+        '''
 
         global knn_op_list
         knn_op_list = [
@@ -569,6 +612,9 @@ class SDBWidget(QWidget):
 
 
     def mlrOptionWindow(self):
+        '''
+        Multi Linear Regression option User Interface
+        '''
 
         optionDialog = QDialog()
         optionDialog.setWindowTitle('Options (MLR)')
@@ -613,6 +659,9 @@ class SDBWidget(QWidget):
 
 
     def loadMLROptionAction(self):
+        '''
+        Loading defined MLR option input
+        '''
 
         global mlr_op_list
         mlr_op_list = [
@@ -623,6 +672,9 @@ class SDBWidget(QWidget):
 
 
     def rfOptionWIndow(self):
+        '''
+        Random Forest option User Interface
+        '''
 
         optionDialog = QDialog()
         optionDialog.setWindowTitle('Options (Random Forest)')
@@ -661,6 +713,9 @@ class SDBWidget(QWidget):
 
 
     def loadRFOptionAction(self):
+        '''
+        Loading defined RF option input
+        '''
 
         global rf_op_list
         rf_op_list = [
@@ -670,6 +725,9 @@ class SDBWidget(QWidget):
 
 
     def svmOptionWindow(self):
+        '''
+        Support Vector Machine option User Interface
+        '''
 
         optionDialog = QDialog()
         optionDialog.setWindowTitle('Options (SVM)')
@@ -729,6 +787,9 @@ class SDBWidget(QWidget):
 
 
     def loadSVMOptionAction(self):
+        '''
+        Loading defined SVM option input
+        '''
 
         global svm_op_list
         svm_op_list = [
@@ -740,6 +801,9 @@ class SDBWidget(QWidget):
 
 
     def processingOptionWindow(self):
+        '''
+        Processing option User Interface
+        '''
 
         self.processingOptionDialog = QDialog()
         self.processingOptionDialog.setWindowTitle('Processing Options')
@@ -788,6 +852,9 @@ class SDBWidget(QWidget):
 
 
     def loadProcessingOptionAction(self):
+        '''
+        Loading defined processing option input
+        '''
 
         if self.njobsSB.value() == 0:
             self.processingOptionDialog.close()
@@ -803,6 +870,9 @@ class SDBWidget(QWidget):
 
 
     def predict(self):
+        '''
+        Sending parameters and inputs from widget to Process Class
+        '''
         print('widget predict')
 
         self.resultText.clear()
@@ -1171,6 +1241,11 @@ class SDBWidget(QWidget):
 
 
 class Process(QThread):
+    '''
+    Data processing class of SDB GUI.
+    Sending inputs from SDBWidget to process in the background
+    so the GUI won't freeze while processing data.
+    '''
 
     thread_signal = pyqtSignal(list)
     time_signal = pyqtSignal(list)
@@ -1193,6 +1268,12 @@ class Process(QThread):
 
 
     def sampling(self):
+        '''
+        Preparing input values from widget to use on 
+        training models and predicting depth by reprojecting 
+        depth sample CRS, sampling raster value and depth value, 
+        and then limiting or not limiting depth value.
+        '''
         print('Process sampling')
 
         time_start = datetime.datetime.now()
@@ -1355,6 +1436,11 @@ class Process(QThread):
 
 
     def run(self):
+        '''
+        Taking pre processed input and chosen method, then 
+        fitting training data to chosen model and make prediction
+        based on trained model.
+        '''
         print('Process run')
 
         try:
