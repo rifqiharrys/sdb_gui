@@ -188,8 +188,13 @@ class SDBWidget(QWidget):
 
         self.limitCheckBox = QCheckBox('Disable Depth Limitation')
         self.limitCheckBox.setChecked(False)
-        self.limitCheckBox.toggled.connect(self.limitCheckBoxState)
         self.limitState = QLabel('unchecked')
+        self.limitCheckBox.toggled.connect(
+            lambda: self.checkBoxState(
+                check_box=self.limitCheckBox,
+                status=self.limitState
+            )
+        )
 
         methodLabel = QLabel('Regression Method:')
         self.methodCB = QComboBox()
@@ -295,12 +300,16 @@ class SDBWidget(QWidget):
         return v in ('True')
 
 
-    def limitCheckBoxState(self):
+    def checkBoxState(self, check_box, status):
+        '''
+        Saving a checkbox status into a QLabel object whether
+        it's checked or unchecked
+        '''
 
-        if self.limitCheckBox.isChecked() == True:
-            self.limitState.setText('checked')
+        if check_box.isChecked() == True:
+            status.setText('checked')
         else:
-            self.limitState.setText('unchecked')
+            status.setText('unchecked')
 
 
     def methodSelection(self):
@@ -432,8 +441,13 @@ class SDBWidget(QWidget):
 
         self.showCheckBox = QCheckBox('Show All Data to Table')
         self.showCheckBox.setChecked(False)
-        self.showCheckBox.toggled.connect(self.showCheckBoxState)
-        self.showState = QLabel()
+        self.showState = QLabel('unchecked')
+        self.showCheckBox.toggled.connect(
+            lambda: self.checkBoxState(
+                check_box=self.showCheckBox,
+                status=self.showState
+            )
+        )
 
         cancelButton = QPushButton('Cancel')
         cancelButton.clicked.connect(self.loadSampleDialog.close)
@@ -471,14 +485,6 @@ class SDBWidget(QWidget):
         sample_loc = fname[0]
 
         self.locList.setText(sample_loc)
-
-
-    def showCheckBoxState(self):
-
-        if self.showCheckBox.isChecked() == True:
-            self.showState.setText('checked')
-        else:
-            self.showState.setText('unchecked')
 
 
     def loadSampleAction(self):
@@ -1083,16 +1089,26 @@ class SDBWidget(QWidget):
 
         self.medianFilterCheckBox = QCheckBox('Disable Median Filter')
         self.medianFilterCheckBox.setChecked(False)
-        self.medianFilterCheckBox.toggled.connect(self.medianFilterCheckBoxState)
         self.medianFilterState = QLabel('unchecked')
+        self.medianFilterCheckBox.toggled.connect(
+            lambda: self.checkBoxState(
+                check_box=self.medianFilterCheckBox,
+                status=self.medianFilterState
+            )
+        )
 
         locLabel = QLabel('Location:')
         self.locList = QTextBrowser()
 
         self.reportCheckBox = QCheckBox('Save Report')
         self.reportCheckBox.setChecked(True)
-        self.reportCheckBox.toggled.connect(self.reportCheckBoxState)
         self.reportState = QLabel('checked')
+        self.reportCheckBox.toggled.connect(
+            lambda: self.checkBoxState(
+                check_box=self.reportCheckBox,
+                status=self.reportState
+            )
+        )
 
         cancelButton = QPushButton('Cancel')
         cancelButton.clicked.connect(self.saveOptionDialog.close)
@@ -1136,22 +1152,6 @@ class SDBWidget(QWidget):
         save_loc = fname[0]
 
         self.locList.setText(save_loc)
-
-
-    def medianFilterCheckBoxState(self):
-
-        if self.medianFilterCheckBox.isChecked() == True:
-            self.medianFilterState.setText('checked')
-        else:
-            self.medianFilterState.setText('unchecked')
-
-
-    def reportCheckBoxState(self):
-
-        if self.reportCheckBox.isChecked() == True:
-            self.reportState.setText('checked')
-        else:
-            self.reportState.setText('unchecked')
 
 
     def saveAction(self):
