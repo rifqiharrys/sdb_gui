@@ -51,11 +51,7 @@ from PyQt5.QtGui import QIcon
 ###############################################################################
 #################### For Auto PY to EXE or PyInstaller Use ####################
 
-# import sklearn.neighbors
-# import sklearn.utils._cython_blas
 import sklearn.utils._weight_vector
-# import sklearn.tree
-# import sklearn.tree._utils
 import fiona._shim
 import fiona.schema
 import rasterio._features
@@ -381,10 +377,9 @@ class SDBWidget(QWidget):
 
     def loadImageAction(self):
         '''
-        Loading selected image and retrieve some metadata
-        such as file size, band quantity, array size, 
-        pixel size, etc. Then, recreate image 3D array into
-        a simple column and row array.
+        Loading selected image and retrieve some metadata such as file size,
+        band quantity, array size, pixel size, etc. Then, recreate image 3D
+        array into a simple column and row array.
         '''
 
         try:
@@ -414,13 +409,15 @@ class SDBWidget(QWidget):
             print(image_raw.crs)
         except:
             self.loadImageDialog.close()
-            self.noDataWarning()
+            self.warningWithClear(
+                'No data loaded. Please load your data!'
+            )
             self.loadImageWindow()
 
 
     def loadSampleWindow(self):
         '''
-        Sample loading User Interface 
+        Sample loading User Interface
         '''
 
         self.loadSampleDialog = QDialog()
@@ -486,7 +483,7 @@ class SDBWidget(QWidget):
 
     def loadSampleAction(self):
         '''
-        Loading selected sample and retrieve file size. 
+        Loading selected sample and retrieve file size.
         Then, some or all data on selected sample to the widget.
         '''
 
@@ -506,7 +503,9 @@ class SDBWidget(QWidget):
                 self.table.clearContents()
 
                 self.loadSampleDialog.close()
-                self.pointDataWarning()
+                self.warningWithoutClear(
+                    'Your data is not Point type. Please load another data!'
+                )
                 self.loadSampleWindow()
             else:
                 raw = sample_raw.copy()
@@ -535,7 +534,9 @@ class SDBWidget(QWidget):
                 print(sample_raw.crs)
         except:
             self.loadSampleDialog.close()
-            self.noDataWarning()
+            self.warningWithClear(
+                'No data loaded. Please load your data!'
+            )
             self.loadSampleWindow()
 
 
@@ -858,7 +859,9 @@ class SDBWidget(QWidget):
 
         if self.njobsSB.value() == 0:
             self.processingOptionDialog.close()
-            self.noZeroWarning()
+            self.warningWithoutClear(
+                'Insert any integer but Zero!'
+            )
             self.processingOptionWindow()
         else:
             global proc_op_list
@@ -902,15 +905,13 @@ class SDBWidget(QWidget):
         self.sdbProcess.start()
         self.sdbProcess.time_signal.connect(self.timeCounting)
         self.sdbProcess.thread_signal.connect(self.results)
-        self.sdbProcess.no_data_signal.connect(self.noDataWarning)
-        self.sdbProcess.header_warning_signal.connect(self.headerWarning)
+        self.sdbProcess.warning_with_clear.connect(self.warningWithClear)
 
 
     def timeCounting(self, time_text):
         '''
-        Receive time value on every step and its corresponding
-        processing text to show in result text browser and 
-        increase progress bar.
+        Receive time value on every step and its corresponding processing
+        text to show in result text browser and increase progress bar.
         '''
 
         time_list.append(time_text[0])
@@ -923,10 +924,9 @@ class SDBWidget(QWidget):
 
     def results(self, result_list):
         '''
-        Recieve processing results and filter the predicted value
-        to depth limit window (if enabled).
-        Counting runtimes using saved time values and printing
-        result info
+        Recieve processing results and filter the predicted value to depth
+        limit window (if enabled).
+        Counting runtimes using saved time values and printing result info.
         '''
 
         global z_predict
@@ -991,63 +991,40 @@ class SDBWidget(QWidget):
         self.resultText.setText(print_result_info)
 
 
-    def noDataWarning(self):
+    def warningWithClear(self, warning_text):
+        '''
+        Show warning dialog and customized warning text
+        and then clear result info and progress bar after closing
+        '''
 
         warning = QErrorMessage()
         warning.setWindowTitle('WARNING')
         warning.setWindowIcon(QIcon(resource_path('icons/warning-pngrepo-com.png')))
-        warning.showMessage('No data loaded. Please load your data!')
+        warning.showMessage(warning_text)
 
         warning.exec_()
         self.resultText.clear()
         self.progressBar.setValue(0)
 
 
-    def pointDataWarning(self):
+    def warningWithoutClear(self, warning_text):
+        '''
+        Show warning dialog and customized warning text
+        without clearing result info and progress bar after closing
+        '''
 
         warning = QErrorMessage()
         warning.setWindowTitle('WARNING')
         warning.setWindowIcon(QIcon(resource_path('icons/warning-pngrepo-com.png')))
-        warning.showMessage('Your data is not Point type. Please load another data!')
-
-        warning.exec_()
-        self.resultText.clear()
-        self.progressBar.setValue(0)
-
-
-    def headerWarning(self):
-
-        warning = QErrorMessage()
-        warning.setWindowTitle('WARNING')
-        warning.setWindowIcon(QIcon(resource_path('icons/warning-pngrepo-com.png')))
-        warning.showMessage('Please select headers correctly!')
-
-        warning.exec_()
-        self.resultText.clear()
-        self.progressBar.setValue(0)
-
-
-    def noZeroWarning(self):
-
-        warning = QErrorMessage()
-        warning.setWindowTitle('WARNING')
-        warning.setWindowIcon(QIcon(resource_path('icons/warning-pngrepo-com.png')))
-        warning.showMessage('Insert any integer but Zero!')
-
-        warning.exec_()
-
-
-    def noSaveLocWarning(self):
-
-        warning = QErrorMessage()
-        warning.setWindowTitle('WARNING')
-        warning.setWindowIcon(QIcon(resource_path('icons/warning-pngrepo-com.png')))
-        warning.showMessage('Please insert save location!')
+        warning.showMessage(warning_text)
 
         warning.exec_()
 
 
     def completeDialog(self):
+        '''
+        Showing complete pop up dialog
+        '''
 
         complete = QDialog()
         complete.setWindowTitle('Complete')
@@ -1231,7 +1208,9 @@ class SDBWidget(QWidget):
                 )
         except:
             self.saveOptionDialog.close()
-            self.noSaveLocWarning()
+            self.warningWithoutClear(
+                'Please insert save location!'
+            )
             self.saveOptionWindow()
 
 
@@ -1274,8 +1253,8 @@ class Process(QThread):
 
     thread_signal = pyqtSignal(list)
     time_signal = pyqtSignal(list)
-    no_data_signal = pyqtSignal()
-    header_warning_signal = pyqtSignal()
+    warning_with_clear = pyqtSignal(str)
+    warning_without_clear = pyqtSignal(str)
 
     def __init__(self):
 
@@ -1283,6 +1262,9 @@ class Process(QThread):
 
 
     def inputs(self, input_list):
+        '''
+        Pooling intputs from widget
+        '''
 
         self.depth_label = input_list[0]
         self.train_size = input_list[1]
@@ -1363,6 +1345,10 @@ class Process(QThread):
 
 
     def knnPredict(self):
+        '''
+        Preparing KNN prediction and saving selected parameters
+        for report
+        '''
         print('knnPredict')
 
         parameters = self.sampling()
@@ -1388,6 +1374,10 @@ class Process(QThread):
 
 
     def mlrPredict(self):
+        '''
+        Preparing MLR prediction and saving selected parameters
+        for report
+        '''
         print('mlrPredict')
 
         parameters = self.sampling()
@@ -1411,6 +1401,10 @@ class Process(QThread):
 
 
     def rfPredict(self):
+        '''
+        Preparing RF prediction and saving selected parameters
+        for report
+        '''
         print('rfPredict')
 
         parameters = self.sampling()
@@ -1432,6 +1426,10 @@ class Process(QThread):
 
 
     def svmPredict(self):
+        '''
+        Preparing SVM prediction and saving selected parameters
+        for report
+        '''
         print('svmPredict')
 
         parameters = self.sampling()
@@ -1517,11 +1515,17 @@ class Process(QThread):
 
             self.thread_signal.emit(result)
         except NameError:
-            self.no_data_signal.emit()
+            self.warning_with_clear.emit(
+                'No data loaded. Please load your data!'
+            )
         except TypeError:
-            self.header_warning_signal.emit()
+            self.warning_with_clear.emit(
+                'Please select headers correctly!'
+            )
         except ValueError:
-            self.header_warning_signal.emit()
+            self.warning_with_clear.emit(
+                'Please select headers correctly!'
+            )
 
 
 
