@@ -312,6 +312,19 @@ class SDBWidget(QWidget):
             status.setText('unchecked')
 
 
+    def fileDialog(self, command, window_text, file_type, text_browser):
+        '''
+        Showing file dialog, whether opening file or saving.
+        '''
+
+        home_dir = str(Path.home())
+        fileFilter = 'All Files (*.*) ;; ' + file_type
+        selectedFilter = file_type
+        fname = command(self, window_text, home_dir, fileFilter, selectedFilter)
+
+        text_browser.setText(fname[0])
+
+
     def methodSelection(self):
         '''
         Method selection connection from option button
@@ -342,10 +355,17 @@ class SDBWidget(QWidget):
         self.loadImageDialog.setWindowIcon(QIcon(resource_path('icons/load-pngrepo-com.png')))
 
         openFilesButton = QPushButton('Open File')
-        openFilesButton.clicked.connect(self.imageFileDialog)
+        openFilesButton.clicked.connect(
+            lambda: self.fileDialog(
+                command=QFileDialog.getOpenFileName,
+                window_text='Open Image File',
+                file_type='GeoTIFF (*.tif)',
+                text_browser=self.imglocList
+            )
+        )
 
         locLabel = QLabel('Location:')
-        self.locList = QTextBrowser()
+        self.imglocList = QTextBrowser()
 
         cancelButton = QPushButton('Cancel')
         cancelButton.clicked.connect(self.loadImageDialog.close)
@@ -358,7 +378,7 @@ class SDBWidget(QWidget):
 
         grid.addWidget(locLabel, 4, 1, 1, 1)
 
-        grid.addWidget(self.locList, 5, 1, 10, 4)
+        grid.addWidget(self.imglocList, 5, 1, 10, 4)
 
         grid.addWidget(loadButton, 15, 3, 1, 1)
         grid.addWidget(cancelButton, 15, 4, 1, 1)
@@ -366,22 +386,6 @@ class SDBWidget(QWidget):
         self.loadImageDialog.setLayout(grid)
 
         self.loadImageDialog.exec_()
-
-
-    def imageFileDialog(self):
-        '''
-        Selecting image dialog
-        '''
-
-        home_dir = str(Path.home())
-        fileFilter = 'All Files (*.*) ;; GeoTIFF (*.tif)'
-        selectedFilter = 'GeoTIFF (*.tif)'
-        fname = QFileDialog.getOpenFileName(self, 'Open File(s)', home_dir, fileFilter, selectedFilter)
-
-        global img_loc
-        img_loc = fname[0]
-
-        self.locList.setText(img_loc)
 
 
     def loadImageAction(self):
@@ -393,10 +397,10 @@ class SDBWidget(QWidget):
 
         try:
             global img_size
-            img_size = os.path.getsize(img_loc)
+            img_size = os.path.getsize(self.imglocList.toPlainText())
 
             global image_raw
-            image_raw = rio.open(img_loc)
+            image_raw = rio.open(self.imglocList.toPlainText())
 
             nbands = len(image_raw.indexes)
             ndata = image_raw.read(1).size
@@ -414,7 +418,9 @@ class SDBWidget(QWidget):
             global pixel_size
             pixel_size = abs(coord2 - coord1)
 
-            self.loadImageLabel.setText(os.path.split(img_loc)[1])
+            self.loadImageLabel.setText(
+                os.path.split(self.imglocList.toPlainText())[1]
+            )
             print(image_raw.crs)
         except:
             self.loadImageDialog.close()
@@ -434,10 +440,17 @@ class SDBWidget(QWidget):
         self.loadSampleDialog.setWindowIcon(QIcon(resource_path('icons/load-pngrepo-com.png')))
 
         openFilesButton = QPushButton('Open File')
-        openFilesButton.clicked.connect(self.sampleFilesDialog)
+        openFilesButton.clicked.connect(
+            lambda: self.fileDialog(
+                command=QFileDialog.getOpenFileName,
+                window_text='Open Image File',
+                file_type='ESRI Shapefile (*.shp)',
+                text_browser=self.samplelocList
+            )
+        )
 
         locLabel = QLabel('Location:')
-        self.locList = QTextBrowser()
+        self.samplelocList = QTextBrowser()
 
         self.showCheckBox = QCheckBox('Show All Data to Table')
         self.showCheckBox.setChecked(False)
@@ -460,7 +473,7 @@ class SDBWidget(QWidget):
 
         grid.addWidget(locLabel, 4, 1, 1, 1)
 
-        grid.addWidget(self.locList, 5, 1, 10, 4)
+        grid.addWidget(self.samplelocList, 5, 1, 10, 4)
 
         grid.addWidget(self.showCheckBox, 15, 1, 1, 2)
         grid.addWidget(loadButton, 15, 3, 1, 1)
@@ -471,22 +484,6 @@ class SDBWidget(QWidget):
         self.loadSampleDialog.exec_()
 
 
-    def sampleFilesDialog(self):
-        '''
-        Selecting sample dialog
-        '''
-
-        home_dir = str(Path.home())
-        fileFilter = 'All Files (*.*) ;; ESRI Shapefile (*.shp)'
-        selectedFilter = 'ESRI Shapefile (*.shp)'
-        fname = QFileDialog.getOpenFileName(self, 'Open File(s)', home_dir, fileFilter, selectedFilter)
-
-        global sample_loc
-        sample_loc = fname[0]
-
-        self.locList.setText(sample_loc)
-
-
     def loadSampleAction(self):
         '''
         Loading selected sample and retrieve file size.
@@ -495,12 +492,14 @@ class SDBWidget(QWidget):
 
         try:
             global sample_size
-            sample_size = os.path.getsize(sample_loc)
+            sample_size = os.path.getsize(self.samplelocList.toPlainText())
 
             global sample_raw
-            sample_raw = gpd.read_file(sample_loc)
+            sample_raw = gpd.read_file(self.samplelocList.toPlainText())
 
-            self.loadSampleLabel.setText(os.path.split(sample_loc)[1])
+            self.loadSampleLabel.setText(os.path.split(
+                self.samplelocList.toPlainText())[1]
+            )
 
             if (sample_raw.geom_type != 'Point').any():
                 del sample_raw
@@ -966,9 +965,9 @@ class SDBWidget(QWidget):
 
         global print_result_info
         print_result_info = (
-            'Image Input:\t\t' + img_loc + ' (' +
+            'Image Input:\t\t' + self.imglocList.toPlainText() + ' (' +
             str(round(img_size / 2**10 / 2**10, 2)) + ' MB)\n' +
-            'Sample Data:\t\t' + sample_loc + ' (' +
+            'Sample Data:\t\t' + self.samplelocList.toPlainText() + ' (' +
             str(round(sample_size / 2**10 / 2**10, 2)) + ' MB)\n\n' +
             print_limit + '\n' +
             'Train Data:\t\t' + str(self.trainPercentDSB.value()) + ' %\n' +
@@ -1062,9 +1061,6 @@ class SDBWidget(QWidget):
         self.saveOptionDialog.setWindowTitle('Save Options')
         self.saveOptionDialog.setWindowIcon(QIcon(resource_path('icons/load-pngrepo-com.png')))
 
-        saveFileButton = QPushButton('Save File Location')
-        saveFileButton.clicked.connect(self.savePathDialog)
-
         global format_dict
         format_dict = {
             'GeoTIFF (*.tif)': 'GTiff',
@@ -1079,6 +1075,16 @@ class SDBWidget(QWidget):
         self.dataTypeCB = QComboBox()
         self.dataTypeCB.addItems(format_list)
         self.dataTypeCB.setCurrentText('GeoTIFF (*.tif)')
+
+        saveFileButton = QPushButton('Save File Location')
+        saveFileButton.clicked.connect(
+            lambda:self.fileDialog(
+                command=QFileDialog.getSaveFileName,
+                window_text='Save File',
+                file_type=self.dataTypeCB.currentText(),
+                text_browser=self.savelocList
+            )
+        )
 
         medianFilterLabel = QLabel('Median Filter Size:')
         self.medianFilterSB = QSpinBox()
@@ -1098,7 +1104,7 @@ class SDBWidget(QWidget):
         )
 
         locLabel = QLabel('Location:')
-        self.locList = QTextBrowser()
+        self.savelocList = QTextBrowser()
 
         self.reportCheckBox = QCheckBox('Save Report')
         self.reportCheckBox.setChecked(True)
@@ -1127,7 +1133,7 @@ class SDBWidget(QWidget):
         grid.addWidget(saveFileButton, 3, 1, 1, 4)
 
         grid.addWidget(locLabel, 4, 1, 1, 4)
-        grid.addWidget(self.locList, 5, 1, 1, 4)
+        grid.addWidget(self.savelocList, 5, 1, 1, 4)
 
         grid.addWidget(self.reportCheckBox, 6, 1, 1, 2)
         grid.addWidget(saveButton, 6, 3, 1, 1)
@@ -1136,22 +1142,6 @@ class SDBWidget(QWidget):
         self.saveOptionDialog.setLayout(grid)
 
         self.saveOptionDialog.exec_()
-
-
-    def savePathDialog(self):
-        '''
-        File saving location dialog
-        '''
-
-        home_dir = str(Path.home())
-        fileFilter = 'All Files(*.*) ;; ' + self.dataTypeCB.currentText()
-        selectedFilter = self.dataTypeCB.currentText()
-        fname = QFileDialog.getSaveFileName(self, 'Save File', home_dir, fileFilter, selectedFilter)
-
-        global save_loc
-        save_loc = fname[0]
-
-        self.locList.setText(save_loc)
 
 
     def saveAction(self):
@@ -1175,7 +1165,7 @@ class SDBWidget(QWidget):
                 )
 
             new_img = rio.open(
-                save_loc,
+                self.savelocList.toPlainText(),
                 'w',
                 driver=format_dict[self.dataTypeCB.currentText()],
                 height=image_raw.height,
@@ -1189,17 +1179,20 @@ class SDBWidget(QWidget):
             new_img.write(z_img_ar, 1)
             new_img.close()
 
-            new_img_size = os.path.getsize(save_loc)
+            new_img_size = os.path.getsize(self.savelocList.toPlainText())
             print_output_info = (
                 print_filter_info + '\n\n'
-                'Output:\t\t' + save_loc + ' (' +
+                'Output:\t\t' + self.savelocList.toPlainText() + ' (' +
                 str(round(new_img_size / 2**10 / 2**10, 2)) + ' MB)'
             )
 
             self.resultText.append(print_output_info)
 
             if self.reportState.text() == 'checked':
-                report_save_loc = os.path.splitext(save_loc)[0] + '_report.txt'
+                report_save_loc = (
+                    os.path.splitext(self.savelocList.toPlainText())[0] +
+                    '_report.txt'
+                )
                 report = open(report_save_loc, 'w')
 
                 report.write(
