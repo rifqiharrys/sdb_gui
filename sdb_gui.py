@@ -956,12 +956,7 @@ class SDBWidget(QWidget):
 
         time_array = np.array(time_list)
         time_diff = time_array[1:] - time_array[:-1]
-        runtime = []
-
-        for i in range(len(time_diff)):
-            runtime.append(time_diff[i])
-
-        runtime.append(time_list[-1] - time_list[0])
+        runtime = np.append(time_diff, time_list[-1] - time_list[0])
 
         global print_result_info
         print_result_info = (
@@ -1297,9 +1292,6 @@ class Process(QThread):
         self.time_signal.emit(reproj_list)
 
         shp_geo = sample_reproj['geometry']
-
-        nbands = len(image_raw.indexes)
-        nsample = len(sample_reproj.index)
 
         col_names = []
 
