@@ -1301,15 +1301,14 @@ class Process(QThread):
         nbands = len(image_raw.indexes)
         nsample = len(sample_reproj.index)
 
-        sample_bands = np.empty((nsample, nbands))
         col_names = []
 
         with parallel_backend(proc_op_list[0], n_jobs=proc_op_list[1]):
 
             row, col = np.array(image_raw.index(shp_geo.x, shp_geo.y))
+            sample_bands = image_raw.read()[:, row, col].T
 
             for i in image_raw.indexes:
-                sample_bands[:, i - 1] = image_raw.read(i)[row, col]
                 col_names.append('band' + str(i))
 
         samples_edit = pd.DataFrame(sample_bands, columns=col_names)
