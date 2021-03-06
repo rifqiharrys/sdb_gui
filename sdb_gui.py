@@ -904,13 +904,18 @@ class SDBWidget(QWidget):
             self.methodCB.currentText()
         ]
 
-        self.sdbProcess = Process()
-        self.widget_signal.connect(self.sdbProcess.inputs)
-        self.widget_signal.emit(init_input)
-        self.sdbProcess.start()
-        self.sdbProcess.time_signal.connect(self.timeCounting)
-        self.sdbProcess.thread_signal.connect(self.results)
-        self.sdbProcess.warning_with_clear.connect(self.warningWithClear)
+        if sample_raw[self.depthHeaderCB.currentText()].dtype == 'float':
+            self.sdbProcess = Process()
+            self.widget_signal.connect(self.sdbProcess.inputs)
+            self.widget_signal.emit(init_input)
+            self.sdbProcess.start()
+            self.sdbProcess.time_signal.connect(self.timeCounting)
+            self.sdbProcess.thread_signal.connect(self.results)
+            self.sdbProcess.warning_with_clear.connect(self.warningWithClear)
+        else:
+            self.warningWithClear(
+                'Please select headers correctly!'
+            )
 
 
     def timeCounting(self, time_text):
@@ -1500,15 +1505,11 @@ class Process(QThread):
             self.thread_signal.emit(result)
         except NameError:
             self.warning_with_clear.emit(
-                'No data loaded. Please load your data!'
+                'Please load your data!'
             )
-        except TypeError:
+        except IndexError:
             self.warning_with_clear.emit(
-                'Please select headers correctly!'
-            )
-        except ValueError:
-            self.warning_with_clear.emit(
-                'Please select headers correctly!'
+                'Depth sample is out of image boundary'
             )
 
 
