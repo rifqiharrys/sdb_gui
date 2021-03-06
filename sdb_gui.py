@@ -1256,9 +1256,9 @@ class Process(QThread):
 
         self.depth_label = input_list[0]
         self.train_size = input_list[1]
-        self.limitState = input_list[2]
-        self.limitAValue = input_list[3]
-        self.limitBValue = input_list[4]
+        self.limit_state = input_list[2]
+        self.limit_a_value = input_list[3]
+        self.limit_b_value = input_list[4]
         self.method = input_list[5]
 
 
@@ -1309,9 +1309,9 @@ class Process(QThread):
         if np.median(samples_edit['z']) > 0:
             samples_edit['z'] = samples_edit['z'] * -1
 
-        if self.limitState == 'unchecked':
-            samples_edit = samples_edit[samples_edit['z'] >= self.limitBValue]
-            samples_edit = samples_edit[samples_edit['z'] <= self.limitAValue]
+        if self.limit_state == 'unchecked':
+            samples_edit = samples_edit[samples_edit['z'] >= self.limit_b_value]
+            samples_edit = samples_edit[samples_edit['z'] <= self.limit_a_value]
 
         features = samples_edit.iloc[:, 0:-1]
         z = samples_edit['z']
