@@ -95,7 +95,8 @@ class SDBWidget(QWidget):
         proc_op_list = [
             'threading',
             -2,
-            0
+            0,
+            'checked'
         ]
 
         global method_list
@@ -172,7 +173,7 @@ class SDBWidget(QWidget):
 
         limitALabel = QLabel('Upper Limit:')
         self.limitADSB = QDoubleSpinBox()
-        self.limitADSB.setRange(-100, 0)
+        self.limitADSB.setRange(-100, 100)
         self.limitADSB.setDecimals(1)
         self.limitADSB.setValue(0)
         self.limitADSB.setSuffix(' m')
@@ -180,7 +181,7 @@ class SDBWidget(QWidget):
 
         limitBLabel = QLabel('Bottom Limit:')
         self.limitBDSB = QDoubleSpinBox()
-        self.limitBDSB.setRange(-100, 0)
+        self.limitBDSB.setRange(-100, 100)
         self.limitBDSB.setDecimals(1)
         self.limitBDSB.setValue(-30)
         self.limitBDSB.setSuffix(' m')
@@ -832,6 +833,16 @@ class SDBWidget(QWidget):
         self.randomStateSB.setValue(0)
         self.randomStateSB.setAlignment(Qt.AlignRight)
 
+        self.autoNegativeCB = QCheckBox('Auto Negative Sign')
+        self.autoNegativeCB.setChecked(True)
+        self.autoNegativeState = QLabel('checked')
+        self.autoNegativeCB.toggled.connect(
+            lambda: self.checkBoxState(
+                check_box=self.autoNegativeCB,
+                status=self.autoNegativeState
+            )
+        )
+
         cancelButton = QPushButton('Cancel')
         cancelButton.clicked.connect(self.processingOptionDialog.close)
         loadButton = QPushButton('Load')
@@ -849,8 +860,10 @@ class SDBWidget(QWidget):
         grid.addWidget(randomStateLabel, 3, 1, 1, 2)
         grid.addWidget(self.randomStateSB, 3, 3, 1, 2)
 
-        grid.addWidget(loadButton, 4, 3, 1, 1)
-        grid.addWidget(cancelButton,4, 4, 1, 1)
+        grid.addWidget(self.autoNegativeCB, 4, 1, 1, 4)
+
+        grid.addWidget(loadButton, 5, 3, 1, 1)
+        grid.addWidget(cancelButton, 5, 4, 1, 1)
 
         self.processingOptionDialog.setLayout(grid)
 
@@ -865,7 +878,7 @@ class SDBWidget(QWidget):
         if self.njobsSB.value() == 0:
             self.processingOptionDialog.close()
             self.warningWithoutClear(
-                'Insert any integer but Zero!'
+                'Do not insert zero on Processing Cores!'
             )
             self.processingOptionWindow()
         else:
@@ -873,7 +886,8 @@ class SDBWidget(QWidget):
             proc_op_list = [
                 self.backendCB.currentText(),
                 self.njobsSB.value(),
-                self.randomStateSB.value()
+                self.randomStateSB.value(),
+                self.autoNegativeState.text()
                 ]
 
 
@@ -959,6 +973,11 @@ class SDBWidget(QWidget):
                 'Depth Limit:\t\tDisabled'
             )
 
+        if proc_op_list[3] == 'checked':
+            auto_negative = 'Enabled'
+        elif proc_op_list[3] == 'unchecked':
+            auto_negative = 'Disabled'
+
         time_array = np.array(time_list)
         time_diff = time_array[1:] - time_array[:-1]
         runtime = np.append(time_diff, time_list[-1] - time_list[0])
@@ -979,10 +998,11 @@ class SDBWidget(QWidget):
             'R\u00B2:\t\t' + str(r2) + '\n\n' +
             'Parallel Backend:\t' + str(proc_op_list[0]) + '\n' +
             'Processing Cores:\t' + str(proc_op_list[1]) + '\n' +
-            'Random State:\t\t' + str(proc_op_list[2]) + '\n\n' +
+            'Random State:\t\t' + str(proc_op_list[2]) + '\n'
+            'Auto Negative Sign:\t' + auto_negative + '\n\n' +
             'Reproject Runtime:\t' + str(runtime[0]) + '\n' +
             'Sampling Runtime:\t' + str(runtime[1]) + '\n' +
-            'Fitting Runtime:\t\t' + str(runtime[2]) + '\n' +
+            'Fitting Runtime:\t' + str(runtime[2]) + '\n' +
             'Prediction Runtime:\t' + str(runtime[3]) + '\n' +
             'Validating Runtime:\t' + str(runtime[4]) + '\n' +
             'Overall Runtime:\t' + str(runtime[5]) + '\n\n' +
@@ -1311,7 +1331,7 @@ class Process(QThread):
         samples_edit = pd.DataFrame(sample_bands, columns=col_names)
         samples_edit['z'] = sample_reproj[self.depth_label]
 
-        if np.median(samples_edit['z']) > 0:
+        if proc_op_list[3] == 'checked' and np.median(samples_edit['z']) > 0:
             samples_edit['z'] = samples_edit['z'] * -1
 
         if self.limit_state == 'unchecked':
