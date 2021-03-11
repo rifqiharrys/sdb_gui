@@ -1241,7 +1241,7 @@ class SDBWidget(QWidget):
         okButton.clicked.connect(about.close)
 
         license_file = open(resource_path('LICENSE'), 'r')
-        licenseLabel = QLabel('SDB GUI')
+        licenseLabel = QLabel('SDB GUI v3.1.0')
         licenseText = QTextBrowser()
         licenseText.setText(license_file.read())
 
