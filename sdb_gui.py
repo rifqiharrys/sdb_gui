@@ -1229,7 +1229,7 @@ class SDBWidget(QWidget):
 
     def licensesDialog(self):
         '''
-        Showing the license of SDB GUI
+        Showing the license of SDB GUI and another library licenses
         '''
 
         licenses = QDialog()
@@ -1275,6 +1275,9 @@ class SDBWidget(QWidget):
 
 
     def licenseSelection(self, location):
+        '''
+        Selecting license file location
+        '''
 
         license_file = open(resource_path(location), 'r')
         self.licenseText.setText(license_file.read())
