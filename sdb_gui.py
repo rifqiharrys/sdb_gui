@@ -99,13 +99,13 @@ class SDBWidget(QWidget):
             'checked'
         ]
 
-        global method_list
-        method_list = [
-            'K-Nearest Neighbors',
-            'Multiple Linear Regression',
-            'Random Forest', 
-            'Support Vector Machines'
-        ]
+        global method_dict
+        method_dict = {
+            'K-Nearest Neighbors': self.knnOptionWindow,
+            'Multiple Linear Regression': self.mlrOptionWindow,
+            'Random Forest': self.rfOptionWIndow, 
+            'Support Vector Machines': self.svmOptionWindow
+        }
 
         global knn_op_list
         knn_op_list = [
@@ -197,10 +197,16 @@ class SDBWidget(QWidget):
             )
         )
 
+        method_list = list(method_dict)
+
         methodLabel = QLabel('Regression Method:')
         self.methodCB = QComboBox()
         self.methodCB.addItems(method_list)
-        self.methodCB.activated.connect(self.methodSelection)
+        self.methodCB.activated.connect(
+            lambda: self.methodSelection(
+                option=method_dict[self.methodCB.currentText()]
+            )
+        )
 
         trainPercentLabel = QLabel('Train Data (Percent):')
         self.trainPercentDSB = QDoubleSpinBox()
@@ -212,7 +218,6 @@ class SDBWidget(QWidget):
 
         self.optionsButton = QPushButton('Method Options')
         self.optionsButton.clicked.connect(self.knnOptionWindow)
-        self.optionsButton.clicked.connect(self.methodSelection)
 
         makePredictionButton = QPushButton('Make Prediction')
         makePredictionButton.clicked.connect(self.predict)
@@ -326,24 +331,14 @@ class SDBWidget(QWidget):
         text_browser.setText(fname[0])
 
 
-    def methodSelection(self):
+    def methodSelection(self, option):
         '''
         Method selection connection from option button
         to each methods' option window
         '''
 
-        if self.methodCB.currentText() == method_list[0]:
-            self.optionsButton.clicked.disconnect()
-            self.optionsButton.clicked.connect(self.knnOptionWindow)
-        elif self.methodCB.currentText() == method_list[1]:
-            self.optionsButton.clicked.disconnect()
-            self.optionsButton.clicked.connect(self.mlrOptionWindow)
-        elif self.methodCB.currentText() == method_list[2]:
-            self.optionsButton.clicked.disconnect()
-            self.optionsButton.clicked.connect(self.rfOptionWIndow)
-        elif self.methodCB.currentText() == method_list[3]:
-            self.optionsButton.clicked.disconnect()
-            self.optionsButton.clicked.connect(self.svmOptionWindow)
+        self.optionsButton.clicked.disconnect()
+        self.optionsButton.clicked.connect(option)
 
 
     def loadImageWindow(self):
@@ -1501,6 +1496,8 @@ class Process(QThread):
         based on trained model.
         '''
         print('Process run')
+
+        method_list = list(method_dict)
 
         try:
             if self.method == method_list[0]:
