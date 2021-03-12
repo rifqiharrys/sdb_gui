@@ -147,7 +147,7 @@ class SDBWidget(QWidget):
         '''
 
         self.setGeometry(300, 100, 480, 640)
-        self.setWindowTitle('Satellite Derived Bathymetry')
+        self.setWindowTitle('Satellite Derived Bathymetry (v3.1.0)')
         self.setWindowIcon(QIcon(resource_path('icons/satellite.png')))
 
         loadImageButton = QPushButton('Load Image')
@@ -236,8 +236,8 @@ class SDBWidget(QWidget):
             'https://github.com/rifqiharrys/sdb_gui/releases'
         ))
 
-        aboutButton = QPushButton('About')
-        aboutButton.clicked.connect(self.aboutDialog)
+        licensesButton = QPushButton('Licenses')
+        licensesButton.clicked.connect(self.licensesDialog)
 
         readmeButton = QPushButton('Readme')
         readmeButton.clicked.connect(lambda: webbrowser.open(
@@ -288,7 +288,7 @@ class SDBWidget(QWidget):
         grid.addWidget(self.progressBar, 22, 1, 1, 4)
 
         grid.addWidget(releaseButton, 23, 1, 1, 1)
-        grid.addWidget(aboutButton, 23, 2, 1, 2)
+        grid.addWidget(licensesButton, 23, 2, 1, 2)
         grid.addWidget(readmeButton, 23, 4, 1, 1)
         self.setLayout(grid)
 
@@ -1227,33 +1227,57 @@ class SDBWidget(QWidget):
             self.saveOptionWindow()
 
 
-    def aboutDialog(self):
+    def licensesDialog(self):
         '''
         Showing the license of SDB GUI
         '''
 
-        about = QDialog()
-        about.setWindowTitle('About')
-        about.setWindowIcon(QIcon(resource_path('icons/information-pngrepo-com.png')))
-        about.resize(500, 380)
+        licenses = QDialog()
+        licenses.setWindowTitle('Licenses')
+        licenses.setWindowIcon(QIcon(resource_path('icons/information-pngrepo-com.png')))
+        licenses.resize(600, 380)
 
-        okButton = QPushButton('OK')
-        okButton.clicked.connect(about.close)
+        license_dict = {
+            'SDB GUI': 'LICENSE',
+            'NumPy': 'licenses/numpy_license',
+            'Scipy': 'licenses/scipy_license',
+            'Pandas': 'licenses/pandas_license',
+            'Rasterio': 'licenses/rasterio_license',
+            'GeoPandas': 'licenses/geopandas_license',
+            'Scikit Learn': 'licenses/scikit-learn_license'
+        }
+        license_list = list(license_dict)
+
+        licenseCB = QComboBox()
+        licenseCB.addItems(license_list)
+        licenseCB.activated.connect(
+            lambda: self.licenseSelection(
+                location=license_dict[licenseCB.currentText()]
+            )
+        )
 
         license_file = open(resource_path('LICENSE'), 'r')
-        licenseLabel = QLabel('SDB GUI v3.1.0')
-        licenseText = QTextBrowser()
-        licenseText.setText(license_file.read())
+        self.licenseText = QTextBrowser()
+        self.licenseText.setText(license_file.read())
+
+        okButton = QPushButton('OK')
+        okButton.clicked.connect(licenses.close)
 
         grid = QGridLayout()
 
-        grid.addWidget(licenseLabel, 1, 1, 1, 4)
-        grid.addWidget(licenseText, 2, 1, 1, 4)
+        grid.addWidget(licenseCB, 1, 1, 1, 4)
+        grid.addWidget(self.licenseText, 2, 1, 1, 4)
         grid.addWidget(okButton, 3, 4, 1, 1)
 
-        about.setLayout(grid)
+        licenses.setLayout(grid)
 
-        about.exec_()
+        licenses.exec_()
+
+
+    def licenseSelection(self, location):
+
+        license_file = open(resource_path(location), 'r')
+        self.licenseText.setText(license_file.read())
 
 
 
