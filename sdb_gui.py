@@ -125,7 +125,8 @@ class SDBWidget(QWidget):
         global rf_op_list
         rf_op_list = [
             300, # n_estimators
-            'mse' # criterion
+            'mse', # criterion
+            True # bootstrap
         ]
 
         global svm_op_list
@@ -692,6 +693,10 @@ class SDBWidget(QWidget):
         self.criterionCB = QComboBox()
         self.criterionCB.addItems(['mse', 'mae'])
 
+        bootstrapLabel = QLabel('Bootstrap:')
+        self.bootstrapCB = QComboBox()
+        self.bootstrapCB.addItems(['True', 'False'])
+
         cancelButton = QPushButton('Cancel')
         cancelButton.clicked.connect(optionDialog.close)
         loadButton = QPushButton('Load')
@@ -706,8 +711,11 @@ class SDBWidget(QWidget):
         grid.addWidget(criterionLabel, 2, 1, 1, 2)
         grid.addWidget(self.criterionCB, 2, 3, 1, 2)
 
-        grid.addWidget(loadButton, 3, 3, 1, 1)
-        grid.addWidget(cancelButton, 3, 4, 1, 1)
+        grid.addWidget(bootstrapLabel, 3, 1, 1, 2)
+        grid.addWidget(self.bootstrapCB, 3, 3, 1, 2)
+
+        grid.addWidget(loadButton, 4, 3, 1, 1)
+        grid.addWidget(cancelButton, 4, 4, 1, 1)
 
         optionDialog.setLayout(grid)
 
@@ -722,7 +730,8 @@ class SDBWidget(QWidget):
         global rf_op_list
         rf_op_list = [
             self.ntreeSB.value(),
-            self.criterionCB.currentText()
+            self.criterionCB.currentText(),
+            self.str2bool(self.bootstrapCB.currentText())
         ]
 
 
@@ -1443,6 +1452,7 @@ class Process(QThread):
         regressor = RandomForestRegressor(
             n_estimators=rf_op_list[0],
             criterion=rf_op_list[1],
+            bootstrap=rf_op_list[2],
             random_state=proc_op_list[2])
 
         parameters.append(regressor)
@@ -1450,7 +1460,8 @@ class Process(QThread):
         global print_parameters_info
         print_parameters_info = (
             'N Trees:\t\t' + str(rf_op_list[0]) + '\n' +
-            'Criterion:\t\t' + str(rf_op_list[1])
+            'Criterion:\t\t' + str(rf_op_list[1]) + '\n' +
+            'Bootstrap:\t\t' + str(rf_op_list[2])
         )
 
         return parameters
