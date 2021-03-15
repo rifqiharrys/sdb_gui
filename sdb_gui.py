@@ -989,9 +989,9 @@ class SDBWidget(QWidget):
         global print_result_info
         print_result_info = (
             'Image Input:\t\t' + self.imglocList.toPlainText() + ' (' +
-            str(round(img_size / 2**10 / 2**10, 2)) + ' MB)\n' +
+            str(round(img_size / 2**20, 2)) + ' MB)\n' +
             'Sample Data:\t\t' + self.samplelocList.toPlainText() + ' (' +
-            str(round(sample_size / 2**10 / 2**10, 2)) + ' MB)\n\n' +
+            str(round(sample_size / 2**20, 2)) + ' MB)\n\n' +
             print_limit + '\n' +
             'Train Data:\t\t' + str(self.trainPercentDSB.value()) + ' %\n' +
             'Test Data:\t\t' + str(100 - self.trainPercentDSB.value()) + ' %\n\n' +
