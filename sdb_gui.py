@@ -409,12 +409,6 @@ class SDBWidget(QWidget):
             global bands_array
             bands_array = bands_dummy.T
 
-            coord1 = np.array(image_raw.transform * (0, 0))
-            coord2 = np.array(image_raw.transform * (1, 1))
-
-            global pixel_size
-            pixel_size = abs(coord2 - coord1)
-
             self.loadImageLabel.setText(
                 os.path.split(self.imglocList.toPlainText())[1]
             )
@@ -985,6 +979,10 @@ class SDBWidget(QWidget):
         time_array = np.array(time_list)
         time_diff = time_array[1:] - time_array[:-1]
         runtime = np.append(time_diff, time_list[-1] - time_list[0])
+
+        coord1 = np.array(image_raw.transform * (0, 0))
+        coord2 = np.array(image_raw.transform * (1, 1))
+        pixel_size = abs(coord2 - coord1)
 
         global print_result_info
         print_result_info = (
