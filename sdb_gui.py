@@ -91,14 +91,6 @@ class SDBWidget(QWidget):
 
         ####### Default Values #######
 
-        global proc_op_list
-        proc_op_list = [
-            'threading',
-            -2,
-            0,
-            'checked'
-        ]
-
         global method_dict
         method_dict = {
             'K-Nearest Neighbors': self.knnOptionWindow,
@@ -107,35 +99,44 @@ class SDBWidget(QWidget):
             'Support Vector Machines': self.svmOptionWindow
         }
 
-        global knn_op_list
-        knn_op_list = [
-            5, # n_neighbors
-            'distance', # weights
-            'auto', # algorithm
-            30 # leaf size
-        ]
+        global proc_op_dict
+        proc_op_dict = {
+            'backend': 'threading',
+            'n_jobs': -2,
+            'random_state': 0,
+            'auto_negative': 'checked'
+        }
 
-        global mlr_op_list
-        mlr_op_list = [
-            True, # fit_intercept
-            False, # normalize
-            True # copy_X
-        ]
+        global knn_op_dict
+        knn_op_dict = {
+            'n_neighbors': 5,
+            'weights': 'distance',
+            'algorithm': 'auto',
+            'leaf_size': 30
+        }
 
-        global rf_op_list
-        rf_op_list = [
-            300, # n_estimators
-            'mse', # criterion
-            True # bootstrap
-        ]
+        global mlr_op_dict
+        mlr_op_dict = {
+            'fit_intercept': True,
+            'normalize': False,
+            'copy_x': True
+        }
 
-        global svm_op_list
-        svm_op_list = [
-            'poly', # kernel
-            .1, # gamma
-            1000.0, # C
-            3 # degree
-        ]
+        global rf_op_dict
+        rf_op_dict = {
+            'n_estimators': 300,
+            'criterion': 'mse',
+            'bootstrap': True,
+            'random_state': 0
+        }
+
+        global svm_op_dict
+        svm_op_dict = {
+            'kernel': 'poly',
+            'gamma': .1,
+            'c': 1000.0,
+            'degree': 3
+        }
 
         ####### Default Values #######
 
@@ -434,7 +435,7 @@ class SDBWidget(QWidget):
         openFilesButton.clicked.connect(
             lambda: self.fileDialog(
                 command=QFileDialog.getOpenFileName,
-                window_text='Open Image File',
+                window_text='Open Depth Sample File',
                 file_type='ESRI Shapefile (*.shp)',
                 text_browser=self.samplelocList
             )
@@ -599,13 +600,10 @@ class SDBWidget(QWidget):
         Loading defined KNN option input
         '''
 
-        global knn_op_list
-        knn_op_list = [
-            self.nneighborSB.value(),
-            self.weightsCB.currentText(),
-            self.algorithmCB.currentText(),
-            self.leafSizeSB.value()
-        ]
+        knn_op_dict['n_neighbors'] = self.nneighborSB.value()
+        knn_op_dict['weights'] = self.weightsCB.currentText()
+        knn_op_dict['algorithm'] = self.algorithmCB.currentText()
+        knn_op_dict['leaf_size'] = self.leafSizeSB.value()
 
 
     def mlrOptionWindow(self):
@@ -660,12 +658,9 @@ class SDBWidget(QWidget):
         Loading defined MLR option input
         '''
 
-        global mlr_op_list
-        mlr_op_list = [
-            self.str2bool(self.fitInterceptCB.currentText()),
-            self.str2bool(self.normalizeCB.currentText()),
-            self.str2bool(self.copyXCB.currentText())
-        ]
+        mlr_op_dict['fit_intercept'] = self.str2bool(self.fitInterceptCB.currentText())
+        mlr_op_dict['normalize'] = self.str2bool(self.normalizeCB.currentText())
+        mlr_op_dict['copy_x'] = self.str2bool(self.copyXCB.currentText())
 
 
     def rfOptionWIndow(self):
@@ -691,6 +686,12 @@ class SDBWidget(QWidget):
         self.bootstrapCB = QComboBox()
         self.bootstrapCB.addItems(['True', 'False'])
 
+        randomStateLabel = QLabel('Random State:')
+        self.randomStateRFSB = QSpinBox()
+        self.randomStateRFSB.setRange(0, 1000)
+        self.randomStateRFSB.setValue(0)
+        self.randomStateRFSB.setAlignment(Qt.AlignRight)
+
         cancelButton = QPushButton('Cancel')
         cancelButton.clicked.connect(optionDialog.close)
         loadButton = QPushButton('Load')
@@ -708,8 +709,11 @@ class SDBWidget(QWidget):
         grid.addWidget(bootstrapLabel, 3, 1, 1, 2)
         grid.addWidget(self.bootstrapCB, 3, 3, 1, 2)
 
-        grid.addWidget(loadButton, 4, 3, 1, 1)
-        grid.addWidget(cancelButton, 4, 4, 1, 1)
+        grid.addWidget(randomStateLabel, 4, 1, 1, 2)
+        grid.addWidget(self.randomStateRFSB, 4, 3, 1, 2)
+
+        grid.addWidget(loadButton, 5, 3, 1, 1)
+        grid.addWidget(cancelButton, 5, 4, 1, 1)
 
         optionDialog.setLayout(grid)
 
@@ -721,12 +725,10 @@ class SDBWidget(QWidget):
         Loading defined RF option input
         '''
 
-        global rf_op_list
-        rf_op_list = [
-            self.ntreeSB.value(),
-            self.criterionCB.currentText(),
-            self.str2bool(self.bootstrapCB.currentText())
-        ]
+        rf_op_dict['n_estimators'] = self.ntreeSB.value()
+        rf_op_dict['criterion'] = self.criterionCB.currentText()
+        rf_op_dict['bootstrap'] = self.str2bool(self.bootstrapCB.currentText())
+        rf_op_dict['random_state'] = self.randomStateRFSB.value()
 
 
     def svmOptionWindow(self):
@@ -796,13 +798,10 @@ class SDBWidget(QWidget):
         Loading defined SVM option input
         '''
 
-        global svm_op_list
-        svm_op_list = [
-            self.kernelCB.currentText(),
-            self.gammaDSB.value(),
-            self.cDSB.value(),
-            self.degreeSB.value()
-        ]
+        svm_op_dict['kernel'] = self.kernelCB.currentText()
+        svm_op_dict['gamma'] = self.gammaDSB.value()
+        svm_op_dict['c'] = self.cDSB.value()
+        svm_op_dict['degree'] = self.degreeSB.value()
 
 
     def processingOptionWindow(self):
@@ -826,10 +825,10 @@ class SDBWidget(QWidget):
         self.njobsSB.setAlignment(Qt.AlignRight)
 
         randomStateLabel = QLabel('Random State:')
-        self.randomStateSB = QSpinBox()
-        self.randomStateSB.setRange(0, 1000)
-        self.randomStateSB.setValue(0)
-        self.randomStateSB.setAlignment(Qt.AlignRight)
+        self.randomStateProcSB = QSpinBox()
+        self.randomStateProcSB.setRange(0, 1000)
+        self.randomStateProcSB.setValue(0)
+        self.randomStateProcSB.setAlignment(Qt.AlignRight)
 
         self.autoNegativeCB = QCheckBox('Auto Negative Sign')
         self.autoNegativeCB.setChecked(True)
@@ -856,7 +855,7 @@ class SDBWidget(QWidget):
         grid.addWidget(self.njobsSB, 2, 3, 1, 2)
 
         grid.addWidget(randomStateLabel, 3, 1, 1, 2)
-        grid.addWidget(self.randomStateSB, 3, 3, 1, 2)
+        grid.addWidget(self.randomStateProcSB, 3, 3, 1, 2)
 
         grid.addWidget(self.autoNegativeCB, 4, 1, 1, 4)
 
@@ -880,13 +879,10 @@ class SDBWidget(QWidget):
             )
             self.processingOptionWindow()
         else:
-            global proc_op_list
-            proc_op_list = [
-                self.backendCB.currentText(),
-                self.njobsSB.value(),
-                self.randomStateSB.value(),
-                self.autoNegativeState.text()
-                ]
+            proc_op_dict['backend'] = self.backendCB.currentText()
+            proc_op_dict['n_jobs'] = self.njobsSB.value()
+            proc_op_dict['random_state'] = self.randomStateProcSB.value()
+            proc_op_dict['auto_negative'] = self.autoNegativeState.text()
 
 
     def predict(self):
@@ -971,9 +967,9 @@ class SDBWidget(QWidget):
                 'Depth Limit:\t\tDisabled'
             )
 
-        if proc_op_list[3] == 'checked':
+        if proc_op_dict['auto_negative'] == 'checked':
             auto_negative = 'Enabled'
-        elif proc_op_list[3] == 'unchecked':
+        elif proc_op_dict['auto_negative'] == 'unchecked':
             auto_negative = 'Disabled'
 
         time_array = np.array(time_list)
@@ -998,13 +994,13 @@ class SDBWidget(QWidget):
             'RMSE:\t\t' + str(rmse) + '\n' +
             'MAE:\t\t' + str(mae) + '\n' +
             'R\u00B2:\t\t' + str(r2) + '\n\n' +
-            'Parallel Backend:\t' + str(proc_op_list[0]) + '\n' +
-            'Processing Cores:\t' + str(proc_op_list[1]) + '\n' +
-            'Random State:\t\t' + str(proc_op_list[2]) + '\n'
+            'Parallel Backend:\t' + str(proc_op_dict['backend']) + '\n' +
+            'Processing Cores:\t' + str(proc_op_dict['n_jobs']) + '\n' +
+            'Random State:\t\t' + str(proc_op_dict['random_state']) + '\n'
             'Auto Negative Sign:\t' + auto_negative + '\n\n' +
             'Reproject Runtime:\t' + str(runtime[0]) + '\n' +
             'Sampling Runtime:\t' + str(runtime[1]) + '\n' +
-            'Fitting Runtime:\t' + str(runtime[2]) + '\n' +
+            'Fitting Runtime:\t\t' + str(runtime[2]) + '\n' +
             'Prediction Runtime:\t' + str(runtime[3]) + '\n' +
             'Validating Runtime:\t' + str(runtime[4]) + '\n' +
             'Overall Runtime:\t' + str(runtime[5]) + '\n\n' +
@@ -1349,7 +1345,7 @@ class Process(QThread):
 
         col_names = []
 
-        with parallel_backend(proc_op_list[0], n_jobs=proc_op_list[1]):
+        with parallel_backend(proc_op_dict['backend'], n_jobs=proc_op_dict['n_jobs']):
 
             row, col = np.array(image_raw.index(shp_geo.x, shp_geo.y))
             sample_bands = image_raw.read()[:, row, col].T
@@ -1360,7 +1356,7 @@ class Process(QThread):
         samples_edit = pd.DataFrame(sample_bands, columns=col_names)
         samples_edit['z'] = sample_reproj[self.depth_label]
 
-        if proc_op_list[3] == 'checked' and np.median(samples_edit['z']) > 0:
+        if proc_op_dict['auto_negative'] == 'checked' and np.median(samples_edit['z']) > 0:
             samples_edit['z'] = samples_edit['z'] * -1
 
         if self.limit_state == 'unchecked':
@@ -1374,7 +1370,7 @@ class Process(QThread):
             features,
             z,
             train_size=self.train_size,
-            random_state=proc_op_list[2]
+            random_state=proc_op_dict['random_state']
             )
 
         samples_split = [features_train, features_test, z_train, z_test]
@@ -1392,20 +1388,20 @@ class Process(QThread):
         parameters = self.sampling()
 
         regressor = KNeighborsRegressor(
-            n_neighbors=knn_op_list[0],
-            weights=knn_op_list[1],
-            algorithm=knn_op_list[2],
-            leaf_size=knn_op_list[3]
+            n_neighbors=knn_op_dict['n_neighbors'],
+            weights=knn_op_dict['weights'],
+            algorithm=knn_op_dict['algorithm'],
+            leaf_size=knn_op_dict['leaf_size']
         )
 
         parameters.append(regressor)
 
         global print_parameters_info
         print_parameters_info = (
-            'N Neighbors:\t\t' + str(knn_op_list[0]) + '\n' +
-            'Weights:\t\t' + str(knn_op_list[1]) + '\n' +
-            'Algorithm:\t\t' + str(knn_op_list[2]) + '\n' +
-            'Leaf Size:\t\t' + str(knn_op_list[3])
+            'N Neighbors:\t\t' + str(knn_op_dict['n_neighbors']) + '\n' +
+            'Weights:\t\t' + str(knn_op_dict['weights']) + '\n' +
+            'Algorithm:\t\t' + str(knn_op_dict['algorithm']) + '\n' +
+            'Leaf Size:\t\t' + str(knn_op_dict['leaf_size'])
         )
 
         return parameters
@@ -1421,18 +1417,18 @@ class Process(QThread):
         parameters = self.sampling()
 
         regressor = LinearRegression(
-            fit_intercept=mlr_op_list[0],
-            normalize=mlr_op_list[1],
-            copy_X=mlr_op_list[2]
+            fit_intercept=mlr_op_dict['fit_intercept'],
+            normalize=mlr_op_dict['normalize'],
+            copy_X=mlr_op_dict['copy_x']
         )
 
         parameters.append(regressor)
 
         global print_parameters_info
         print_parameters_info = (
-            'Fit Intercept:\t\t' + str(mlr_op_list[0]) + '\n' +
-            'Normalize:\t\t' + str(mlr_op_list[1]) + '\n' +
-            'Copy X:\t\t' + str(mlr_op_list[2])
+            'Fit Intercept:\t\t' + str(mlr_op_dict['fit_intercept']) + '\n' +
+            'Normalize:\t\t' + str(mlr_op_dict['normalize']) + '\n' +
+            'Copy X:\t\t' + str(mlr_op_dict['copy_x'])
         )
 
         return parameters
@@ -1448,18 +1444,19 @@ class Process(QThread):
         parameters = self.sampling()
 
         regressor = RandomForestRegressor(
-            n_estimators=rf_op_list[0],
-            criterion=rf_op_list[1],
-            bootstrap=rf_op_list[2],
-            random_state=proc_op_list[2])
+            n_estimators=rf_op_dict['n_estimators'],
+            criterion=rf_op_dict['criterion'],
+            bootstrap=rf_op_dict['bootstrap'],
+            random_state=rf_op_dict['random_state'])
 
         parameters.append(regressor)
 
         global print_parameters_info
         print_parameters_info = (
-            'N Trees:\t\t' + str(rf_op_list[0]) + '\n' +
-            'Criterion:\t\t' + str(rf_op_list[1]) + '\n' +
-            'Bootstrap:\t\t' + str(rf_op_list[2])
+            'N Trees:\t\t' + str(rf_op_dict['n_estimators']) + '\n' +
+            'Criterion:\t\t' + str(rf_op_dict['criterion']) + '\n' +
+            'Bootstrap:\t\t' + str(rf_op_dict['bootstrap']) + '\n' +
+            'Random State:\t\t' + str(rf_op_dict['random_state'])
         )
 
         return parameters
@@ -1475,24 +1472,25 @@ class Process(QThread):
         parameters = self.sampling()
 
         regressor = SVR(
-            kernel=svm_op_list[0],
-            gamma=svm_op_list[1],
-            C=svm_op_list[2],
+            kernel=svm_op_dict['kernel'],
+            gamma=svm_op_dict['gamma'],
+            C=svm_op_dict['c'],
+            degree=svm_op_dict['degree'],
             cache_size=8000)
 
         parameters.append(regressor)
 
         global print_parameters_info
         print_parameters_info = (
-            'Kernel:\t\t' + str(svm_op_list[0]) +'\n' +
-            'Gamma:\t\t' + str(svm_op_list[1]) + '\n' +
-            'C:\t\t' + str(svm_op_list[2])
+            'Kernel:\t\t' + str(svm_op_dict['kernel']) +'\n' +
+            'Gamma:\t\t' + str(svm_op_dict['gamma']) + '\n' +
+            'C:\t\t' + str(svm_op_dict['c'])
         )
 
-        if svm_op_list[0] == 'poly':
+        if svm_op_dict['kernel'] == 'poly':
             print_parameters_info = (
                 print_parameters_info + '\n' +
-                'Degree:\t\t' + str(svm_op_list[3])
+                'Degree:\t\t' + str(svm_op_dict['degree'])
             )
 
         return parameters
@@ -1528,7 +1526,7 @@ class Process(QThread):
             sampling_list = [time_sampling, 'Fitting...\n']
             self.time_signal.emit(sampling_list)
 
-            with parallel_backend(proc_op_list[0], n_jobs=proc_op_list[1]):
+            with parallel_backend(proc_op_dict['backend'], n_jobs=proc_op_dict['n_jobs']):
 
                 regressor.fit(features_train, z_train)
                 time_fit = datetime.datetime.now()
