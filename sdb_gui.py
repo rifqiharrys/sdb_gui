@@ -80,7 +80,7 @@ class SDBWidget(QWidget):
     PyQt5 widget of SDB GUI
     '''
 
-    widget_signal = pyqtSignal(list)
+    widget_signal = pyqtSignal(dict)
 
     def __init__(self):
         '''
@@ -903,14 +903,14 @@ class SDBWidget(QWidget):
 
         global time_list
         time_list = []
-        init_input = [
-            self.depthHeaderCB.currentText(),
-            self.trainPercentDSB.value() / 100,
-            self.limitState.text(),
-            self.limitADSB.value(),
-            self.limitBDSB.value(),
-            self.methodCB.currentText()
-        ]
+        init_input = {
+            'depth_label': self.depthHeaderCB.currentText(),
+            'train_size': self.trainPercentDSB.value() / 100,
+            'limit_state': self.limitState.text(),
+            'limit_a': self.limitADSB.value(),
+            'limit_b': self.limitBDSB.value(),
+            'method': self.methodCB.currentText()
+        }
 
         if sample_raw[self.depthHeaderCB.currentText()].dtype == 'float':
             self.sdbProcess = Process()
@@ -940,7 +940,7 @@ class SDBWidget(QWidget):
             self.completeDialog()
 
 
-    def results(self, result_list):
+    def results(self, result_dict):
         '''
         Recieve processing results and filter the predicted value to depth
         limit window (if enabled).
@@ -948,10 +948,10 @@ class SDBWidget(QWidget):
         '''
 
         global z_predict
-        z_predict = result_list[0]
-        rmse = result_list[1]
-        mae = result_list[2]
-        r2 = result_list[3]
+        z_predict = result_dict['z_predict']
+        rmse = result_dict['rmse']
+        mae = result_dict['mae']
+        r2 = result_dict['r2']
 
         if self.limitState.text() == 'unchecked':
             print('checking prediction')
@@ -1289,7 +1289,7 @@ class Process(QThread):
     so the GUI won't freeze while processing data.
     '''
 
-    thread_signal = pyqtSignal(list)
+    thread_signal = pyqtSignal(dict)
     time_signal = pyqtSignal(list)
     warning_with_clear = pyqtSignal(str)
     warning_without_clear = pyqtSignal(str)
@@ -1299,17 +1299,17 @@ class Process(QThread):
         QThread.__init__(self)
 
 
-    def inputs(self, input_list):
+    def inputs(self, input_dict):
         '''
         Pooling intputs from widget
         '''
 
-        self.depth_label = input_list[0]
-        self.train_size = input_list[1]
-        self.limit_state = input_list[2]
-        self.limit_a_value = input_list[3]
-        self.limit_b_value = input_list[4]
-        self.method = input_list[5]
+        self.depth_label = input_dict['depth_label']
+        self.train_size = input_dict['train_size']
+        self.limit_state = input_dict['limit_state']
+        self.limit_a_value = input_dict['limit_a']
+        self.limit_b_value = input_dict['limit_b']
+        self.method = input_dict['method']
 
 
     def sampling(self):
@@ -1546,12 +1546,12 @@ class Process(QThread):
                 test_list = [time_test, 'Done.']
                 self.time_signal.emit(test_list)
 
-            result = [
-                z_predict,
-                rmse,
-                mae,
-                r2
-            ]
+            result = {
+                'z_predict': z_predict,
+                'rmse': rmse,
+                'mae': mae,
+                'r2': r2
+            }
 
             self.thread_signal.emit(result)
         except NameError:
