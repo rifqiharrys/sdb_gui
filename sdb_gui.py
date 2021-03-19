@@ -912,17 +912,22 @@ class SDBWidget(QWidget):
             'method': self.methodCB.currentText()
         }
 
-        if sample_raw[self.depthHeaderCB.currentText()].dtype == 'float':
-            self.sdbProcess = Process()
-            self.widget_signal.connect(self.sdbProcess.inputs)
-            self.widget_signal.emit(init_input)
-            self.sdbProcess.start()
-            self.sdbProcess.time_signal.connect(self.timeCounting)
-            self.sdbProcess.thread_signal.connect(self.results)
-            self.sdbProcess.warning_with_clear.connect(self.warningWithClear)
-        else:
+        try:
+            if sample_raw[self.depthHeaderCB.currentText()].dtype == 'float':
+                self.sdbProcess = Process()
+                self.widget_signal.connect(self.sdbProcess.inputs)
+                self.widget_signal.emit(init_input)
+                self.sdbProcess.start()
+                self.sdbProcess.time_signal.connect(self.timeCounting)
+                self.sdbProcess.thread_signal.connect(self.results)
+                self.sdbProcess.warning_with_clear.connect(self.warningWithClear)
+            else:
+                self.warningWithClear(
+                    'Please select headers correctly!'
+                )
+        except NameError:
             self.warningWithClear(
-                'Please select headers correctly!'
+                'No depth sample loaded. Please load your depth sample!'
             )
 
 
@@ -1556,7 +1561,7 @@ class Process(QThread):
             self.thread_signal.emit(result)
         except NameError:
             self.warning_with_clear.emit(
-                'Please load your data!'
+                'No image data loaded. Please load your image data!'
             )
         except IndexError:
             self.warning_with_clear.emit(
