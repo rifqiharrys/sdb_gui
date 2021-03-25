@@ -149,7 +149,7 @@ class SDBWidget(QWidget):
         '''
 
         self.setGeometry(300, 100, 480, 640)
-        self.setWindowTitle('Satellite Derived Bathymetry (v3.1.0)')
+        self.setWindowTitle('Satellite Derived Bathymetry (v3.1.1)')
         self.setWindowIcon(QIcon(resource_path('icons/satellite.png')))
 
         loadImageButton = QPushButton('Load Image')
