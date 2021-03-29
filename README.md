@@ -28,6 +28,12 @@ Image below is the workflow of predicting bathymetric depth using SDB GUI if you
 
 ![workflow](workflow_sdb_gui.png "Workflow")
 
+Inside SDB GUI Processing, the software first check if data inputs, which are raster data and depth samples have the same Coordinate Reference System (CRS). If they don't match with each other, the depth samples' CRS will reprojected into raster input reference system. And then, SDB GUI extracting each depth point samples coordinates and their respective raster value from raster input.
+
+The next process is depth limit filtering. The depth limitation process is based on depth points as seamless land and water height points, so the software will automatically multiply all the depth sample points by `-1` if most of the depth sample values are positives. However, this could be turned off from `Processing Options` so the software will process the data as it is, but remember to adjust the depth limit to the original values.
+
+When the depth samples is filtered, then it is separated into features and result so the machine learning library Scikit Learn know which are input variables and its corresponding results. And to test the resulting data, both features and result are splitted into train data and test data. The train data then used to train the selected model to fit the known results.
+
 ## Methods
 In order to make depth prediction, there are four methods available. All of which are Machine Learning methods that is available on [Scikit Learn](https://scikit-learn.org) web page. The methods are [K-Nearest Neighbors](https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsRegressor.html#sklearn.neighbors.KNeighborsRegressor "KNN Regressor"), [Multiple Linear Regression](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html#sklearn.linear_model.LinearRegression "MLR Regression"), [Random Forest](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html#sklearn.ensemble.RandomForestRegressor "RF Regressor") and [Support Vector Machines](https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVR.html#sklearn.svm.SVR "SVM Regressor"). All of which are using [Scikit Learn](https://scikit-learn.org) module.
 ### K-Nearest Neighbors
