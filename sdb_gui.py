@@ -91,8 +91,7 @@ class SDBWidget(QWidget):
 
         ####### Default Values #######
 
-        global method_dict
-        method_dict = {
+        self.method_dict = {
             'K-Nearest Neighbors': self.knnOptionWindow,
             'Multiple Linear Regression': self.mlrOptionWindow,
             'Random Forest': self.rfOptionWIndow, 
@@ -199,14 +198,14 @@ class SDBWidget(QWidget):
             )
         )
 
-        method_list = list(method_dict)
+        method_list = list(self.method_dict)
 
         methodLabel = QLabel('Regression Method:')
         self.methodCB = QComboBox()
         self.methodCB.addItems(method_list)
         self.methodCB.activated.connect(
             lambda: self.methodSelection(
-                option=method_dict[self.methodCB.currentText()]
+                option=self.method_dict[self.methodCB.currentText()]
             )
         )
 
@@ -1303,6 +1302,13 @@ class Process(QThread):
 
         QThread.__init__(self)
 
+        self.method_dict = {
+            'K-Nearest Neighbors': self.knnPredict,
+            'Multiple Linear Regression': self.mlrPredict,
+            'Random Forest': self.rfPredict, 
+            'Support Vector Machines': self.svmPredict
+        }
+
 
     def inputs(self, input_dict):
         '''
@@ -1509,17 +1515,8 @@ class Process(QThread):
         '''
         print('Process run')
 
-        method_list = list(method_dict)
-
         try:
-            if self.method == method_list[0]:
-                parameters = self.knnPredict()
-            elif self.method == method_list[1]:
-                parameters = self.mlrPredict()
-            elif self.method == method_list[2]:
-                parameters = self.rfPredict()
-            elif self.method == method_list[3]:
-                parameters = self.svmPredict()
+            parameters = self.method_dict[self.method]()
 
             features_train = parameters[0]
             features_test = parameters[1]
