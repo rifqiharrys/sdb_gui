@@ -403,7 +403,7 @@ class SDBWidget(QWidget):
             ndata = image_raw.read(1).size
             bands_dummy = np.empty((nbands, ndata))
 
-            for i in range(1, nbands + 1):
+            for i in image_raw.indexes:
                 bands_dummy[i - 1, :] = np.ravel(image_raw.read(i))
 
             global bands_array
