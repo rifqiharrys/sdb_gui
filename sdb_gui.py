@@ -98,6 +98,14 @@ class SDBWidget(QWidget):
             'Support Vector Machines': self.svmOptionWindow
         }
 
+        self.working_dir = os.path.abspath(Path.home())
+
+        self.dir_dict = {
+            'image': os.path.abspath(Path.home()),
+            'sample': os.path.abspath(Path.home()),
+            'save': os.path.abspath(Path.home())
+        }
+
         global proc_op_dict
         proc_op_dict = {
             'backend': 'threading',
@@ -300,17 +308,17 @@ class SDBWidget(QWidget):
         return v in ('True')
 
 
-    def fileDialog(self, command, window_text, file_type, text_browser):
+    def fileDialog(self, command, window_text, work_dir, dir_key, file_type, text_browser):
         '''
         Showing file dialog, whether opening file or saving.
         '''
 
-        home_dir = str(Path.home())
         fileFilter = 'All Files (*.*) ;; ' + file_type
         selectedFilter = file_type
-        fname = command(self, window_text, home_dir, fileFilter, selectedFilter)
+        fname = command(self, window_text, work_dir, fileFilter, selectedFilter)
 
         text_browser.setText(fname[0])
+        self.dir_dict[dir_key] = os.path.splitext(fname[0])[0]
 
 
     def methodSelection(self, option):
@@ -337,6 +345,8 @@ class SDBWidget(QWidget):
             lambda: self.fileDialog(
                 command=QFileDialog.getOpenFileName,
                 window_text='Open Image File',
+                work_dir=self.dir_dict['image'],
+                dir_key='image',
                 file_type='GeoTIFF (*.tif)',
                 text_browser=self.imglocList
             )
@@ -416,6 +426,8 @@ class SDBWidget(QWidget):
             lambda: self.fileDialog(
                 command=QFileDialog.getOpenFileName,
                 window_text='Open Depth Sample File',
+                work_dir=self.dir_dict['sample'],
+                dir_key='sample',
                 file_type='ESRI Shapefile (*.shp)',
                 text_browser=self.samplelocList
             )
@@ -1075,6 +1087,8 @@ class SDBWidget(QWidget):
             lambda:self.fileDialog(
                 command=QFileDialog.getSaveFileName,
                 window_text='Save File',
+                work_dir=self.dir_dict['save'],
+                dir_key='save',
                 file_type=self.dataTypeCB.currentText(),
                 text_browser=self.savelocList
             )
