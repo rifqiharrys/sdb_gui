@@ -103,7 +103,7 @@ class SDBWidget(QWidget):
             'backend': 'threading',
             'n_jobs': -2,
             'random_state': 0,
-            'auto_negative': 'checked'
+            'auto_negative': True
         }
 
         global knn_op_dict
@@ -190,13 +190,6 @@ class SDBWidget(QWidget):
 
         self.limitCheckBox = QCheckBox('Disable Depth Limitation')
         self.limitCheckBox.setChecked(False)
-        self.limitState = QLabel('unchecked')
-        self.limitCheckBox.toggled.connect(
-            lambda: self.checkBoxState(
-                check_box=self.limitCheckBox,
-                status=self.limitState
-            )
-        )
 
         method_list = list(self.method_dict)
 
@@ -305,18 +298,6 @@ class SDBWidget(QWidget):
         '''
 
         return v in ('True')
-
-
-    def checkBoxState(self, check_box, status):
-        '''
-        Saving a checkbox status into a QLabel object whether
-        it's checked or unchecked
-        '''
-
-        if check_box.isChecked() == True:
-            status.setText('checked')
-        else:
-            status.setText('unchecked')
 
 
     def fileDialog(self, command, window_text, file_type, text_browser):
@@ -445,13 +426,6 @@ class SDBWidget(QWidget):
 
         self.showCheckBox = QCheckBox('Show All Data to Table')
         self.showCheckBox.setChecked(False)
-        self.showState = QLabel('unchecked')
-        self.showCheckBox.toggled.connect(
-            lambda: self.checkBoxState(
-                check_box=self.showCheckBox,
-                status=self.showState
-            )
-        )
 
         cancelButton = QPushButton('Cancel')
         cancelButton.clicked.connect(self.loadSampleDialog.close)
@@ -506,7 +480,7 @@ class SDBWidget(QWidget):
             else:
                 raw = sample_raw.copy()
 
-                if self.showState.text() == 'checked':
+                if self.showCheckBox.isChecked() == True:
                     data = raw
                 else:
                     data = raw.head(100)
@@ -835,14 +809,7 @@ class SDBWidget(QWidget):
         self.randomStateProcSB.setAlignment(Qt.AlignRight)
 
         self.autoNegativeCB = QCheckBox('Auto Negative Sign')
-        self.autoNegativeCB.setChecked(True)
-        self.autoNegativeState = QLabel('checked')
-        self.autoNegativeCB.toggled.connect(
-            lambda: self.checkBoxState(
-                check_box=self.autoNegativeCB,
-                status=self.autoNegativeState
-            )
-        )
+        self.autoNegativeCB.setChecked(proc_op_dict['auto_negative'])
 
         cancelButton = QPushButton('Cancel')
         cancelButton.clicked.connect(self.processingOptionDialog.close)
@@ -886,7 +853,7 @@ class SDBWidget(QWidget):
             proc_op_dict['backend'] = self.backendCB.currentText()
             proc_op_dict['n_jobs'] = self.njobsSB.value()
             proc_op_dict['random_state'] = self.randomStateProcSB.value()
-            proc_op_dict['auto_negative'] = self.autoNegativeState.text()
+            proc_op_dict['auto_negative'] = self.autoNegativeCB.isChecked()
 
 
     def predict(self):
@@ -910,7 +877,7 @@ class SDBWidget(QWidget):
         init_input = {
             'depth_label': self.depthHeaderCB.currentText(),
             'train_size': self.trainPercentDSB.value() / 100,
-            'limit_state': self.limitState.text(),
+            'limit_state': self.limitCheckBox.isChecked(),
             'limit_a': self.limitADSB.value(),
             'limit_b': self.limitBDSB.value(),
             'method': self.methodCB.currentText()
@@ -962,7 +929,7 @@ class SDBWidget(QWidget):
         mae = result_dict['mae']
         r2 = result_dict['r2']
 
-        if self.limitState.text() == 'unchecked':
+        if self.limitCheckBox.isChecked() == False:
             print('checking prediction')
             z_predict[z_predict < self.limitBDSB.value()] = np.nan
             z_predict[z_predict > self.limitADSB.value()] = np.nan
@@ -976,9 +943,9 @@ class SDBWidget(QWidget):
                 'Depth Limit:\t\tDisabled'
             )
 
-        if proc_op_dict['auto_negative'] == 'checked':
+        if proc_op_dict['auto_negative'] == True:
             auto_negative = 'Enabled'
-        elif proc_op_dict['auto_negative'] == 'unchecked':
+        elif proc_op_dict['auto_negative'] == False:
             auto_negative = 'Disabled'
 
         time_array = np.array(time_list)
@@ -1122,26 +1089,12 @@ class SDBWidget(QWidget):
 
         self.medianFilterCheckBox = QCheckBox('Disable Median Filter')
         self.medianFilterCheckBox.setChecked(False)
-        self.medianFilterState = QLabel('unchecked')
-        self.medianFilterCheckBox.toggled.connect(
-            lambda: self.checkBoxState(
-                check_box=self.medianFilterCheckBox,
-                status=self.medianFilterState
-            )
-        )
 
         locLabel = QLabel('Location:')
         self.savelocList = QTextBrowser()
 
         self.reportCheckBox = QCheckBox('Save Report')
         self.reportCheckBox.setChecked(True)
-        self.reportState = QLabel('checked')
-        self.reportCheckBox.toggled.connect(
-            lambda: self.checkBoxState(
-                check_box=self.reportCheckBox,
-                status=self.reportState
-            )
-        )
 
         cancelButton = QPushButton('Cancel')
         cancelButton.clicked.connect(self.saveOptionDialog.close)
@@ -1181,7 +1134,7 @@ class SDBWidget(QWidget):
         try:
             z_img_ar = z_predict.reshape(image_raw.height, image_raw.width)
 
-            if self.medianFilterState.text() == 'unchecked':
+            if self.medianFilterCheckBox.isChecked() == False:
                 print_filter_info = (
                     'Median Filter Size:\t' + str(self.medianFilterSB.value())
                 )
@@ -1215,7 +1168,7 @@ class SDBWidget(QWidget):
 
             self.resultText.append(print_output_info)
 
-            if self.reportState.text() == 'checked':
+            if self.reportCheckBox.isChecked() == True:
                 report_save_loc = (
                     os.path.splitext(self.savelocList.toPlainText())[0] +
                     '_report.txt'
@@ -1372,10 +1325,10 @@ class Process(QThread):
         samples_edit = pd.DataFrame(sample_bands, columns=col_names)
         samples_edit['z'] = sample_reproj[self.depth_label]
 
-        if proc_op_dict['auto_negative'] == 'checked' and np.median(samples_edit['z']) > 0:
+        if proc_op_dict['auto_negative'] == True and np.median(samples_edit['z']) > 0:
             samples_edit['z'] = samples_edit['z'] * -1
 
-        if self.limit_state == 'unchecked':
+        if self.limit_state == False:
             samples_edit = samples_edit[samples_edit['z'] >= self.limit_b_value]
             samples_edit = samples_edit[samples_edit['z'] <= self.limit_a_value]
 
