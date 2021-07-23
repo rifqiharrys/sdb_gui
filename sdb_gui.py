@@ -94,7 +94,7 @@ class SDBWidget(QWidget):
         self.method_dict = {
             'K-Nearest Neighbors': self.knnOptionWindow,
             'Multiple Linear Regression': self.mlrOptionWindow,
-            'Random Forest': self.rfOptionWIndow, 
+            'Random Forest': self.rfOptionWindow, 
             'Support Vector Machines': self.svmOptionWindow
         }
 
@@ -662,7 +662,7 @@ class SDBWidget(QWidget):
         mlr_op_dict['copy_x'] = self.str2bool(self.copyXCB.currentText())
 
 
-    def rfOptionWIndow(self):
+    def rfOptionWindow(self):
         '''
         Random Forest option User Interface
         '''
