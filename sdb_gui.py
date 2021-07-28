@@ -98,11 +98,7 @@ class SDBWidget(QWidget):
             'Support Vector Machines': self.svmOptionWindow
         }
 
-        self.dir_dict = {
-            'image': os.path.abspath(Path.home()),
-            'sample': os.path.abspath(Path.home()),
-            'save': os.path.abspath(Path.home())
-        }
+        self.dir_path = os.path.abspath(Path.home())
 
         global proc_op_dict
         proc_op_dict = {
@@ -306,17 +302,17 @@ class SDBWidget(QWidget):
         return v in ('True')
 
 
-    def fileDialog(self, command, window_text, dir_key, file_type, text_browser):
+    def fileDialog(self, command, window_text, file_type, text_browser):
         '''
         Showing file dialog, whether opening file or saving.
         '''
 
         fileFilter = 'All Files (*.*) ;; ' + file_type
         selectedFilter = file_type
-        fname = command(self, window_text, self.dir_dict[dir_key], fileFilter, selectedFilter)
+        fname = command(self, window_text, self.dir_path, fileFilter, selectedFilter)
 
         text_browser.setText(fname[0])
-        self.dir_dict[dir_key] = os.path.splitext(fname[0])[0]
+        self.dir_path = os.path.splitext(fname[0])[0]
 
 
     def methodSelection(self, option):
@@ -343,7 +339,6 @@ class SDBWidget(QWidget):
             lambda: self.fileDialog(
                 command=QFileDialog.getOpenFileName,
                 window_text='Open Image File',
-                dir_key='image',
                 file_type='GeoTIFF (*.tif)',
                 text_browser=self.imglocList
             )
@@ -423,7 +418,6 @@ class SDBWidget(QWidget):
             lambda: self.fileDialog(
                 command=QFileDialog.getOpenFileName,
                 window_text='Open Depth Sample File',
-                dir_key='sample',
                 file_type='ESRI Shapefile (*.shp)',
                 text_browser=self.samplelocList
             )
@@ -1083,7 +1077,6 @@ class SDBWidget(QWidget):
             lambda:self.fileDialog(
                 command=QFileDialog.getSaveFileName,
                 window_text='Save File',
-                dir_key='save',
                 file_type=self.dataTypeCB.currentText(),
                 text_browser=self.savelocList
             )
