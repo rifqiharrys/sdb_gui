@@ -64,6 +64,8 @@ import rasterio.vrt
 ###############################################################################
 ###############################################################################
 
+sdb_gui_version = '3.2.1'
+
 def resource_path(relative_path):
     '''Get the absolute path to the resource, works for dev and for PyInstaller'''
     try:
@@ -150,7 +152,7 @@ class SDBWidget(QWidget):
         '''
 
         self.setGeometry(300, 100, 480, 640)
-        self.setWindowTitle('Satellite Derived Bathymetry (v3.1.2)')
+        self.setWindowTitle('Satellite Derived Bathymetry (v%s)' %sdb_gui_version)
         self.setWindowIcon(QIcon(resource_path('icons/satellite.png')))
 
         loadImageButton = QPushButton('Load Image')
@@ -927,9 +929,14 @@ class SDBWidget(QWidget):
 
         global z_predict
         z_predict = result_dict['z_predict']
-        rmse = result_dict['rmse']
-        mae = result_dict['mae']
-        r2 = result_dict['r2']
+        rmse, mae, r2 = result_dict['rmse'], result_dict['mae'], result_dict['r2']
+
+        global train_data_df, test_data_df
+        train_data_df, test_data_df = result_dict['train'], result_dict['test']
+
+        global sample_reproj_crs
+        sample_reproj_crs = result_dict['sample_reproj_crs']
+        print(sample_reproj_crs)
 
         if self.limitCheckBox.isChecked() == False:
             print('checking prediction')
@@ -960,6 +967,7 @@ class SDBWidget(QWidget):
 
         global print_result_info
         print_result_info = (
+            'Software Version:\t' + sdb_gui_version + '\n\n' +
             'Image Input:\t\t' + self.imglocList.toPlainText() + ' (' +
             str(round(img_size / 2**20, 2)) + ' MB)\n' +
             'Sample Data:\t\t' + self.samplelocList.toPlainText() + ' (' +
@@ -1095,6 +1103,17 @@ class SDBWidget(QWidget):
         locLabel = QLabel('Location:')
         self.savelocList = QTextBrowser()
 
+        self.trainTestDataCheckBox = QCheckBox('Save Training and Testing Data in')
+        self.trainTestDataCheckBox.setChecked(False)
+
+        self.trainTestFormatCB = QComboBox()
+        self.trainTestFormatCB.addItems(['.csv', '.shp'])
+
+        trainTestLabel = QLabel('format')
+
+        self.saveDEMCheckBox = QCheckBox('Save DEM')
+        self.saveDEMCheckBox.setChecked(True)
+
         self.reportCheckBox = QCheckBox('Save Report')
         self.reportCheckBox.setChecked(True)
 
@@ -1117,9 +1136,14 @@ class SDBWidget(QWidget):
         grid.addWidget(locLabel, 4, 1, 1, 4)
         grid.addWidget(self.savelocList, 5, 1, 1, 4)
 
-        grid.addWidget(self.reportCheckBox, 6, 1, 1, 2)
-        grid.addWidget(saveButton, 6, 3, 1, 1)
-        grid.addWidget(cancelButton, 6, 4, 1, 1)
+        grid.addWidget(self.trainTestDataCheckBox, 6, 1, 1, 2)
+        grid.addWidget(self.trainTestFormatCB, 6, 3, 1, 1)
+        grid.addWidget(trainTestLabel, 6, 4, 1, 1)
+
+        grid.addWidget(self.saveDEMCheckBox, 7, 1, 1, 1)
+        grid.addWidget(self.reportCheckBox, 7, 2, 1, 1)
+        grid.addWidget(saveButton, 7, 3, 1, 1)
+        grid.addWidget(cancelButton, 7, 4, 1, 1)
 
         self.saveOptionDialog.setLayout(grid)
 
@@ -1134,41 +1158,98 @@ class SDBWidget(QWidget):
         '''
 
         try:
-            z_img_ar = z_predict.reshape(image_raw.height, image_raw.width)
+            if self.saveDEMCheckBox.isChecked() == True:
+                z_img_ar = z_predict.reshape(image_raw.height, image_raw.width)
 
-            if self.medianFilterCheckBox.isChecked() == False:
-                print_filter_info = (
-                    'Median Filter Size:\t' + str(self.medianFilterSB.value())
+                if self.medianFilterCheckBox.isChecked() == False:
+                    print_filter_info = (
+                        'Median Filter Size:\t' + str(self.medianFilterSB.value())
+                    )
+                    z_img_ar = ndimage.median_filter(z_img_ar, size=self.medianFilterSB.value())
+                else:
+                    print_filter_info = (
+                        'Median Filter Size:\tDisabled'
+                    )
+
+                new_img = rio.open(
+                    self.savelocList.toPlainText(),
+                    'w',
+                    driver=format_dict[self.dataTypeCB.currentText()],
+                    height=image_raw.height,
+                    width=image_raw.width,
+                    count=1,
+                    dtype=z_img_ar.dtype,
+                    crs=image_raw.crs,
+                    transform=image_raw.transform
                 )
-                z_img_ar = ndimage.median_filter(z_img_ar, size=self.medianFilterSB.value())
-            else:
-                print_filter_info = (
-                    'Median Filter Size:\tDisabled'
+
+                new_img.write(z_img_ar, 1)
+                new_img.close()
+
+                new_img_size = os.path.getsize(self.savelocList.toPlainText())
+                print_dem_info = (
+                    print_filter_info + '\n\n'
+                    'DEM Output:\t\t' + self.savelocList.toPlainText() + ' (' +
+                    str(round(new_img_size / 2**10 / 2**10, 2)) + ' MB)\n'
+                )
+            elif self.saveDEMCheckBox.isChecked() == False:
+                print_dem_info = (
+                    'DEM Output:\t\tNot Saved\n'
                 )
 
-            new_img = rio.open(
-                self.savelocList.toPlainText(),
-                'w',
-                driver=format_dict[self.dataTypeCB.currentText()],
-                height=image_raw.height,
-                width=image_raw.width,
-                count=1,
-                dtype=z_img_ar.dtype,
-                crs=image_raw.crs,
-                transform=image_raw.transform
-            )
+            if self.trainTestDataCheckBox.isChecked() == True:
+                train_save_loc = (
+                    os.path.splitext(self.savelocList.toPlainText())[0] +
+                    '_train' + self.trainTestFormatCB.currentText()
+                )
+                test_save_loc = (
+                    os.path.splitext(self.savelocList.toPlainText())[0] +
+                    '_test' + self.trainTestFormatCB.currentText()
+                )
 
-            new_img.write(z_img_ar, 1)
-            new_img.close()
+                if self.trainTestFormatCB.currentText() == '.csv':
+                    train_data_df.to_csv(train_save_loc, index=False)
+                    test_data_df.to_csv(test_save_loc, index=False)
+                elif self.trainTestFormatCB.currentText() == '.shp':
+                    train_data_gdf = gpd.GeoDataFrame(
+                        train_data_df.copy(),
+                        geometry=gpd.points_from_xy(
+                            train_data_df.x,
+                            train_data_df.y,
+                            train_data_df.z
+                        ),
+                        crs=sample_reproj_crs
+                    )
+                    test_data_gdf = gpd.GeoDataFrame(
+                        test_data_df.copy(),
+                        geometry=gpd.points_from_xy(
+                            test_data_df.x,
+                            test_data_df.y,
+                            test_data_df.z
+                        ),
+                        crs=sample_reproj_crs
+                    )
 
-            new_img_size = os.path.getsize(self.savelocList.toPlainText())
-            print_output_info = (
-                print_filter_info + '\n\n'
-                'Output:\t\t' + self.savelocList.toPlainText() + ' (' +
-                str(round(new_img_size / 2**10 / 2**10, 2)) + ' MB)'
-            )
+                    train_data_gdf.to_file(train_save_loc)
+                    test_data_gdf.to_file(test_save_loc)
 
-            self.resultText.append(print_output_info)
+                train_data_size = os.path.getsize(train_save_loc)
+                test_data_size = os.path.getsize(test_save_loc)
+
+                print_train_test_info = (
+                    'Train Data Output:\t' + train_save_loc + ' (' +
+                    str(round(train_data_size / 2**10 / 2**10, 2)) + ' MB)\n'
+                    'Test Data output:\t' + test_save_loc + ' (' +
+                    str(round(test_data_size / 2**10 / 2**10, 2)) + ' MB)\n'
+                )
+            elif self.trainTestDataCheckBox.isChecked() == False:
+                print_train_test_info = (
+                    'Train Data Output:\tNot Saved\n'
+                    'Test Data output:\tNot Saved\n'
+                )
+
+            self.resultText.append(print_dem_info)
+            self.resultText.append(print_train_test_info)
 
             if self.reportCheckBox.isChecked() == True:
                 report_save_loc = (
@@ -1179,7 +1260,8 @@ class SDBWidget(QWidget):
 
                 report.write(
                     print_result_info +
-                    print_output_info
+                    print_dem_info +
+                    print_train_test_info
                 )
         except:
             self.saveOptionDialog.close()
@@ -1325,6 +1407,7 @@ class Process(QThread):
                 col_names.append('band' + str(i))
 
         samples_edit = pd.DataFrame(sample_bands, columns=col_names)
+        samples_edit['x'], samples_edit['y'] = shp_geo.x, shp_geo.y
         samples_edit['z'] = sample_reproj[self.depth_label]
 
         if proc_op_dict['auto_negative'] == True and np.median(samples_edit['z']) > 0:
@@ -1334,17 +1417,32 @@ class Process(QThread):
             samples_edit = samples_edit[samples_edit['z'] >= self.limit_b_value]
             samples_edit = samples_edit[samples_edit['z'] <= self.limit_a_value]
 
-        features = samples_edit.iloc[:, 0:-1]
+        features_all = samples_edit.iloc[:, 0:-1]
         z = samples_edit['z']
 
-        features_train, features_test, z_train, z_test = train_test_split(
-            features,
+        features_all_train, features_all_test, z_train, z_test = train_test_split(
+            features_all,
             z,
             train_size=self.train_size,
             random_state=proc_op_dict['random_state']
             )
 
-        samples_split = [features_train, features_test, z_train, z_test]
+        features_train = features_all_train.iloc[:, 0:-2]
+        features_test = features_all_test.iloc[:, 0:-2]
+
+        train_data = pd.concat([features_all_train, z_train], axis=1)
+        test_data = pd.concat([features_all_test, z_test], axis=1)
+
+        samples_split = [features_train, features_test, z_train, z_test, train_data, test_data]
+        samples_split = [
+            features_train,
+            features_test,
+            z_train,
+            z_test,
+            train_data,
+            test_data,
+            sample_reproj.crs
+        ]
 
         return samples_split
 
@@ -1482,7 +1580,7 @@ class Process(QThread):
             features_test = parameters[1]
             z_train = parameters[2]
             z_test = parameters[3]
-            regressor = parameters[4]
+            regressor = parameters[-1]
 
             time_sampling = datetime.datetime.now()
             sampling_list = [time_sampling, 'Fitting...\n']
@@ -1512,7 +1610,10 @@ class Process(QThread):
                 'z_predict': z_predict,
                 'rmse': rmse,
                 'mae': mae,
-                'r2': r2
+                'r2': r2,
+                'train': parameters[4],
+                'test': parameters[5],
+                'sample_reproj_crs': parameters[6]
             }
 
             self.thread_signal.emit(result)
