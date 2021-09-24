@@ -25,6 +25,7 @@ SOFTWARE.
 ###############################################################################
 ################################# Main Imports ################################
 
+from numpy.core.fromnumeric import shape
 from sklearn import metrics
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.linear_model import LinearRegression
@@ -934,9 +935,8 @@ class SDBWidget(QWidget):
         global train_data_df, test_data_df
         train_data_df, test_data_df = result_dict['train'], result_dict['test']
 
-        global sample_reproj_crs
-        sample_reproj_crs = result_dict['sample_reproj_crs']
-        print(sample_reproj_crs)
+        global sample_reproject, sample_filtered
+        sample_reproject, sample_filtered = result_dict['sample_reproj'], result_dict['samples_edit']
 
         if self.limitCheckBox.isChecked() == False:
             print('checking prediction')
@@ -973,8 +973,13 @@ class SDBWidget(QWidget):
             'Sample Data:\t\t' + self.samplelocList.toPlainText() + ' (' +
             str(round(sample_size / 2**20, 2)) + ' MB)\n\n' +
             print_limit + '\n' +
-            'Train Data:\t\t' + str(self.trainPercentDSB.value()) + ' %\n' +
-            'Test Data:\t\t' + str(100 - self.trainPercentDSB.value()) + ' %\n\n' +
+            'Used Sample:\t\t' + str(sample_filtered.shape[0]) + ' points (' +
+            str(round(sample_filtered.shape[0] / sample_raw.shape[0] * 100, 2)) +
+            '% of all sample)\n' +
+            'Train Data:\t\t' + str(train_data_df.shape[0]) + ' points (' +
+            str(self.trainPercentDSB.value()) + ' % of used sample)\n' +
+            'Test Data:\t\t' + str(test_data_df.shape[0]) + ' points (' +
+            str(100 - self.trainPercentDSB.value()) + ' % of used sample)\n\n' +
             'Method:\t\t' + self.methodCB.currentText() + '\n' +
             print_parameters_info + '\n\n'
             'RMSE:\t\t' + str(rmse) + '\n' +
@@ -1218,7 +1223,7 @@ class SDBWidget(QWidget):
                             train_data_df.y,
                             train_data_df.z
                         ),
-                        crs=sample_reproj_crs
+                        crs=sample_reproject.crs
                     )
                     test_data_gdf = gpd.GeoDataFrame(
                         test_data_df.copy(),
@@ -1227,7 +1232,7 @@ class SDBWidget(QWidget):
                             test_data_df.y,
                             test_data_df.z
                         ),
-                        crs=sample_reproj_crs
+                        crs=sample_reproject.crs
                     )
 
                     train_data_gdf.to_file(train_save_loc)
@@ -1441,7 +1446,8 @@ class Process(QThread):
             z_test,
             train_data,
             test_data,
-            sample_reproj.crs
+            sample_reproj,
+            samples_edit
         ]
 
         return samples_split
@@ -1613,7 +1619,8 @@ class Process(QThread):
                 'r2': r2,
                 'train': parameters[4],
                 'test': parameters[5],
-                'sample_reproj_crs': parameters[6]
+                'sample_reproj': parameters[6],
+                'samples_edit': parameters[7]
             }
 
             self.thread_signal.emit(result)
