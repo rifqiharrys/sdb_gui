@@ -13,6 +13,8 @@ This is a GUI to make a bathimetric prediction using satellite imagery and some 
 6. [Scikit Learn](https://scikit-learn.org)
 7. [PyQt5](https://www.riverbankcomputing.com/static/Docs/PyQt5/)
 
+I recommend you to install the requirements in an environment using [Anaconda](https://www.anaconda.com/) because I use it and it rarely create errors. This is only one of the way and you're free to use any other methods to install all the requirements.
+
 Prepare your own data before using this SDB GUI. In general, there are two types of data needed in order to use SDB GUI, which are georeferenced and corrected imagery and depth samples. The image required should be multi-band imagery (e.g. RGB, RGBN, or others) and the GUI will automatically take all the image bands into processing. There are differences in how the depth samples should be prepared before loading when you're running SDB GUI version 2.x.x and below or running the latest source code and SDB GUI after version 2.x.x release.
 
 If you're running SDB GUI version 2.x.x and below, the depth samples must be in tabular data consisting depth samples and corresponding raster values in the form of text file (e.g. CSV, TXT, or DAT file). If you don't have that kind of dwpth samples, you could extract it from your depth sample and the imagery using QGIS Plugin "Point Sampling Tool". If you're running the latest source code or SDB GUI after version 2.x.x release, you have to load your depth samples in the form of ESRI Shapefile format, then SDB GUI will sample the depth for you.
