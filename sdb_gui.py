@@ -1157,9 +1157,8 @@ class SDBWidget(QWidget):
 
     def saveAction(self):
         '''
-        Saving predicted depth and report (optional) into file.
-        Applying median filter (or not) to the predicted depth array
-        before saving.
+        Saving predicted depth, training and testing data, and/or report into file.
+        Applying median filter (or not) to the predicted depth array before saving.
         '''
 
         try:
