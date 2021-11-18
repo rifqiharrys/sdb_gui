@@ -65,7 +65,7 @@ import rasterio.vrt
 ###############################################################################
 ###############################################################################
 
-sdb_gui_version = '3.2.1'
+sdb_gui_version = '3.2.2'
 
 def resource_path(relative_path):
     '''Get the absolute path to the resource, works for dev and for PyInstaller'''
