@@ -142,6 +142,9 @@ class SDBWidget(QWidget):
             'degree': 3
         }
 
+        global val_if_nan
+        val_if_nan = -999.0
+
         ####### Default Values #######
 
         self.initUI()
@@ -394,6 +397,9 @@ class SDBWidget(QWidget):
 
             global bands_array
             bands_array = bands_dummy.T
+            # Change missing value if any to val_if_nan variable
+            nan_values = np.isnan(bands_array)
+            bands_array[nan_values] = val_if_nan
 
             self.loadImageLabel.setText(
                 os.path.split(self.imglocList.toPlainText())[1]
@@ -1413,6 +1419,9 @@ class Process(QThread):
         samples_edit = pd.DataFrame(sample_bands, columns=col_names)
         samples_edit['x'], samples_edit['y'] = shp_geo.x, shp_geo.y
         samples_edit['z'] = sample_reproj[self.depth_label]
+
+        # Drop any missing values
+        samples_edit = samples_edit.dropna()
 
         if proc_op_dict['auto_negative'] == True and np.median(samples_edit['z']) > 0:
             samples_edit['z'] = samples_edit['z'] * -1
