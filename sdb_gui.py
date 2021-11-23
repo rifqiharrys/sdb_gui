@@ -65,7 +65,7 @@ import rasterio.vrt
 ###############################################################################
 ###############################################################################
 
-sdb_gui_version = '3.2.2'
+sdb_gui_version = '3.3.1'
 
 def resource_path(relative_path):
     '''Get the absolute path to the resource, works for dev and for PyInstaller'''
@@ -1080,7 +1080,8 @@ class SDBWidget(QWidget):
         format_dict = {
             'GeoTIFF (*.tif)': 'GTiff',
             'Erdas Imagine image (*.img)': 'HFA',
-            'ASCII Gridded XYZ (*.xyz)': 'XYZ'
+            'ASCII Gridded XYZ (*.xyz)': 'XYZ',
+            'Bathymetry Attributed Grid (*.bag)': 'BAG'
         }
 
         format_list = list(format_dict)
