@@ -1,4 +1,5 @@
 # Satellite Derived Bathymetry (SDB) GUI
+
 Mainly, there are two methods to create a bathymetric prediction using satellite imagery. Two of which are analytical method and empirical method. The former predict depth using water body properties and calculate depth using some formula and those properties as variable input. The latter predict depth using depth training samples and fit the sample into some model and predict the depth using the model based on the depth sample training.
 
 ## Getting Started
@@ -26,6 +27,7 @@ Open SDB GUI and load both data, and then select the header of your depth sample
 After the prediction complete, you can save it into georeferenced raster file or XYZ ASCII file containing coordinates of each center of pixel. The prediction will show you depth values even on land. So, you have to mask the prediction result in the end and extracting prediction result of only water body.
 
 ## Workflow
+
 Image below is the workflow of predicting bathymetric depth using SDB GUI if you're running the latest [release](https://github.com/rifqiharrys/sdb_gui/releases) and the latest source code or release version 3.x.x.
 
 ![workflow](workflow_sdb_gui.png "Workflow")
@@ -37,36 +39,48 @@ The next process is depth limit filtering. The depth limitation process is based
 When the depth samples is filtered, then it is separated into features and result so the machine learning library Scikit Learn know which are input variables and its corresponding results. And to test the resulting data, both features and result are splitted into train data and test data. The train data then used to train the selected model to fit the known results.
 
 ## Notebook
+
 To have a better understanding about SDB processing workflow using SDB GUI v3, you could read a [Jupyter Notebook](https://github.com/rifqiharrys/sdb_gui/blob/main/notebooks/sdb.ipynb) in this repository. The notebook contain a simple SDB processing workflow without GUI using Random Forest Regression.
 
 ## Methods
+
 There are four methods available make depth prediction using SDB GUI. All of which are Machine Learning methods that is available on [Scikit Learn](https://scikit-learn.org). The methods are [K-Nearest Neighbors](https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsRegressor.html#sklearn.neighbors.KNeighborsRegressor "KNN Regressor"), [Multiple Linear Regression](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html#sklearn.linear_model.LinearRegression "MLR Regression"), [Random Forest](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html#sklearn.ensemble.RandomForestRegressor "RF Regressor") and [Support Vector Machines](https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVR.html#sklearn.svm.SVR "SVM Regressor"). All of which are using [Scikit Learn](https://scikit-learn.org) module.
 ### K-Nearest Neighbors
+
 This method implements learning based on k nearest neighbors of each query point. The adjustable hyperparameters for this method are number of neighbors, weights, algorithm, and leaf size. The default values are 3, distance, auto, and 300.
 
 ### Multiple Linear Regression
+
 In Scikit Learn modules, this method called only with the name Linear Regression. The 'Multiple' implies that the Linear Regression is used on multiple features as input.
 
 ### Random Forest
+
 The adjustable hyperparameters for Random Forest method are the number of trees, the function to measure the quality of a split (criterion), bootstrap, and random state. The default values respectively are 300 and mse (Mean Square Error). The other value for the criterion is mae (Mean Absolute Error).
 
 ### Support Vector Machines
+
 The adjustable hyperparameters for SVM method are kernel type, kernel coefficient (gamma), regularization parameter (C), and degree (which working for polynomial kernel only). The default hyperparameter values are poly for kernel type, 0.1 for gamma, 1.0 for C, and 3 for degree.
 
 ## Features
+
 SDB GUI has some features that helps making prediction and saving output data. These features are Depth Limitation, Median Filter, and Used Depth Samples output. User could disable these features when they are not needed.
 
 ### Depth Limitation
+
 Visible light that comes from the sun and goes through sea surface will weaken as it goes into the water body. The maximum depth the visible light could penetrate into water body varies depend on its water properties. Depth Limitation will filter depth on input sample and prediction output by creating accepted depth window from zero depth until selected depth limit (default value is -30).
 
 ### Median Filter
+
 Median Filter is an image filter that will clear outliers (salt-and-pepper noise) that seems out of place from the depth prediction process. The default value of Median Filter size is 3. The filter size value should only in odd numbers because the matrix size of odd numbers will always have one array as the center.
 
 ### Used Depth Samples
+
 Create depth samples outputs that was used in data training and testing. The outputs are splitted train and test depth samples in Comma Separated Value or ESRI Shapefile. Those two outputs are containing sampled raster values, xy coordinates and depth values.
 
 ## Releases
+
 See [RELEASES](https://github.com/rifqiharrys/sdb_gui/releases)
 
 ## License
+
 See [LICENSE](https://github.com/rifqiharrys/sdb_gui/blob/main/LICENSE)
