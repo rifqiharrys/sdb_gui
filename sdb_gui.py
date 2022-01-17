@@ -1388,14 +1388,14 @@ class Process(QThread):
         self.method = input_dict['method']
 
 
-    def sampling(self):
+    def preprocess(self):
         '''
         Preparing input values from widget to use on 
         training models and predicting depth by reprojecting 
         depth sample CRS, sampling raster value and depth value, 
         and then limiting or not limiting depth value.
         '''
-        print('Process sampling')
+        print('Pre Processing')
 
         time_start = datetime.datetime.now()
 
@@ -1508,7 +1508,7 @@ class Process(QThread):
         '''
         print('knnPredict')
 
-        parameters = self.sampling()
+        parameters = self.preprocess()
 
         regressor = KNeighborsRegressor(
             n_neighbors=knn_op_dict['n_neighbors'],
@@ -1537,7 +1537,7 @@ class Process(QThread):
         '''
         print('mlrPredict')
 
-        parameters = self.sampling()
+        parameters = self.preprocess()
 
         regressor = LinearRegression(
             fit_intercept=mlr_op_dict['fit_intercept'],
@@ -1564,7 +1564,7 @@ class Process(QThread):
         '''
         print('rfPredict')
 
-        parameters = self.sampling()
+        parameters = self.preprocess()
 
         regressor = RandomForestRegressor(
             n_estimators=rf_op_dict['n_estimators'],
@@ -1592,7 +1592,7 @@ class Process(QThread):
         '''
         print('svmPredict')
 
-        parameters = self.sampling()
+        parameters = self.preprocess()
 
         regressor = SVR(
             kernel=svm_op_dict['kernel'],
