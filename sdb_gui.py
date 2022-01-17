@@ -397,7 +397,7 @@ class SDBWidget(QWidget):
 
             global bands_array
             bands_array = bands_dummy.T
-            # Change missing value if any to val_if_nan variable
+            # Change missing value (if any) to val_if_nan variable
             nan_values = np.isnan(bands_array)
             bands_array[nan_values] = val_if_nan
 
@@ -1390,6 +1390,7 @@ class Process(QThread):
         image_crs = str(image_raw.crs).upper()
         sample_crs = str(sample_raw.crs).upper()
 
+        # Reproject sample CRS
         if image_crs != sample_crs:
             start_list = [time_start, 'Reprojecting...\n']
             self.time_signal.emit(start_list)
@@ -1409,6 +1410,7 @@ class Process(QThread):
 
         col_names = []
 
+        # Point Sampling
         with parallel_backend(proc_op_dict['backend'], n_jobs=proc_op_dict['n_jobs']):
 
             row, col = np.array(image_raw.index(shp_geo.x, shp_geo.y))
@@ -1424,9 +1426,11 @@ class Process(QThread):
         # Drop any missing values
         sample_df = sample_df.dropna()
 
+        # Auto Negative
         if proc_op_dict['auto_negative'] == True and np.median(sample_df['z']) > 0:
             sample_df['z'] = sample_df['z'] * -1
 
+        # Depth Limit
         if self.limit_state == False:
             sample_df = sample_df[sample_df['z'] >= self.limit_b_value]
             sample_df = sample_df[sample_df['z'] <= self.limit_a_value]
