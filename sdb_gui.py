@@ -25,6 +25,7 @@ SOFTWARE.
 ###############################################################################
 ################################# Main Imports ################################
 
+from glob import iglob
 from numpy.core.fromnumeric import shape
 from sklearn import metrics
 from sklearn.neighbors import KNeighborsRegressor
@@ -108,7 +109,8 @@ class SDBWidget(QWidget):
             'backend': 'threading',
             'n_jobs': -2,
             'random_state': 0,
-            'auto_negative': True
+            'auto_negative': True,
+            'exclude_outside': True
         }
 
         global knn_op_dict
@@ -144,6 +146,9 @@ class SDBWidget(QWidget):
 
         global val_if_nan
         val_if_nan = -999.0
+
+        global progress_step
+        progress_step = 7
 
         ####### Default Values #######
 
@@ -236,7 +241,7 @@ class SDBWidget(QWidget):
         self.progressBar = QProgressBar()
         self.progressBar.setFormat('%p%')
         self.progressBar.setMinimum(0)
-        self.progressBar.setMaximum(6)
+        self.progressBar.setMaximum(progress_step)
 
         releaseButton =  QPushButton('Releases')
         releaseButton.clicked.connect(lambda: webbrowser.open(
@@ -819,8 +824,11 @@ class SDBWidget(QWidget):
         self.randomStateProcSB.setValue(proc_op_dict['random_state'])
         self.randomStateProcSB.setAlignment(Qt.AlignRight)
 
-        self.autoNegativeCB = QCheckBox('Auto Negative Sign')
+        self.autoNegativeCB = QCheckBox('Auto negative sign')
         self.autoNegativeCB.setChecked(proc_op_dict['auto_negative'])
+
+        self.excludeOutsideCB = QCheckBox('Exclude points which out of image boundary')
+        self.excludeOutsideCB.setChecked(proc_op_dict['exclude_outside'])
 
         cancelButton = QPushButton('Cancel')
         cancelButton.clicked.connect(self.processingOptionDialog.close)
@@ -841,8 +849,10 @@ class SDBWidget(QWidget):
 
         grid.addWidget(self.autoNegativeCB, 4, 1, 1, 4)
 
-        grid.addWidget(loadButton, 5, 3, 1, 1)
-        grid.addWidget(cancelButton, 5, 4, 1, 1)
+        grid.addWidget(self.excludeOutsideCB, 5, 1, 1, 4)
+
+        grid.addWidget(loadButton, 6, 3, 1, 1)
+        grid.addWidget(cancelButton, 6, 4, 1, 1)
 
         self.processingOptionDialog.setLayout(grid)
 
@@ -865,6 +875,7 @@ class SDBWidget(QWidget):
             proc_op_dict['n_jobs'] = self.njobsSB.value()
             proc_op_dict['random_state'] = self.randomStateProcSB.value()
             proc_op_dict['auto_negative'] = self.autoNegativeCB.isChecked()
+            proc_op_dict['exclude_outside'] = self.excludeOutsideCB.isChecked()
 
 
     def predict(self):
@@ -996,11 +1007,12 @@ class SDBWidget(QWidget):
             'Random State:\t\t' + str(proc_op_dict['random_state']) + '\n'
             'Auto Negative Sign:\t' + auto_negative + '\n\n' +
             'Reproject Runtime:\t' + str(runtime[0]) + '\n' +
-            'Sampling Runtime:\t' + str(runtime[1]) + '\n' +
-            'Fitting Runtime:\t\t' + str(runtime[2]) + '\n' +
-            'Prediction Runtime:\t' + str(runtime[3]) + '\n' +
-            'Validating Runtime:\t' + str(runtime[4]) + '\n' +
-            'Overall Runtime:\t' + str(runtime[5]) + '\n\n' +
+            'Filtering Runtime:\t' + str(runtime[1]) + '\n' +
+            'Sampling Runtime:\t' + str(runtime[2]) + '\n' +
+            'Fitting Runtime:\t\t' + str(runtime[3]) + '\n' +
+            'Prediction Runtime:\t' + str(runtime[4]) + '\n' +
+            'Validating Runtime:\t' + str(runtime[5]) + '\n' +
+            'Overall Runtime:\t' + str(runtime[6]) + '\n\n' +
             'CRS:\t\t' + str(image_raw.crs) + '\n'
             'Dimensions:\t\t' + str(image_raw.width) + ' x ' +
             str(image_raw.height) + ' pixels\n' +
@@ -1365,7 +1377,7 @@ class Process(QThread):
 
     def inputs(self, input_dict):
         '''
-        Pooling intputs from widget
+        Pooling inputs from widget
         '''
 
         self.depth_label = input_dict['depth_label']
@@ -1402,10 +1414,33 @@ class Process(QThread):
 
             sample_edit = sample_raw.copy()
 
-        time_reproj = datetime.datetime.now()
-        reproj_list = [time_reproj, 'Point Sampling...\n']
-        self.time_signal.emit(reproj_list)
+        # Filtering
+        if proc_op_dict['exclude_outside'] == True:
+            time_reproj = datetime.datetime.now()
+            reproj_list = [time_reproj, 'Filtering Out of Bound Points...\n']
+            self.time_signal.emit(reproj_list)
 
+            # Image boundary coordinates
+            x0, x1 = image_raw.bounds.left, image_raw.bounds.right
+            y0, y1 = image_raw.bounds.bottom, image_raw.bounds.top
+
+            # Filter out of bound points and reset index count
+            sample_edit = sample_edit[
+                (sample_edit['geometry'].x > x0) &
+                (sample_edit['geometry'].x < x1) &
+                (sample_edit['geometry'].y > y0) &
+                (sample_edit['geometry'].y < y1)
+            ].reset_index()
+        elif proc_op_dict['exclude_outside'] == False:
+            time_reproj = datetime.datetime.now()
+            reproj_list = [time_reproj, 'Skip Filtering Out of Bound Points...\n']
+            self.time_signal.emit(reproj_list)
+
+        time_filter = datetime.datetime.now()
+        filter_list = [time_filter, 'Point Sampling...\n']
+        self.time_signal.emit(filter_list)
+
+        # Define shp_geo variable because sample_edit['geometry'] is too long
         shp_geo = sample_edit['geometry']
 
         col_names = []
