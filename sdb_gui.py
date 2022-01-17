@@ -941,8 +941,8 @@ class SDBWidget(QWidget):
         global train_data_df, test_data_df
         train_data_df, test_data_df = result_dict['train'], result_dict['test']
 
-        global sample_reproject, sample_filtered
-        sample_reproject, sample_filtered = result_dict['sample_reproj'], result_dict['samples_edit']
+        global sample_geodataframe, sample_dataframe
+        sample_geodataframe, sample_dataframe = result_dict['sample_edit'], result_dict['sample_df']
 
         if self.limitCheckBox.isChecked() == False:
             print('checking prediction')
@@ -979,8 +979,8 @@ class SDBWidget(QWidget):
             'Sample Data:\t\t' + self.samplelocList.toPlainText() + ' (' +
             str(round(sample_size / 2**20, 2)) + ' MB)\n\n' +
             print_limit + '\n' +
-            'Used Sample:\t\t' + str(sample_filtered.shape[0]) + ' points (' +
-            str(round(sample_filtered.shape[0] / sample_raw.shape[0] * 100, 2)) +
+            'Used Sample:\t\t' + str(sample_dataframe.shape[0]) + ' points (' +
+            str(round(sample_dataframe.shape[0] / sample_raw.shape[0] * 100, 2)) +
             '% of all sample)\n' +
             'Train Data:\t\t' + str(train_data_df.shape[0]) + ' points (' +
             str(self.trainPercentDSB.value()) + ' % of used sample)\n' +
@@ -1229,7 +1229,7 @@ class SDBWidget(QWidget):
                             train_data_df.y,
                             train_data_df.z
                         ),
-                        crs=sample_reproject.crs
+                        crs=sample_geodataframe.crs
                     )
                     test_data_gdf = gpd.GeoDataFrame(
                         test_data_df.copy(),
@@ -1238,7 +1238,7 @@ class SDBWidget(QWidget):
                             test_data_df.y,
                             test_data_df.z
                         ),
-                        crs=sample_reproject.crs
+                        crs=sample_geodataframe.crs
                     )
 
                     train_data_gdf.to_file(train_save_loc)
@@ -1394,18 +1394,18 @@ class Process(QThread):
             start_list = [time_start, 'Reprojecting...\n']
             self.time_signal.emit(start_list)
 
-            sample_reproj = sample_raw.to_crs(image_crs)
+            sample_edit = sample_raw.to_crs(image_crs)
         else:
             start_list = [time_start, 'Skip Reproject...\n']
             self.time_signal.emit(start_list)
 
-            sample_reproj = sample_raw.copy()
+            sample_edit = sample_raw.copy()
 
         time_reproj = datetime.datetime.now()
         reproj_list = [time_reproj, 'Point Sampling...\n']
         self.time_signal.emit(reproj_list)
 
-        shp_geo = sample_reproj['geometry']
+        shp_geo = sample_edit['geometry']
 
         col_names = []
 
@@ -1417,22 +1417,22 @@ class Process(QThread):
             for i in image_raw.indexes:
                 col_names.append('band' + str(i))
 
-        samples_edit = pd.DataFrame(sample_bands, columns=col_names)
-        samples_edit['x'], samples_edit['y'] = shp_geo.x, shp_geo.y
-        samples_edit['z'] = sample_reproj[self.depth_label]
+        sample_df = pd.DataFrame(sample_bands, columns=col_names)
+        sample_df['x'], sample_df['y'] = shp_geo.x, shp_geo.y
+        sample_df['z'] = sample_edit[self.depth_label]
 
         # Drop any missing values
-        samples_edit = samples_edit.dropna()
+        sample_df = sample_df.dropna()
 
-        if proc_op_dict['auto_negative'] == True and np.median(samples_edit['z']) > 0:
-            samples_edit['z'] = samples_edit['z'] * -1
+        if proc_op_dict['auto_negative'] == True and np.median(sample_df['z']) > 0:
+            sample_df['z'] = sample_df['z'] * -1
 
         if self.limit_state == False:
-            samples_edit = samples_edit[samples_edit['z'] >= self.limit_b_value]
-            samples_edit = samples_edit[samples_edit['z'] <= self.limit_a_value]
+            sample_df = sample_df[sample_df['z'] >= self.limit_b_value]
+            sample_df = sample_df[sample_df['z'] <= self.limit_a_value]
 
-        features_all = samples_edit.iloc[:, 0:-1]
-        z = samples_edit['z']
+        features_all = sample_df.iloc[:, 0:-1]
+        z = sample_df['z']
 
         features_all_train, features_all_test, z_train, z_test = train_test_split(
             features_all,
@@ -1455,8 +1455,8 @@ class Process(QThread):
             z_test,
             train_data,
             test_data,
-            sample_reproj,
-            samples_edit
+            sample_edit,
+            sample_df
         ]
 
         return samples_split
@@ -1628,8 +1628,8 @@ class Process(QThread):
                 'r2': r2,
                 'train': parameters[4],
                 'test': parameters[5],
-                'sample_reproj': parameters[6],
-                'samples_edit': parameters[7]
+                'sample_edit': parameters[6],
+                'sample_df': parameters[7]
             }
 
             self.thread_signal.emit(result)
