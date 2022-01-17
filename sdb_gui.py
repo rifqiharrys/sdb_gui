@@ -1430,7 +1430,7 @@ class Process(QThread):
                 (sample_edit['geometry'].x < x1) &
                 (sample_edit['geometry'].y > y0) &
                 (sample_edit['geometry'].y < y1)
-            ].reset_index()
+            ].reset_index(drop=True)
         elif proc_op_dict['exclude_outside'] == False:
             time_reproj = datetime.datetime.now()
             reproj_list = [time_reproj, 'Skip Filtering Out of Bound Points...\n']
