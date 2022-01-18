@@ -44,7 +44,7 @@ To have a better understanding about SDB processing workflow using SDB GUI v3, y
 
 ## Methods
 
-There are four methods available make depth prediction using SDB GUI. All of which are Machine Learning methods that is available on [Scikit Learn](https://scikit-learn.org). The methods are [K-Nearest Neighbors](https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsRegressor.html#sklearn.neighbors.KNeighborsRegressor "KNN Regressor"), [Multiple Linear Regression](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html#sklearn.linear_model.LinearRegression "MLR Regression"), [Random Forest](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html#sklearn.ensemble.RandomForestRegressor "RF Regressor") and [Support Vector Machines](https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVR.html#sklearn.svm.SVR "SVM Regressor"). All of which are using [Scikit Learn](https://scikit-learn.org) module.
+There are four methods available make depth prediction using SDB GUI. All of which are Machine Learning methods that is available on [Scikit Learn](https://scikit-learn.org). The methods are [K-Nearest Neighbors](https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsRegressor.html#sklearn.neighbors.KNeighborsRegressor "KNN Regressor"), [Multiple Linear Regression](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html#sklearn.linear_model.LinearRegression "MLR Regression"), [Random Forest](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html#sklearn.ensemble.RandomForestRegressor "RF Regressor") and [Support Vector Machines](https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVR.html#sklearn.svm.SVR "SVM Regressor"). All of which are using [Scikit Learn](https://scikit-learn.org) module. Overall, Random Forest method has the tiniest RMSE value when using high number of sample. Meanwhile, Multiple Linear Regression is the fastest method, but usually resulting in the largest RMSE value.
 ### K-Nearest Neighbors
 
 This method implements learning based on k nearest neighbors of each query point. The adjustable hyperparameters for this method are number of neighbors, weights, algorithm, and leaf size. The default values are 3, distance, auto, and 300.
@@ -59,7 +59,7 @@ The adjustable hyperparameters for Random Forest method are the number of trees,
 
 ### Support Vector Machines
 
-The adjustable hyperparameters for SVM method are kernel type, kernel coefficient (gamma), regularization parameter (C), and degree (which working for polynomial kernel only). The default hyperparameter values are poly for kernel type, 0.1 for gamma, 1.0 for C, and 3 for degree.
+The adjustable hyperparameters for SVM method are kernel type, kernel coefficient (gamma), regularization parameter (C), and degree (which working for polynomial kernel only). The default hyperparameter values are rbf for kernel type, 0.1 for gamma, 1.0 for C, and 3 for degree.
 
 ## Features
 
