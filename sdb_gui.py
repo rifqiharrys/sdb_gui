@@ -138,7 +138,7 @@ class SDBWidget(QWidget):
 
         global svm_op_dict
         svm_op_dict = {
-            'kernel': 'poly',
+            'kernel': 'rbf',
             'gamma': .1,
             'c': 1000.0,
             'degree': 3
