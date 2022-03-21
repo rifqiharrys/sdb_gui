@@ -1485,6 +1485,7 @@ class Process(QThread):
 
         train_data = pd.concat([features_all_train, z_train], axis=1)
         test_data = pd.concat([features_all_test, z_test], axis=1)
+        test_data = test_data.reset_index(drop=True)
 
         samples_split = [features_train, features_test, z_train, z_test, train_data, test_data]
         samples_split = [
@@ -1656,6 +1657,8 @@ class Process(QThread):
                 rmse = np.sqrt(metrics.mean_squared_error(z_test, z_validate))
                 mae = metrics.mean_absolute_error(z_test, z_validate)
                 r2 = metrics.r2_score(z_test, z_validate)
+                z_validate_df = pd.DataFrame(z_validate, columns=['v'])
+                test_data_update = pd.concat([parameters[5], z_validate_df], axis=1)
                 time_test = datetime.datetime.now()
                 test_list = [time_test, 'Done.']
                 self.time_signal.emit(test_list)
@@ -1666,7 +1669,7 @@ class Process(QThread):
                 'mae': mae,
                 'r2': r2,
                 'train': parameters[4],
-                'test': parameters[5],
+                'test': test_data_update,
                 'sample_edit': parameters[6],
                 'sample_df': parameters[7]
             }
