@@ -1657,7 +1657,7 @@ class Process(QThread):
                 rmse = np.sqrt(metrics.mean_squared_error(z_test, z_validate))
                 mae = metrics.mean_absolute_error(z_test, z_validate)
                 r2 = metrics.r2_score(z_test, z_validate)
-                z_validate_df = pd.DataFrame(z_validate, columns=['v'])
+                z_validate_df = pd.DataFrame({'z_validate': z_validate})
                 test_data_update = pd.concat([parameters[5], z_validate_df], axis=1)
                 time_test = datetime.datetime.now()
                 test_list = [time_test, 'Done.']
