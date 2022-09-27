@@ -66,7 +66,7 @@ import rasterio.vrt
 ###############################################################################
 ###############################################################################
 
-sdb_gui_version = '3.3.1'
+SDB_GUI_VERSION = '3.3.1'
 
 def resource_path(relative_path):
     '''Get the absolute path to the resource, works for dev and for PyInstaller'''
@@ -161,7 +161,7 @@ class SDBWidget(QWidget):
         '''
 
         self.setGeometry(300, 100, 480, 640)
-        self.setWindowTitle('Satellite Derived Bathymetry (v%s)' %sdb_gui_version)
+        self.setWindowTitle('Satellite Derived Bathymetry (v%s)' %SDB_GUI_VERSION)
         self.setWindowIcon(QIcon(resource_path('icons/satellite.png')))
 
         loadImageButton = QPushButton('Load Image')
@@ -984,7 +984,7 @@ class SDBWidget(QWidget):
 
         global print_result_info
         print_result_info = (
-            'Software Version:\t' + sdb_gui_version + '\n\n' +
+            'Software Version:\t' + SDB_GUI_VERSION + '\n\n' +
             'Image Input:\t\t' + self.imglocList.toPlainText() + ' (' +
             str(round(img_size / 2**20, 2)) + ' MB)\n' +
             'Sample Data:\t\t' + self.samplelocList.toPlainText() + ' (' +
