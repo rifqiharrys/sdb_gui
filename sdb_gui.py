@@ -402,6 +402,9 @@ class SDBWidget(QWidget):
 
             global bands_array
             bands_array = bands_dummy.T
+            # Change inf and -inf to nan
+            bands_array[bands_array == np.inf] = np.nan
+            bands_array[bands_array == -np.inf] = np.nan
             # Change missing value (if any) to val_if_nan variable
             nan_values = np.isnan(bands_array)
             bands_array[nan_values] = val_if_nan
@@ -1458,8 +1461,9 @@ class Process(QThread):
         sample_df['x'], sample_df['y'] = shp_geo.x, shp_geo.y
         sample_df['z'] = sample_edit[self.depth_label]
 
-        # Drop any missing values
-        sample_df = sample_df.dropna()
+        # Filter inf and -inf values
+        sample_df = sample_df[sample_df != np.inf]
+        sample_df = sample_df[sample_df != -np.inf].dropna()
 
         # Auto Negative
         if proc_op_dict['auto_negative'] == True and np.median(sample_df['z']) > 0:
