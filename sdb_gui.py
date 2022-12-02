@@ -66,7 +66,7 @@ import rasterio.vrt
 ###############################################################################
 ###############################################################################
 
-SDB_GUI_VERSION = '3.3.1'
+SDB_GUI_VERSION = '3.3.2'
 
 def resource_path(relative_path):
     '''Get the absolute path to the resource, works for dev and for PyInstaller'''
@@ -402,9 +402,11 @@ class SDBWidget(QWidget):
 
             global bands_array
             bands_array = bands_dummy.T
+
             # Change inf and -inf to nan
             bands_array[bands_array == np.inf] = np.nan
             bands_array[bands_array == -np.inf] = np.nan
+
             # Change missing value (if any) to val_if_nan variable
             nan_values = np.isnan(bands_array)
             bands_array[nan_values] = val_if_nan
