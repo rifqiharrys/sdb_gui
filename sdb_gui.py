@@ -67,7 +67,7 @@ import rasterio.vrt
 ###############################################################################
 ###############################################################################
 
-SDB_GUI_VERSION = '3.4.1'
+SDB_GUI_VERSION = '3.5.1'
 
 def resource_path(relative_path):
     '''Get the absolute path to the resource, works for dev and for PyInstaller'''
@@ -109,9 +109,12 @@ class SDBWidget(QWidget):
         proc_op_dict = {
             'backend': 'threading',
             'n_jobs': -2,
-            'random_state': 0,
             'auto_negative': True,
-            'exclude_outside': True
+            'exclude_outside': True,
+            'selection' : {
+                'train_size': 0.75,
+                'random_state': 0
+            }
         }
 
         global knn_op_dict
@@ -216,24 +219,23 @@ class SDBWidget(QWidget):
             )
         )
 
-        trainPercentLabel = QLabel('Train Data (Percent):')
-        self.trainPercentDSB = QDoubleSpinBox()
-        self.trainPercentDSB.setRange(10.0, 90.0)
-        self.trainPercentDSB.setDecimals(2)
-        self.trainPercentDSB.setValue(75.0)
-        self.trainPercentDSB.setSuffix(' %')
-        self.trainPercentDSB.setAlignment(Qt.AlignRight)
+        selection_list = ['Random Selection', 'Attribute Selection']
+
+        trainSelectLabel = QLabel('Train Data Selection:')
+        self.trainSelectCB = QComboBox()
+        self.trainSelectCB.addItems(selection_list)
+        self.trainSelectCB.activated.connect(self.updateTrainSelection)
 
         self.optionsButton = QPushButton('Method Options')
         self.optionsButton.clicked.connect(self.knnOptionWindow)
 
-        makePredictionButton = QPushButton('Make Prediction')
+        makePredictionButton = QPushButton('Generate Prediction')
         makePredictionButton.clicked.connect(self.predict)
         saveFileButton = QPushButton('Save Into File')
         saveFileButton.clicked.connect(self.saveOptionWindow)
 
-        processingOptionsButton = QPushButton('Processing Options')
-        processingOptionsButton.clicked.connect(self.processingOptionWindow)
+        self.processingOptionsButton = QPushButton('Processing Options')
+        self.processingOptionsButton.clicked.connect(self.processingOptionWindow)
 
         resultInfo = QLabel('Result Information')
         self.resultText = QTextBrowser()
@@ -284,10 +286,10 @@ class SDBWidget(QWidget):
 
         grid.addWidget(self.optionsButton, 12, 3, 1, 2)
 
-        grid.addWidget(trainPercentLabel, 13, 1, 1, 1)
-        grid.addWidget(self.trainPercentDSB, 13, 2, 1, 1)
+        grid.addWidget(trainSelectLabel, 13, 1, 1, 1)
+        grid.addWidget(self.trainSelectCB, 13, 2, 1, 1)
 
-        grid.addWidget(processingOptionsButton, 13, 3, 1, 2)
+        grid.addWidget(self.processingOptionsButton, 13, 3, 1, 2)
 
         grid.addWidget(makePredictionButton, 14, 1, 1, 2)
         grid.addWidget(saveFileButton, 14, 3, 1, 2)
@@ -809,60 +811,96 @@ class SDBWidget(QWidget):
         Processing option User Interface
         '''
 
-        self.processingOptionDialog = QDialog()
-        self.processingOptionDialog.setWindowTitle('Processing Options')
-        self.processingOptionDialog.setWindowIcon(QIcon(resource_path('icons/setting-tool-pngrepo-com.png')))
+        try:
+            self.processingOptionDialog = QDialog()
+            self.processingOptionDialog.setWindowTitle('Processing Options')
+            self.processingOptionDialog.setWindowIcon(QIcon(resource_path('icons/setting-tool-pngrepo-com.png')))
 
-        backendLabel = QLabel('Parallel Backend:')
-        self.backendCB = QComboBox()
-        self.backendCB.addItems(['loky', 'threading', 'multiprocessing'])
-        self.backendCB.setCurrentText(proc_op_dict['backend'])
+            backendLabel = QLabel('Parallel Backend:')
+            self.backendCB = QComboBox()
+            self.backendCB.addItems(['loky', 'threading', 'multiprocessing'])
+            self.backendCB.setCurrentText(proc_op_dict['backend'])
 
-        njobsLabel = QLabel('Processing Cores:')
-        self.njobsSB = QSpinBox()
-        self.njobsSB.setRange(-100, 100)
-        self.njobsSB.setValue(proc_op_dict['n_jobs'])
-        self.njobsSB.setAlignment(Qt.AlignRight)
+            njobsLabel = QLabel('Processing Cores:')
+            self.njobsSB = QSpinBox()
+            self.njobsSB.setRange(-100, 100)
+            self.njobsSB.setValue(proc_op_dict['n_jobs'])
+            self.njobsSB.setAlignment(Qt.AlignRight)
 
-        randomStateLabel = QLabel('Random State:')
-        self.randomStateProcSB = QSpinBox()
-        self.randomStateProcSB.setRange(0, 1000)
-        self.randomStateProcSB.setValue(proc_op_dict['random_state'])
-        self.randomStateProcSB.setAlignment(Qt.AlignRight)
+            self.autoNegativeCB = QCheckBox('Auto negative sign')
+            self.autoNegativeCB.setChecked(proc_op_dict['auto_negative'])
 
-        self.autoNegativeCB = QCheckBox('Auto negative sign')
-        self.autoNegativeCB.setChecked(proc_op_dict['auto_negative'])
+            self.excludeOutsideCB = QCheckBox('Exclude points which out of image boundary')
+            self.excludeOutsideCB.setChecked(proc_op_dict['exclude_outside'])
 
-        self.excludeOutsideCB = QCheckBox('Exclude points which out of image boundary')
-        self.excludeOutsideCB.setChecked(proc_op_dict['exclude_outside'])
+            if self.trainSelectCB.currentText() == 'Random Selection':
+                trainPercentLabel = QLabel('Train Data (Percent):')
+                self.trainPercentDSB = QDoubleSpinBox()
+                self.trainPercentDSB.setRange(10.0, 90.0)
+                self.trainPercentDSB.setDecimals(2)
+                self.trainPercentDSB.setValue(proc_op_dict['selection']['train_size'] * 100)
+                self.trainPercentDSB.setSuffix(' %')
+                self.trainPercentDSB.setAlignment(Qt.AlignRight)
 
-        cancelButton = QPushButton('Cancel')
-        cancelButton.clicked.connect(self.processingOptionDialog.close)
-        loadButton = QPushButton('Load')
-        loadButton.clicked.connect(self.loadProcessingOptionAction)
-        loadButton.clicked.connect(self.processingOptionDialog.close)
+                randomStateLabel = QLabel('Random State:')
+                self.randomStateProcSB = QSpinBox()
+                self.randomStateProcSB.setRange(0, 1000)
+                self.randomStateProcSB.setValue(proc_op_dict['selection']['random_state'])
+                self.randomStateProcSB.setAlignment(Qt.AlignRight)
+            elif self.trainSelectCB.currentText() == 'Attribute Selection':
+                headerSelectLabel = QLabel('Select header')
+                self.headerSelectCB = QComboBox()
+                object_only = sample_raw.copy().select_dtypes(include=['object'])
+                self.headerSelectCB.addItems(object_only.columns)
+                self.headerSelectCB.activated.connect(self.updateGroupSelection)
+                selected_header = self.headerSelectCB.currentText()
 
-        grid = QGridLayout()
+                groupSelectLabel = QLabel('Select group:')
+                self.groupSelectCB = QComboBox()
+                group_list = list(object_only.groupby(selected_header).groups)
+                self.groupSelectCB.addItems(group_list)
 
-        grid.addWidget(backendLabel, 1, 1, 1, 2)
-        grid.addWidget(self.backendCB, 1, 3, 1, 2)
+            cancelButton = QPushButton('Cancel')
+            cancelButton.clicked.connect(self.processingOptionDialog.close)
+            loadButton = QPushButton('Load')
+            loadButton.clicked.connect(self.loadProcessingOptionAction)
+            loadButton.clicked.connect(self.processingOptionDialog.close)
 
-        grid.addWidget(njobsLabel, 2, 1, 1, 2)
-        grid.addWidget(self.njobsSB, 2, 3, 1, 2)
+            grid = QGridLayout()
 
-        grid.addWidget(randomStateLabel, 3, 1, 1, 2)
-        grid.addWidget(self.randomStateProcSB, 3, 3, 1, 2)
+            grid.addWidget(backendLabel, 1, 1, 1, 2)
+            grid.addWidget(self.backendCB, 1, 3, 1, 2)
 
-        grid.addWidget(self.autoNegativeCB, 4, 1, 1, 4)
+            grid.addWidget(njobsLabel, 2, 1, 1, 2)
+            grid.addWidget(self.njobsSB, 2, 3, 1, 2)
 
-        grid.addWidget(self.excludeOutsideCB, 5, 1, 1, 4)
+            grid.addWidget(self.autoNegativeCB, 3, 1, 1, 4)
 
-        grid.addWidget(loadButton, 6, 3, 1, 1)
-        grid.addWidget(cancelButton, 6, 4, 1, 1)
+            grid.addWidget(self.excludeOutsideCB, 4, 1, 1, 4)
 
-        self.processingOptionDialog.setLayout(grid)
+            if self.trainSelectCB.currentText() == 'Random Selection':
+                grid.addWidget(trainPercentLabel, 5, 1, 1, 2)
+                grid.addWidget(self.trainPercentDSB, 5, 3, 1, 2)
 
-        self.processingOptionDialog.exec_()
+                grid.addWidget(randomStateLabel, 6, 1, 1, 2)
+                grid.addWidget(self.randomStateProcSB, 6, 3, 1, 2)
+            elif self.trainSelectCB.currentText() == 'Attribute Selection':
+                grid.addWidget(headerSelectLabel, 5, 1, 1, 2)
+                grid.addWidget(self.headerSelectCB, 5, 3, 1, 2)
+
+                grid.addWidget(groupSelectLabel, 6, 1, 1, 2)
+                grid.addWidget(self.groupSelectCB, 6, 3, 1, 2)
+
+            grid.addWidget(loadButton, 7, 3, 1, 1)
+            grid.addWidget(cancelButton, 7, 4, 1, 1)
+
+            self.processingOptionDialog.setLayout(grid)
+
+            self.processingOptionDialog.exec_()
+        except NameError:
+            self.warningWithClear(
+                'No depth sample loaded. Please load your depth sample!'
+            )
 
 
     def loadProcessingOptionAction(self):
@@ -879,9 +917,42 @@ class SDBWidget(QWidget):
         else:
             proc_op_dict['backend'] = self.backendCB.currentText()
             proc_op_dict['n_jobs'] = self.njobsSB.value()
-            proc_op_dict['random_state'] = self.randomStateProcSB.value()
             proc_op_dict['auto_negative'] = self.autoNegativeCB.isChecked()
             proc_op_dict['exclude_outside'] = self.excludeOutsideCB.isChecked()
+            if self.trainSelectCB.currentText() == 'Random Selection':
+                proc_op_dict['selection'] = {
+                    'train_size': self.trainPercentDSB.value() / 100,
+                    'random_state': self.randomStateProcSB.value()
+                }
+            elif self.trainSelectCB.currentText() == 'Attribute Selection':
+                proc_op_dict['selection'] = {
+                    'header': self.headerSelectCB.currentText(),
+                    'group': self.groupSelectCB.currentText()
+                }
+
+
+    def updateTrainSelection(self):
+        '''
+        Update list in train selection
+        '''
+
+        if self.trainSelectCB.currentText() == 'Random Selection':
+            proc_op_dict['selection'] = {
+                'train_size': 0.75,
+                'random_state': 0
+            }
+
+
+    def updateGroupSelection(self):
+        '''
+        Update list in group selection
+        '''
+
+        object_only = sample_raw.copy().select_dtypes(include=['object'])
+        selected_header = self.headerSelectCB.currentText()
+        group_list = list(object_only.groupby(selected_header).groups)
+        self.groupSelectCB.clear()
+        self.groupSelectCB.addItems(group_list)
 
 
     def predict(self):
@@ -904,11 +975,12 @@ class SDBWidget(QWidget):
         time_list = []
         init_input = {
             'depth_label': self.depthHeaderCB.currentText(),
-            'train_size': self.trainPercentDSB.value() / 100,
             'limit_state': self.limitCheckBox.isChecked(),
             'limit_a': self.limitADSB.value(),
             'limit_b': self.limitBDSB.value(),
-            'method': self.methodCB.currentText()
+            'method': self.methodCB.currentText(),
+            'train_select': self.trainSelectCB.currentText(),
+            'selection': proc_op_dict['selection']
         }
 
         try:
@@ -969,6 +1041,9 @@ class SDBWidget(QWidget):
 
         global train_data_df, test_data_df
         train_data_df, test_data_df = result_dict['train'], result_dict['test']
+        train_size_percent = (train_data_df.shape[0] / 
+                              (train_data_df.shape[0] + test_data_df.shape[0]) *
+                              100)
 
         global sample_geodataframe, sample_dataframe
         sample_geodataframe, sample_dataframe = result_dict['sample_edit'], result_dict['sample_df']
@@ -1012,17 +1087,17 @@ class SDBWidget(QWidget):
             str(round(sample_dataframe.shape[0] / sample_raw.shape[0] * 100, 2)) +
             '% of all sample)\n' +
             'Train Data:\t\t' + str(train_data_df.shape[0]) + ' points (' +
-            str(self.trainPercentDSB.value()) + ' % of used sample)\n' +
+            str(round(train_size_percent, 2)) + ' % of used sample)\n' +
             'Test Data:\t\t' + str(test_data_df.shape[0]) + ' points (' +
-            str(100 - self.trainPercentDSB.value()) + ' % of used sample)\n\n' +
+            str(round((100 - train_size_percent), 2)) + ' % of used sample)\n\n' +
             'Method:\t\t' + self.methodCB.currentText() + '\n' +
             print_parameters_info + '\n\n'
             'RMSE:\t\t' + str(rmse) + '\n' +
             'MAE:\t\t' + str(mae) + '\n' +
             'R\u00B2:\t\t' + str(r2) + '\n\n' +
+            'Train Test Selection:\t' + str(self.trainSelectCB.currentText()) + '\n' +
             'Parallel Backend:\t' + str(proc_op_dict['backend']) + '\n' +
             'Processing Cores:\t' + str(proc_op_dict['n_jobs']) + '\n' +
-            'Random State:\t\t' + str(proc_op_dict['random_state']) + '\n'
             'Auto Negative Sign:\t' + auto_negative + '\n\n' +
             'Reproject Runtime:\t' + str(runtime[0]) + '\n' +
             'Filtering Runtime:\t' + str(runtime[1]) + '\n' +
@@ -1426,11 +1501,12 @@ class Process(QThread):
         '''
 
         self.depth_label = input_dict['depth_label']
-        self.train_size = input_dict['train_size']
         self.limit_state = input_dict['limit_state']
         self.limit_a_value = input_dict['limit_a']
         self.limit_b_value = input_dict['limit_b']
         self.method = input_dict['method']
+        self.train_select = input_dict['train_select']
+        self.selection = input_dict['selection']
 
 
     def preprocess(self):
@@ -1485,47 +1561,25 @@ class Process(QThread):
         filter_list = [time_filter, 'Point Sampling...\n']
         self.time_signal.emit(filter_list)
 
-        # Define shp_geo variable because sample_edit['geometry'] is too long
-        shp_geo = sample_edit['geometry']
+        if self.train_select == 'Random Selection':
+            features_all, z, sample_df = self.pointSampling(data_in=sample_edit)
 
-        col_names = []
-
-        # Point Sampling
-        with parallel_backend(proc_op_dict['backend'], n_jobs=proc_op_dict['n_jobs']):
-
-            row, col = np.array(image_raw.index(shp_geo.x, shp_geo.y))
-            sample_bands = image_raw.read()[:, row, col].T
-
-            for i in image_raw.indexes:
-                col_names.append('band' + str(i))
-
-        sample_df = pd.DataFrame(sample_bands, columns=col_names)
-        sample_df['x'], sample_df['y'] = shp_geo.x, shp_geo.y
-        sample_df['z'] = sample_edit[self.depth_label]
-
-        # Filter inf and -inf values
-        sample_df = sample_df[sample_df != np.inf]
-        sample_df = sample_df[sample_df != -np.inf].dropna()
-
-        # Auto Negative
-        if proc_op_dict['auto_negative'] == True and np.median(sample_df['z']) > 0:
-            sample_df['z'] = sample_df['z'] * -1
-
-        # Depth Limit
-        if self.limit_state == False:
-            sample_df = sample_df[sample_df['z'] >= self.limit_b_value]
-            sample_df = sample_df[sample_df['z'] <= self.limit_a_value]
-
-        features_all = sample_df.iloc[:, 0:-1]
-        z = sample_df['z']
-
-        features_all_train, features_all_test, z_train, z_test = train_test_split(
-            features_all,
-            z,
-            train_size=self.train_size,
-            random_state=proc_op_dict['random_state']
+            features_all_train, features_all_test, z_train, z_test = train_test_split(
+                features_all,
+                z,
+                train_size=self.selection['train_size'],
+                random_state=self.selection['random_state']
             )
+        elif self.train_select == 'Attribute Selection':
+            train = sample_edit[sample_edit[self.selection['header']] == self.selection['group']]
+            features_all_train, z_train, sample_df_train = self.pointSampling(data_in=train)
 
+            test = sample_edit[sample_edit[self.selection['header']] != self.selection['group']]
+            features_all_test, z_test, sample_df_test = self.pointSampling(data_in=test)
+
+            sample_df = pd.concat([sample_df_train, sample_df_test])
+
+        # Excluding XYZ coordinates from depth prediction
         features_train = features_all_train.iloc[:, 0:-2]
         features_test = features_all_test.iloc[:, 0:-2]
 
@@ -1546,6 +1600,48 @@ class Process(QThread):
         ]
 
         return samples_split
+
+
+    def pointSampling(self, data_in):
+        '''
+        Point sampling, execute auto negative, and depth limit filter
+        '''
+        print('Point sampling')
+
+        shp_geo = data_in['geometry']
+
+        col_names = []
+
+        # Point Sampling
+        with parallel_backend(proc_op_dict['backend'], n_jobs=proc_op_dict['n_jobs']):
+
+            row, col = np.array(image_raw.index(shp_geo.x, shp_geo.y))
+            bands = image_raw.read()[:, row, col].T
+
+            for i in image_raw.indexes:
+                col_names.append('band' + str(i))
+
+        data_edit = pd.DataFrame(bands, columns=col_names)
+        data_edit['x'], data_edit['y'] = shp_geo.x, shp_geo.y
+        data_edit['z'] = data_in[self.depth_label]
+
+        # Filter inf and -inf values
+        data_edit = data_edit[data_edit != np.inf]
+        data_edit = data_edit[data_edit != -np.inf].dropna()
+
+        # Auto Negative
+        if proc_op_dict['auto_negative'] == True and np.median(data_edit['z']) > 0:
+            data_edit['z'] = data_edit['z'] * -1
+
+        # Depth limit
+        if self.limit_state == False:
+            data_edit = data_edit[data_edit['z'] >= self.limit_b_value]
+            data_edit = data_edit[data_edit['z'] <= self.limit_a_value]
+
+        features_all = data_edit.iloc[:, 0:-1]
+        z = data_edit['z']
+
+        return features_all, z, data_edit
 
 
     def knnPredict(self):
@@ -1669,7 +1765,7 @@ class Process(QThread):
     def run(self):
         '''
         Taking pre processed input and chosen method, then 
-        fitting training data to chosen model and make prediction
+        fitting training data to chosen model and generate prediction
         based on trained model.
         '''
         print('Process run')
@@ -1728,6 +1824,10 @@ class Process(QThread):
         except IndexError:
             self.warning_with_clear.emit(
                 'Depth sample is out of image boundary'
+            )
+        except KeyError:
+            self.warning_with_clear.emit(
+                'Please select attribute header and group in Processing Options'
             )
 
 
