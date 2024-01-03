@@ -1572,9 +1572,11 @@ class Process(QThread):
             )
         elif self.train_select == 'Attribute Selection':
             train = sample_edit[sample_edit[self.selection['header']] == self.selection['group']]
+            train =  train.reset_index(drop=True)
             features_all_train, z_train, sample_df_train = self.pointSampling(data_in=train)
 
             test = sample_edit[sample_edit[self.selection['header']] != self.selection['group']]
+            test = test.reset_index(drop=True)
             features_all_test, z_test, sample_df_test = self.pointSampling(data_in=test)
 
             sample_df = pd.concat([sample_df_train, sample_df_test])
