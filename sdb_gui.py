@@ -1092,6 +1092,7 @@ class SDBWidget(QWidget):
             str(round((100 - train_size_percent), 2)) + ' % of used sample)\n\n' +
             'Method:\t\t' + self.methodCB.currentText() + '\n' +
             print_parameters_info + '\n\n'
+            'Model Performance:\n'
             'RMSE:\t\t' + str(rmse) + '\n' +
             'MAE:\t\t' + str(mae) + '\n' +
             'R\u00B2:\t\t' + str(r2) + '\n\n' +
@@ -1279,34 +1280,52 @@ class SDBWidget(QWidget):
         '''
 
         try:
-            if self.saveDEMCheckBox.isChecked() == True:
-                z_img_ar = z_predict.reshape(image_raw.height, image_raw.width)
+            z_img_ar = z_predict.reshape(image_raw.height, image_raw.width)
 
-                if self.medianFilterCheckBox.isChecked() == False:
-                    print_filter_info = (
-                        'Median Filter Size:\t' + str(self.medianFilterSB.value())
-                    )
-                    z_img_ar = ndimage.median_filter(z_img_ar, size=self.medianFilterSB.value())
-                else:
-                    print_filter_info = (
-                        'Median Filter Size:\tDisabled'
-                    )
-
-                new_img = rio.open(
-                    self.savelocList.toPlainText(),
-                    'w',
-                    driver=format_dict[self.dataTypeCB.currentText()],
-                    height=image_raw.height,
-                    width=image_raw.width,
-                    count=1,
-                    dtype=z_img_ar.dtype,
-                    crs=image_raw.crs,
-                    transform=image_raw.transform
+            if self.medianFilterCheckBox.isChecked() == False:
+                print_filter_info = (
+                    'Median Filter Size:\t' + str(self.medianFilterSB.value())
+                )
+                z_img_ar = ndimage.median_filter(z_img_ar, size=self.medianFilterSB.value())
+            else:
+                print_filter_info = (
+                    'Median Filter Size:\tDisabled'
                 )
 
-                new_img.write(z_img_ar, 1)
-                new_img.close()
+            test_data_df_new = test_data_df.copy()
+            new_img = rio.open(
+                self.savelocList.toPlainText(),
+                'w+',
+                driver=format_dict[self.dataTypeCB.currentText()],
+                height=image_raw.height,
+                width=image_raw.width,
+                count=1,
+                dtype=z_img_ar.dtype,
+                crs=image_raw.crs,
+                transform=image_raw.transform
+            )
+            new_img.write(z_img_ar, 1)
 
+            with parallel_backend(proc_op_dict['backend'], n_jobs=proc_op_dict['n_jobs']):
+                row, col = np.array(image_raw.index(test_data_df_new.x, test_data_df_new.y))
+                dem_band = new_img.read()[:, row, col].T
+
+            z_result = pd.DataFrame(dem_band, columns=['z_result'])
+            test_data_df_new = pd.concat([test_data_df_new, z_result], axis=1)
+            rmse_result = np.sqrt(metrics.mean_squared_error(test_data_df_new.z, z_result))
+            mae_result = metrics.mean_absolute_error(test_data_df_new.z, z_result)
+            r2_result = metrics.r2_score(test_data_df_new.z, z_result)
+
+            new_img.close()
+
+            print_result_stat_info = (
+                'Result Accuracy:\n'
+                'RMSE:\t\t' + str(rmse_result) + '\n' +
+                'MAE:\t\t' + str(mae_result) + '\n' +
+                'R\u00B2:\t\t' + str(r2_result) + '\n\n'
+            )
+
+            if self.saveDEMCheckBox.isChecked() == True:
                 new_img_size = os.path.getsize(self.savelocList.toPlainText())
                 print_dem_info = (
                     print_filter_info + '\n\n'
@@ -1314,6 +1333,7 @@ class SDBWidget(QWidget):
                     str(round(new_img_size / 2**10 / 2**10, 2)) + ' MB)\n'
                 )
             elif self.saveDEMCheckBox.isChecked() == False:
+                os.remove(self.savelocList.toPlainText())
                 print_dem_info = (
                     'DEM Output:\t\tNot Saved\n'
                 )
@@ -1330,7 +1350,7 @@ class SDBWidget(QWidget):
 
                 if self.trainTestFormatCB.currentText() == '.csv':
                     train_data_df.to_csv(train_save_loc, index=False)
-                    test_data_df.to_csv(test_save_loc, index=False)
+                    test_data_df_new.to_csv(test_save_loc, index=False)
                 elif self.trainTestFormatCB.currentText() == '.shp':
                     train_data_gdf = gpd.GeoDataFrame(
                         train_data_df.copy(),
@@ -1342,11 +1362,11 @@ class SDBWidget(QWidget):
                         crs=sample_geodataframe.crs
                     )
                     test_data_gdf = gpd.GeoDataFrame(
-                        test_data_df.copy(),
+                        test_data_df_new.copy(),
                         geometry=gpd.points_from_xy(
-                            test_data_df.x,
-                            test_data_df.y,
-                            test_data_df.z
+                            test_data_df_new.x,
+                            test_data_df_new.y,
+                            test_data_df_new.z
                         ),
                         crs=sample_geodataframe.crs
                     )
@@ -1375,8 +1395,8 @@ class SDBWidget(QWidget):
                     '_scatter_plot.png'
                 )
                 scatter_plot_fig, scatter_plot_ax = self.scatter_plotter(
-                    x=test_data_df.z,
-                    y=test_data_df.z_validate
+                    x=test_data_df_new.z,
+                    y=test_data_df_new.z_result
                 )
                 scatter_plot_fig.savefig(scatter_plot_loc)
 
@@ -1402,6 +1422,7 @@ class SDBWidget(QWidget):
 
                 report.write(
                     print_result_info +
+                    print_result_stat_info +
                     print_dem_info +
                     print_train_test_info +
                     print_scatter_plot_info
