@@ -1396,7 +1396,8 @@ class SDBWidget(QWidget):
                 )
                 scatter_plot_fig, scatter_plot_ax = self.scatter_plotter(
                     x=test_data_df_new.z,
-                    y=test_data_df_new.z_result
+                    y=test_data_df_new.z_result,
+                    title=self.methodCB.currentText()
                 )
                 scatter_plot_fig.savefig(scatter_plot_loc)
 
