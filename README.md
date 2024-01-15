@@ -1,6 +1,6 @@
 [![Last Commit](https://img.shields.io/github/last-commit/rifqiharrys/sdb_gui?color=red)](https://github.com/rifqiharrys/sdb_gui/commit)
 [![Github Release](https://img.shields.io/github/v/release/rifqiharrys/sdb_gui?label=latest%20release&color=green)](https://github.com/rifqiharrys/sdb_gui/releases/latest)
-[![DOI](https://zenodo.org/badge/309878273.svg)](https://zenodo.org/badge/latestdoi/309878273)
+[![DOI](https://zenodo.org/badge/309878273.svg)](https://zenodo.org/doi/10.5281/zenodo.8220196)
 
 # Satellite Derived Bathymetry (SDB) GUI
 
@@ -91,20 +91,4 @@ See [LICENSE](https://github.com/rifqiharrys/sdb_gui/blob/main/LICENSE)
 
 ## Citation
 
-APA
-> Rifqi Muhammad Harrys. (2023). rifqiharrys/sdb_gui: SDB GUI (v3.4.1). Zenodo. https://doi.org/10.5281/zenodo.8220197
-
-Harvard
-> Rifqi Muhammad Harrys (2023) “rifqiharrys/sdb_gui: SDB GUI”. Zenodo. doi: 10.5281/zenodo.8220197.
-
-MLA
-> Rifqi Muhammad Harrys. Rifqiharrys/sdb_gui: SDB GUI v3.4.1, Zenodo, 7 Aug. 2023, doi:10.5281/zenodo.8220197.
-
-Vancouver
-> 1. Rifqi Muhammad Harrys. rifqiharrys/sdb_gui: SDB GUI. Zenodo; 2023. 
-
-Chicago
-> Rifqi Muhammad Harrys. “Rifqiharrys/sdb_gui: SDB GUI”. Zenodo, August 7, 2023. https://doi.org/10.5281/zenodo.8220197.
-
-IEEE
-> [1]Rifqi Muhammad Harrys, “rifqiharrys/sdb_gui: SDB GUI 3.4.1”. Zenodo, Aug. 07, 2023. doi: 10.5281/zenodo.8220197.
+See [DOI](https://zenodo.org/doi/10.5281/zenodo.8220196)
