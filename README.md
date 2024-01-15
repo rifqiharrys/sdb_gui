@@ -81,6 +81,10 @@ Median Filter is an image filter that will clear outliers (salt-and-pepper noise
 
 Create depth samples outputs that was used in data training and testing. The outputs are splitted train and test depth samples in Comma Separated Value or ESRI Shapefile. Those two outputs are containing sampled raster values, xy coordinates and depth values.
 
+### Scatter Plot
+
+Create scatter plot of the predicted result against its real value. The scatter plot saved in PNG file format.
+
 ## Releases
 
 See [RELEASES](https://github.com/rifqiharrys/sdb_gui/releases)
