@@ -259,53 +259,62 @@ class SDBWidget(QWidget):
             'https://github.com/rifqiharrys/sdb_gui/blob/main/README.md'
         ))
 
-        grid = QGridLayout()
-        vbox = QVBoxLayout()
+        mainLayout = QVBoxLayout()
 
-        grid.addWidget(loadImageButton, 1, 1, 1, 2)
-        grid.addWidget(self.loadImageLabel, 1, 3, 1, 2)
+        grid1 = QGridLayout()
+        grid1.addWidget(loadImageButton, 1, 1, 1, 1)
+        grid1.addWidget(self.loadImageLabel, 1, 2, 1, 3)
 
-        grid.addWidget(loadSampleButton, 2, 1, 1, 2)
-        grid.addWidget(self.loadSampleLabel, 2, 3, 1, 2)
+        grid1.addWidget(loadSampleButton, 2, 1, 1, 1)
+        grid1.addWidget(self.loadSampleLabel, 2, 2, 1, 3)
 
-        grid.addWidget(depthHeaderLabel, 3, 1, 1, 1)
-        grid.addWidget(self.depthHeaderCB, 3, 2, 1, 3)
+        grid1.addWidget(depthHeaderLabel, 3, 1, 1, 1)
+        grid1.addWidget(self.depthHeaderCB, 3, 2, 1, 3)
 
-        grid.addWidget(self.table, 5, 1, 5, 4)
+        grid1.addWidget(self.table, 4, 1, 5, 4)
 
-        grid.addWidget(limitLabel, 10, 1, 1, 2)
-        grid.addWidget(self.limitCheckBox, 11, 1, 1, 2)
+        mainLayout.addLayout(grid1)
 
-        grid.addWidget(limitALabel, 10, 3, 1, 1)
-        grid.addWidget(self.limitADSB, 10, 4, 1, 1)
-        grid.addWidget(limitBLabel, 11, 3, 1, 1)
-        grid.addWidget(self.limitBDSB, 11, 4, 1, 1)
+        grid2 = QGridLayout()
+        grid2.addWidget(limitLabel, 1, 1, 1, 2)
+        grid2.addWidget(self.limitCheckBox, 2, 1, 1, 2)
 
-        grid.addWidget(methodLabel, 12, 1, 1, 1)
-        grid.addWidget(self.methodCB, 12, 2, 1, 1)
+        grid2.addWidget(limitALabel, 1, 3, 1, 1)
+        grid2.addWidget(self.limitADSB, 1, 4, 1, 1)
+        grid2.addWidget(limitBLabel, 2, 3, 1, 1)
+        grid2.addWidget(self.limitBDSB, 2, 4, 1, 1)
 
-        grid.addWidget(self.optionsButton, 12, 3, 1, 2)
+        mainLayout.addLayout(grid2)
 
-        grid.addWidget(trainSelectLabel, 13, 1, 1, 1)
-        grid.addWidget(self.trainSelectCB, 13, 2, 1, 1)
+        grid3 = QGridLayout()
+        grid3.addWidget(methodLabel, 1, 1, 1, 1)
+        grid3.addWidget(self.methodCB, 1, 2, 1, 2)
 
-        grid.addWidget(self.processingOptionsButton, 13, 3, 1, 2)
+        grid3.addWidget(self.optionsButton, 1, 4, 1, 2)
 
-        grid.addWidget(makePredictionButton, 14, 1, 1, 2)
-        grid.addWidget(saveFileButton, 14, 3, 1, 2)
+        grid3.addWidget(trainSelectLabel, 2, 1, 1, 1)
+        grid3.addWidget(self.trainSelectCB, 2, 2, 1, 2)
 
-        grid.addWidget(resultInfo, 15, 1, 1, 2)
-        grid.addWidget(self.resultText, 16, 1, 1, 4)
+        grid3.addWidget(self.processingOptionsButton, 2, 4, 1, 2)
 
-        vbox.addStretch(1)
-        grid.addLayout(vbox, 21, 1)
+        mainLayout.addLayout(grid3)
 
-        grid.addWidget(self.progressBar, 22, 1, 1, 4)
+        grid4 = QGridLayout()
+        grid4.addWidget(makePredictionButton, 1, 1, 1, 2)
+        grid4.addWidget(saveFileButton, 1, 3, 1, 2)
 
-        grid.addWidget(releaseButton, 23, 1, 1, 1)
-        grid.addWidget(licensesButton, 23, 2, 1, 2)
-        grid.addWidget(readmeButton, 23, 4, 1, 1)
-        self.setLayout(grid)
+        grid4.addWidget(resultInfo, 2, 1, 1, 4)
+        grid4.addWidget(self.resultText, 3, 1, 1, 4)
+
+        grid4.addWidget(self.progressBar, 7, 1, 1, 4)
+
+        grid4.addWidget(releaseButton, 8, 1, 1, 1)
+        grid4.addWidget(licensesButton, 8, 2, 1, 2)
+        grid4.addWidget(readmeButton, 8, 4, 1, 1)
+
+        mainLayout.addLayout(grid4)
+
+        self.setLayout(mainLayout)
 
 
     def str2bool(self, v):
@@ -1246,7 +1255,7 @@ class SDBWidget(QWidget):
 
         grid = QGridLayout()
         grid.addWidget(dataTypeLabel, 1, 1, 1, 2)
-        grid.addWidget(self.dataTypeCB, 1, 3, 1, 2)
+        grid.addWidget(self.dataTypeCB, 1, 2, 1, 3)
 
         grid.addWidget(medianFilterLabel, 2, 1, 1, 1)
         grid.addWidget(self.medianFilterSB, 2, 2, 1, 1)
