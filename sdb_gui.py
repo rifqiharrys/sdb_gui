@@ -1,4 +1,4 @@
-'''
+"""
 MIT License
 
 Copyright (c) 2020-present Rifqi Muhammad Harrys
@@ -21,7 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-'''
+"""
 ###############################################################################
 ################################# Main Imports ################################
 
@@ -67,10 +67,10 @@ import rasterio.vrt
 ###############################################################################
 ###############################################################################
 
-SDB_GUI_VERSION = '3.5.1'
+SDB_GUI_VERSION = "3.5.1"
 
 def resource_path(relative_path):
-    '''Get the absolute path to the resource, works for dev and for PyInstaller'''
+    """Get the absolute path to the resource, works for dev and for PyInstaller"""
     try:
         # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS
@@ -81,71 +81,71 @@ def resource_path(relative_path):
 
 
 class SDBWidget(QWidget):
-    '''
+    """
     PyQt5 widget of SDB GUI
-    '''
+    """
 
     widget_signal = pyqtSignal(dict)
 
     def __init__(self):
-        '''
+        """
         Initialize widget and default values
-        '''
+        """
 
         super(SDBWidget, self).__init__()
 
         ####### Default Values #######
 
         self.method_dict = {
-            'K-Nearest Neighbors': self.knnOptionWindow,
-            'Multiple Linear Regression': self.mlrOptionWindow,
-            'Random Forest': self.rfOptionWindow, 
-            'Support Vector Machines': self.svmOptionWindow
+            "K-Nearest Neighbors": self.knnOptionWindow,
+            "Multiple Linear Regression": self.mlrOptionWindow,
+            "Random Forest": self.rfOptionWindow, 
+            "Support Vector Machines": self.svmOptionWindow
         }
 
         self.dir_path = os.path.abspath(Path.home())
 
         global proc_op_dict
         proc_op_dict = {
-            'backend': 'threading',
-            'n_jobs': -2,
-            'auto_negative': True,
-            'exclude_outside': True,
-            'selection' : {
-                'train_size': 0.75,
-                'random_state': 0
+            "backend": "threading",
+            "n_jobs": -2,
+            "auto_negative": True,
+            "exclude_outside": True,
+            "selection" : {
+                "train_size": 0.75,
+                "random_state": 0
             }
         }
 
         global knn_op_dict
         knn_op_dict = {
-            'n_neighbors': 5,
-            'weights': 'distance',
-            'algorithm': 'auto',
-            'leaf_size': 30
+            "n_neighbors": 5,
+            "weights": "distance",
+            "algorithm": "auto",
+            "leaf_size": 30
         }
 
         global mlr_op_dict
         mlr_op_dict = {
-            'fit_intercept': True,
-            'normalize': False,
-            'copy_x': True
+            "fit_intercept": True,
+            "normalize": False,
+            "copy_x": True
         }
 
         global rf_op_dict
         rf_op_dict = {
-            'n_estimators': 300,
-            'criterion': 'mse',
-            'bootstrap': True,
-            'random_state': 0
+            "n_estimators": 300,
+            "criterion": "mse",
+            "bootstrap": True,
+            "random_state": 0
         }
 
         global svm_op_dict
         svm_op_dict = {
-            'kernel': 'rbf',
-            'gamma': .1,
-            'c': 1000.0,
-            'degree': 3
+            "kernel": "rbf",
+            "gamma": .1,
+            "c": 1000.0,
+            "degree": 3
         }
 
         global val_if_nan
@@ -160,57 +160,57 @@ class SDBWidget(QWidget):
 
 
     def initUI(self):
-        '''
+        """
         Initialize User Interface for SDB GUI Widget
-        '''
+        """
 
         self.setGeometry(300, 100, 480, 640)
-        self.setWindowTitle('Satellite Derived Bathymetry (v%s)' %SDB_GUI_VERSION)
-        self.setWindowIcon(QIcon(resource_path('icons/satellite.png')))
+        self.setWindowTitle("Satellite Derived Bathymetry (v%s)" %SDB_GUI_VERSION)
+        self.setWindowIcon(QIcon(resource_path("icons/satellite.png")))
 
-        loadImageButton = QPushButton('Load Image')
+        loadImageButton = QPushButton("Load Image")
         loadImageButton.clicked.connect(self.loadImageWindow)
         self.loadImageLabel = QLabel()
-        self.loadImageLabel.setText('No Image Loaded')
+        self.loadImageLabel.setText("No Image Loaded")
         self.loadImageLabel.setAlignment(Qt.AlignCenter)
 
-        loadSampleButton = QPushButton('Load Sample')
+        loadSampleButton = QPushButton("Load Sample")
         loadSampleButton.clicked.connect(self.loadSampleWindow)
         self.loadSampleLabel = QLabel()
-        self.loadSampleLabel.setText('No Sample Loaded')
+        self.loadSampleLabel.setText("No Sample Loaded")
         self.loadSampleLabel.setAlignment(Qt.AlignCenter)
 
-        depthHeaderLabel = QLabel('Depth Header:')
+        depthHeaderLabel = QLabel("Depth Header:")
         self.depthHeaderCB = QComboBox()
 
         self.table = QTableWidget()
         scroll = QScrollArea()
         scroll.setWidget(self.table)
 
-        limitLabel = QLabel('Depth Limit Window:')
+        limitLabel = QLabel("Depth Limit Window:")
 
-        limitALabel = QLabel('Upper Limit:')
+        limitALabel = QLabel("Upper Limit:")
         self.limitADSB = QDoubleSpinBox()
         self.limitADSB.setRange(-100, 100)
         self.limitADSB.setDecimals(1)
         self.limitADSB.setValue(0)
-        self.limitADSB.setSuffix(' m')
+        self.limitADSB.setSuffix(" m")
         self.limitADSB.setAlignment(Qt.AlignRight)
 
-        limitBLabel = QLabel('Bottom Limit:')
+        limitBLabel = QLabel("Bottom Limit:")
         self.limitBDSB = QDoubleSpinBox()
         self.limitBDSB.setRange(-100, 100)
         self.limitBDSB.setDecimals(1)
         self.limitBDSB.setValue(-30)
-        self.limitBDSB.setSuffix(' m')
+        self.limitBDSB.setSuffix(" m")
         self.limitBDSB.setAlignment(Qt.AlignRight)
 
-        self.limitCheckBox = QCheckBox('Disable Depth Limitation')
+        self.limitCheckBox = QCheckBox("Disable Depth Limitation")
         self.limitCheckBox.setChecked(False)
 
         method_list = list(self.method_dict)
 
-        methodLabel = QLabel('Regression Method:')
+        methodLabel = QLabel("Regression Method:")
         self.methodCB = QComboBox()
         self.methodCB.addItems(method_list)
         self.methodCB.activated.connect(
@@ -219,44 +219,44 @@ class SDBWidget(QWidget):
             )
         )
 
-        selection_list = ['Random Selection', 'Attribute Selection']
+        selection_list = ["Random Selection", "Attribute Selection"]
 
-        trainSelectLabel = QLabel('Train Data Selection:')
+        trainSelectLabel = QLabel("Train Data Selection:")
         self.trainSelectCB = QComboBox()
         self.trainSelectCB.addItems(selection_list)
         self.trainSelectCB.activated.connect(self.updateTrainSelection)
 
-        self.optionsButton = QPushButton('Method Options')
+        self.optionsButton = QPushButton("Method Options")
         self.optionsButton.clicked.connect(self.knnOptionWindow)
 
-        makePredictionButton = QPushButton('Generate Prediction')
+        makePredictionButton = QPushButton("Generate Prediction")
         makePredictionButton.clicked.connect(self.predict)
-        saveFileButton = QPushButton('Save Into File')
+        saveFileButton = QPushButton("Save Into File")
         saveFileButton.clicked.connect(self.saveOptionWindow)
 
-        self.processingOptionsButton = QPushButton('Processing Options')
+        self.processingOptionsButton = QPushButton("Processing Options")
         self.processingOptionsButton.clicked.connect(self.processingOptionWindow)
 
-        resultInfo = QLabel('Result Information')
+        resultInfo = QLabel("Result Information")
         self.resultText = QTextBrowser()
         self.resultText.setAlignment(Qt.AlignRight)
 
         self.progressBar = QProgressBar()
-        self.progressBar.setFormat('%p%')
+        self.progressBar.setFormat("%p%")
         self.progressBar.setMinimum(0)
         self.progressBar.setMaximum(progress_step)
 
-        releaseButton =  QPushButton('Releases')
+        releaseButton =  QPushButton("Releases")
         releaseButton.clicked.connect(lambda: webbrowser.open(
-            'https://github.com/rifqiharrys/sdb_gui/releases'
+            "https://github.com/rifqiharrys/sdb_gui/releases"
         ))
 
-        licensesButton = QPushButton('Licenses')
+        licensesButton = QPushButton("Licenses")
         licensesButton.clicked.connect(self.licensesDialog)
 
-        readmeButton = QPushButton('Readme')
+        readmeButton = QPushButton("Readme")
         readmeButton.clicked.connect(lambda: webbrowser.open(
-            'https://github.com/rifqiharrys/sdb_gui/blob/main/README.md'
+            "https://github.com/rifqiharrys/sdb_gui/blob/main/README.md"
         ))
 
         mainLayout = QVBoxLayout()
@@ -318,19 +318,19 @@ class SDBWidget(QWidget):
 
 
     def str2bool(self, v):
-        '''
+        """
         Transform string True or False to boolean type
-        '''
+        """
 
-        return v in ('True')
+        return v in ("True")
 
 
     def fileDialog(self, command, window_text, file_type, text_browser):
-        '''
+        """
         Showing file dialog, whether opening file or saving.
-        '''
+        """
 
-        fileFilter = 'All Files (*.*) ;; ' + file_type
+        fileFilter = "All Files (*.*) ;; " + file_type
         selectedFilter = file_type
         fname = command(self, window_text, self.dir_path, fileFilter, selectedFilter)
 
@@ -339,40 +339,40 @@ class SDBWidget(QWidget):
 
 
     def methodSelection(self, option):
-        '''
+        """
         Method selection connection from option button
-        to each methods' option window
-        '''
+        to each methods" option window
+        """
 
         self.optionsButton.clicked.disconnect()
         self.optionsButton.clicked.connect(option)
 
 
     def loadImageWindow(self):
-        '''
+        """
         Image loading User Interface
-        '''
+        """
 
         self.loadImageDialog = QDialog()
-        self.loadImageDialog.setWindowTitle('Load Image')
-        self.loadImageDialog.setWindowIcon(QIcon(resource_path('icons/load-pngrepo-com.png')))
+        self.loadImageDialog.setWindowTitle("Load Image")
+        self.loadImageDialog.setWindowIcon(QIcon(resource_path("icons/load-pngrepo-com.png")))
 
-        openFilesButton = QPushButton('Open File')
+        openFilesButton = QPushButton("Open File")
         openFilesButton.clicked.connect(
             lambda: self.fileDialog(
                 command=QFileDialog.getOpenFileName,
-                window_text='Open Image File',
-                file_type='GeoTIFF (*.tif)',
+                window_text="Open Image File",
+                file_type="GeoTIFF (*.tif)",
                 text_browser=self.imglocList
             )
         )
 
-        locLabel = QLabel('Location:')
+        locLabel = QLabel("Location:")
         self.imglocList = QTextBrowser()
 
-        cancelButton = QPushButton('Cancel')
+        cancelButton = QPushButton("Cancel")
         cancelButton.clicked.connect(self.loadImageDialog.close)
-        loadButton = QPushButton('Load')
+        loadButton = QPushButton("Load")
         loadButton.clicked.connect(self.loadImageAction)
         loadButton.clicked.connect(self.loadImageDialog.close)
 
@@ -392,11 +392,11 @@ class SDBWidget(QWidget):
 
 
     def loadImageAction(self):
-        '''
+        """
         Loading selected image and retrieve some metadata such as file size,
         band quantity, array size, pixel size, etc. Then, recreate image 3D
         array into a simple column and row array.
-        '''
+        """
 
         try:
             global img_size
@@ -430,39 +430,39 @@ class SDBWidget(QWidget):
         except:
             self.loadImageDialog.close()
             self.warningWithClear(
-                'No data loaded. Please load your data!'
+                "No data loaded. Please load your data!"
             )
             self.loadImageWindow()
 
 
     def loadSampleWindow(self):
-        '''
+        """
         Sample loading User Interface
-        '''
+        """
 
         self.loadSampleDialog = QDialog()
-        self.loadSampleDialog.setWindowTitle('Load Sample')
-        self.loadSampleDialog.setWindowIcon(QIcon(resource_path('icons/load-pngrepo-com.png')))
+        self.loadSampleDialog.setWindowTitle("Load Sample")
+        self.loadSampleDialog.setWindowIcon(QIcon(resource_path("icons/load-pngrepo-com.png")))
 
-        openFilesButton = QPushButton('Open File')
+        openFilesButton = QPushButton("Open File")
         openFilesButton.clicked.connect(
             lambda: self.fileDialog(
                 command=QFileDialog.getOpenFileName,
-                window_text='Open Depth Sample File',
-                file_type='ESRI Shapefile (*.shp)',
+                window_text="Open Depth Sample File",
+                file_type="ESRI Shapefile (*.shp)",
                 text_browser=self.samplelocList
             )
         )
 
-        locLabel = QLabel('Location:')
+        locLabel = QLabel("Location:")
         self.samplelocList = QTextBrowser()
 
-        self.showCheckBox = QCheckBox('Show All Data to Table')
+        self.showCheckBox = QCheckBox("Show All Data to Table")
         self.showCheckBox.setChecked(False)
 
-        cancelButton = QPushButton('Cancel')
+        cancelButton = QPushButton("Cancel")
         cancelButton.clicked.connect(self.loadSampleDialog.close)
-        loadButton = QPushButton('Load')
+        loadButton = QPushButton("Load")
         loadButton.clicked.connect(self.loadSampleAction)
         loadButton.clicked.connect(self.loadSampleDialog.close)
 
@@ -483,10 +483,10 @@ class SDBWidget(QWidget):
 
 
     def loadSampleAction(self):
-        '''
+        """
         Loading selected sample and retrieve file size.
         Then, some or all data on selected sample to the widget.
-        '''
+        """
 
         try:
             global sample_size
@@ -499,15 +499,15 @@ class SDBWidget(QWidget):
                 self.samplelocList.toPlainText())[1]
             )
 
-            if (sample_raw.geom_type != 'Point').any():
+            if (sample_raw.geom_type != "Point").any():
                 del sample_raw
-                self.loadSampleLabel.setText('Sample Retracted')
+                self.loadSampleLabel.setText("Sample Retracted")
                 self.depthHeaderCB.clear()
                 self.table.clearContents()
 
                 self.loadSampleDialog.close()
                 self.warningWithoutClear(
-                    'Your data is not Point type. Please load another data!'
+                    "Your data is not Point type. Please load another data!"
                 )
                 self.loadSampleWindow()
             else:
@@ -538,45 +538,45 @@ class SDBWidget(QWidget):
         except:
             self.loadSampleDialog.close()
             self.warningWithClear(
-                'No data loaded. Please load your data!'
+                "No data loaded. Please load your data!"
             )
             self.loadSampleWindow()
 
 
     def knnOptionWindow(self):
-        '''
+        """
         K-Nearest Neighbor option User Interface
-        '''
+        """
 
         optionDialog = QDialog()
-        optionDialog.setWindowTitle('Options (K Neighbors)')
-        optionDialog.setWindowIcon(QIcon(resource_path('icons/setting-tool-pngrepo-com.png')))
+        optionDialog.setWindowTitle("Options (K Neighbors)")
+        optionDialog.setWindowIcon(QIcon(resource_path("icons/setting-tool-pngrepo-com.png")))
 
-        nneighborLabel = QLabel('Number of Neighbors:')
+        nneighborLabel = QLabel("Number of Neighbors:")
         self.nneighborSB = QSpinBox()
         self.nneighborSB.setRange(1, 1000)
-        self.nneighborSB.setValue(knn_op_dict['n_neighbors'])
+        self.nneighborSB.setValue(knn_op_dict["n_neighbors"])
         self.nneighborSB.setAlignment(Qt.AlignRight)
 
-        weightsLabel = QLabel('Weights:')
+        weightsLabel = QLabel("Weights:")
         self.weightsCB = QComboBox()
-        self.weightsCB.addItems(['uniform', 'distance'])
-        self.weightsCB.setCurrentText(knn_op_dict['weights'])
+        self.weightsCB.addItems(["uniform", "distance"])
+        self.weightsCB.setCurrentText(knn_op_dict["weights"])
 
-        algorithmLabel = QLabel('Algorithm:')
+        algorithmLabel = QLabel("Algorithm:")
         self.algorithmCB = QComboBox()
-        self.algorithmCB.addItems(['auto', 'ball_tree', 'kd_tree', 'brute'])
-        self.algorithmCB.setCurrentText(knn_op_dict['algorithm'])
+        self.algorithmCB.addItems(["auto", "ball_tree", "kd_tree", "brute"])
+        self.algorithmCB.setCurrentText(knn_op_dict["algorithm"])
 
-        leafSizeLabel = QLabel('Leaf Size:')
+        leafSizeLabel = QLabel("Leaf Size:")
         self.leafSizeSB = QSpinBox()
         self.leafSizeSB.setRange(1, 1000)
-        self.leafSizeSB.setValue(knn_op_dict['leaf_size'])
+        self.leafSizeSB.setValue(knn_op_dict["leaf_size"])
         self.leafSizeSB.setAlignment(Qt.AlignRight)
 
-        cancelButton = QPushButton('Cancel')
+        cancelButton = QPushButton("Cancel")
         cancelButton.clicked.connect(optionDialog.close)
-        loadButton = QPushButton('Load')
+        loadButton = QPushButton("Load")
         loadButton.clicked.connect(self.loadKNNOptionAction)
         loadButton.clicked.connect(optionDialog.close)
 
@@ -603,43 +603,43 @@ class SDBWidget(QWidget):
 
 
     def loadKNNOptionAction(self):
-        '''
+        """
         Loading defined KNN option input
-        '''
+        """
 
-        knn_op_dict['n_neighbors'] = self.nneighborSB.value()
-        knn_op_dict['weights'] = self.weightsCB.currentText()
-        knn_op_dict['algorithm'] = self.algorithmCB.currentText()
-        knn_op_dict['leaf_size'] = self.leafSizeSB.value()
+        knn_op_dict["n_neighbors"] = self.nneighborSB.value()
+        knn_op_dict["weights"] = self.weightsCB.currentText()
+        knn_op_dict["algorithm"] = self.algorithmCB.currentText()
+        knn_op_dict["leaf_size"] = self.leafSizeSB.value()
 
 
     def mlrOptionWindow(self):
-        '''
+        """
         Multi Linear Regression option User Interface
-        '''
+        """
 
         optionDialog = QDialog()
-        optionDialog.setWindowTitle('Options (MLR)')
-        optionDialog.setWindowIcon(QIcon(resource_path('icons/setting-tool-pngrepo-com.png')))
+        optionDialog.setWindowTitle("Options (MLR)")
+        optionDialog.setWindowIcon(QIcon(resource_path("icons/setting-tool-pngrepo-com.png")))
 
-        fitInterceptLabel = QLabel('Fit Intercept:')
+        fitInterceptLabel = QLabel("Fit Intercept:")
         self.fitInterceptCB = QComboBox()
-        self.fitInterceptCB.addItems(['True', 'False'])
-        self.fitInterceptCB.setCurrentText(str(mlr_op_dict['fit_intercept']))
+        self.fitInterceptCB.addItems(["True", "False"])
+        self.fitInterceptCB.setCurrentText(str(mlr_op_dict["fit_intercept"]))
 
-        normalizeLabel = QLabel('Normalize:')
+        normalizeLabel = QLabel("Normalize:")
         self.normalizeCB = QComboBox()
-        self.normalizeCB.addItems(['True', 'False'])
-        self.normalizeCB.setCurrentText(str(mlr_op_dict['normalize']))
+        self.normalizeCB.addItems(["True", "False"])
+        self.normalizeCB.setCurrentText(str(mlr_op_dict["normalize"]))
 
-        copyXLabel = QLabel('Copy X:')
+        copyXLabel = QLabel("Copy X:")
         self.copyXCB = QComboBox()
-        self.copyXCB.addItems(['True', 'False'])
-        self.copyXCB.setCurrentText(str(mlr_op_dict['copy_x']))
+        self.copyXCB.addItems(["True", "False"])
+        self.copyXCB.setCurrentText(str(mlr_op_dict["copy_x"]))
 
-        cancelButton = QPushButton('Cancel')
+        cancelButton = QPushButton("Cancel")
         cancelButton.clicked.connect(optionDialog.close)
-        loadButton = QPushButton('Load')
+        loadButton = QPushButton("Load")
         loadButton.clicked.connect(self.loadMLROptionAction)
         loadButton.clicked.connect(optionDialog.close)
 
@@ -663,49 +663,49 @@ class SDBWidget(QWidget):
 
 
     def loadMLROptionAction(self):
-        '''
+        """
         Loading defined MLR option input
-        '''
+        """
 
-        mlr_op_dict['fit_intercept'] = self.str2bool(self.fitInterceptCB.currentText())
-        mlr_op_dict['normalize'] = self.str2bool(self.normalizeCB.currentText())
-        mlr_op_dict['copy_x'] = self.str2bool(self.copyXCB.currentText())
+        mlr_op_dict["fit_intercept"] = self.str2bool(self.fitInterceptCB.currentText())
+        mlr_op_dict["normalize"] = self.str2bool(self.normalizeCB.currentText())
+        mlr_op_dict["copy_x"] = self.str2bool(self.copyXCB.currentText())
 
 
     def rfOptionWindow(self):
-        '''
+        """
         Random Forest option User Interface
-        '''
+        """
 
         optionDialog = QDialog()
-        optionDialog.setWindowTitle('Options (Random Forest)')
-        optionDialog.setWindowIcon(QIcon(resource_path('icons/setting-tool-pngrepo-com.png')))
+        optionDialog.setWindowTitle("Options (Random Forest)")
+        optionDialog.setWindowIcon(QIcon(resource_path("icons/setting-tool-pngrepo-com.png")))
 
-        ntreeLabel = QLabel('Number of Trees:')
+        ntreeLabel = QLabel("Number of Trees:")
         self.ntreeSB = QSpinBox()
         self.ntreeSB.setRange(1, 10000)
-        self.ntreeSB.setValue(rf_op_dict['n_estimators'])
+        self.ntreeSB.setValue(rf_op_dict["n_estimators"])
         self.ntreeSB.setAlignment(Qt.AlignRight)
 
-        criterionLabel = QLabel('Criterion:')
+        criterionLabel = QLabel("Criterion:")
         self.criterionCB = QComboBox()
-        self.criterionCB.addItems(['mse', 'mae'])
-        self.criterionCB.setCurrentText(rf_op_dict['criterion'])
+        self.criterionCB.addItems(["mse", "mae"])
+        self.criterionCB.setCurrentText(rf_op_dict["criterion"])
 
-        bootstrapLabel = QLabel('Bootstrap:')
+        bootstrapLabel = QLabel("Bootstrap:")
         self.bootstrapCB = QComboBox()
-        self.bootstrapCB.addItems(['True', 'False'])
-        self.bootstrapCB.setCurrentText(str(rf_op_dict['bootstrap']))
+        self.bootstrapCB.addItems(["True", "False"])
+        self.bootstrapCB.setCurrentText(str(rf_op_dict["bootstrap"]))
 
-        randomStateLabel = QLabel('Random State:')
+        randomStateLabel = QLabel("Random State:")
         self.randomStateRFSB = QSpinBox()
         self.randomStateRFSB.setRange(0, 1000)
-        self.randomStateRFSB.setValue(rf_op_dict['random_state'])
+        self.randomStateRFSB.setValue(rf_op_dict["random_state"])
         self.randomStateRFSB.setAlignment(Qt.AlignRight)
 
-        cancelButton = QPushButton('Cancel')
+        cancelButton = QPushButton("Cancel")
         cancelButton.clicked.connect(optionDialog.close)
-        loadButton = QPushButton('Load')
+        loadButton = QPushButton("Load")
         loadButton.clicked.connect(self.loadRFOptionAction)
         loadButton.clicked.connect(optionDialog.close)
 
@@ -732,53 +732,53 @@ class SDBWidget(QWidget):
 
 
     def loadRFOptionAction(self):
-        '''
+        """
         Loading defined RF option input
-        '''
+        """
 
-        rf_op_dict['n_estimators'] = self.ntreeSB.value()
-        rf_op_dict['criterion'] = self.criterionCB.currentText()
-        rf_op_dict['bootstrap'] = self.str2bool(self.bootstrapCB.currentText())
-        rf_op_dict['random_state'] = self.randomStateRFSB.value()
+        rf_op_dict["n_estimators"] = self.ntreeSB.value()
+        rf_op_dict["criterion"] = self.criterionCB.currentText()
+        rf_op_dict["bootstrap"] = self.str2bool(self.bootstrapCB.currentText())
+        rf_op_dict["random_state"] = self.randomStateRFSB.value()
 
 
     def svmOptionWindow(self):
-        '''
+        """
         Support Vector Machine option User Interface
-        '''
+        """
 
         optionDialog = QDialog()
-        optionDialog.setWindowTitle('Options (SVM)')
-        optionDialog.setWindowIcon(QIcon(resource_path('icons/setting-tool-pngrepo-com.png')))
+        optionDialog.setWindowTitle("Options (SVM)")
+        optionDialog.setWindowIcon(QIcon(resource_path("icons/setting-tool-pngrepo-com.png")))
 
-        kernelLabel = QLabel('Kernel:')
+        kernelLabel = QLabel("Kernel:")
         self.kernelCB = QComboBox()
-        self.kernelCB.addItems(['linear', 'poly', 'rbf', 'sigmoid'])
-        self.kernelCB.setCurrentText(svm_op_dict['kernel'])
+        self.kernelCB.addItems(["linear", "poly", "rbf", "sigmoid"])
+        self.kernelCB.setCurrentText(svm_op_dict["kernel"])
 
-        gammaLabel = QLabel('Gamma:')
+        gammaLabel = QLabel("Gamma:")
         self.gammaDSB = QDoubleSpinBox()
         self.gammaDSB.setRange(0, 10)
         self.gammaDSB.setDecimals(3)
-        self.gammaDSB.setValue(svm_op_dict['gamma'])
+        self.gammaDSB.setValue(svm_op_dict["gamma"])
         self.gammaDSB.setAlignment(Qt.AlignRight)
 
-        cLabel = QLabel('C:')
+        cLabel = QLabel("C:")
         self.cDSB = QDoubleSpinBox()
         self.cDSB.setRange(.001, 10000)
         self.cDSB.setDecimals(3)
-        self.cDSB.setValue(svm_op_dict['c'])
+        self.cDSB.setValue(svm_op_dict["c"])
         self.cDSB.setAlignment(Qt.AlignRight)
 
-        degreeLabel = QLabel('degree (poly):')
+        degreeLabel = QLabel("degree (poly):")
         self.degreeSB = QSpinBox()
         self.degreeSB.setRange(2, 20)
-        self.degreeSB.setValue(svm_op_dict['degree'])
+        self.degreeSB.setValue(svm_op_dict["degree"])
         self.degreeSB.setAlignment(Qt.AlignRight)
 
-        cancelButton = QPushButton('Cancel')
+        cancelButton = QPushButton("Cancel")
         cancelButton.clicked.connect(optionDialog.close)
-        loadButton = QPushButton('Load')
+        loadButton = QPushButton("Load")
         loadButton.clicked.connect(self.loadSVMOptionAction)
         loadButton.clicked.connect(optionDialog.close)
 
@@ -805,73 +805,73 @@ class SDBWidget(QWidget):
 
 
     def loadSVMOptionAction(self):
-        '''
+        """
         Loading defined SVM option input
-        '''
+        """
 
-        svm_op_dict['kernel'] = self.kernelCB.currentText()
-        svm_op_dict['gamma'] = self.gammaDSB.value()
-        svm_op_dict['c'] = self.cDSB.value()
-        svm_op_dict['degree'] = self.degreeSB.value()
+        svm_op_dict["kernel"] = self.kernelCB.currentText()
+        svm_op_dict["gamma"] = self.gammaDSB.value()
+        svm_op_dict["c"] = self.cDSB.value()
+        svm_op_dict["degree"] = self.degreeSB.value()
 
 
     def processingOptionWindow(self):
-        '''
+        """
         Processing option User Interface
-        '''
+        """
 
         try:
             self.processingOptionDialog = QDialog()
-            self.processingOptionDialog.setWindowTitle('Processing Options')
-            self.processingOptionDialog.setWindowIcon(QIcon(resource_path('icons/setting-tool-pngrepo-com.png')))
+            self.processingOptionDialog.setWindowTitle("Processing Options")
+            self.processingOptionDialog.setWindowIcon(QIcon(resource_path("icons/setting-tool-pngrepo-com.png")))
 
-            backendLabel = QLabel('Parallel Backend:')
+            backendLabel = QLabel("Parallel Backend:")
             self.backendCB = QComboBox()
-            self.backendCB.addItems(['loky', 'threading', 'multiprocessing'])
-            self.backendCB.setCurrentText(proc_op_dict['backend'])
+            self.backendCB.addItems(["loky", "threading", "multiprocessing"])
+            self.backendCB.setCurrentText(proc_op_dict["backend"])
 
-            njobsLabel = QLabel('Processing Cores:')
+            njobsLabel = QLabel("Processing Cores:")
             self.njobsSB = QSpinBox()
             self.njobsSB.setRange(-100, 100)
-            self.njobsSB.setValue(proc_op_dict['n_jobs'])
+            self.njobsSB.setValue(proc_op_dict["n_jobs"])
             self.njobsSB.setAlignment(Qt.AlignRight)
 
-            self.autoNegativeCB = QCheckBox('Auto negative sign')
-            self.autoNegativeCB.setChecked(proc_op_dict['auto_negative'])
+            self.autoNegativeCB = QCheckBox("Auto negative sign")
+            self.autoNegativeCB.setChecked(proc_op_dict["auto_negative"])
 
-            self.excludeOutsideCB = QCheckBox('Exclude points which out of image boundary')
-            self.excludeOutsideCB.setChecked(proc_op_dict['exclude_outside'])
+            self.excludeOutsideCB = QCheckBox("Exclude points which out of image boundary")
+            self.excludeOutsideCB.setChecked(proc_op_dict["exclude_outside"])
 
-            if self.trainSelectCB.currentText() == 'Random Selection':
-                trainPercentLabel = QLabel('Train Data (Percent):')
+            if self.trainSelectCB.currentText() == "Random Selection":
+                trainPercentLabel = QLabel("Train Data (Percent):")
                 self.trainPercentDSB = QDoubleSpinBox()
                 self.trainPercentDSB.setRange(10.0, 90.0)
                 self.trainPercentDSB.setDecimals(2)
-                self.trainPercentDSB.setValue(proc_op_dict['selection']['train_size'] * 100)
-                self.trainPercentDSB.setSuffix(' %')
+                self.trainPercentDSB.setValue(proc_op_dict["selection"]["train_size"] * 100)
+                self.trainPercentDSB.setSuffix(" %")
                 self.trainPercentDSB.setAlignment(Qt.AlignRight)
 
-                randomStateLabel = QLabel('Random State:')
+                randomStateLabel = QLabel("Random State:")
                 self.randomStateProcSB = QSpinBox()
                 self.randomStateProcSB.setRange(0, 1000)
-                self.randomStateProcSB.setValue(proc_op_dict['selection']['random_state'])
+                self.randomStateProcSB.setValue(proc_op_dict["selection"]["random_state"])
                 self.randomStateProcSB.setAlignment(Qt.AlignRight)
-            elif self.trainSelectCB.currentText() == 'Attribute Selection':
-                headerSelectLabel = QLabel('Select header')
+            elif self.trainSelectCB.currentText() == "Attribute Selection":
+                headerSelectLabel = QLabel("Select header")
                 self.headerSelectCB = QComboBox()
-                object_only = sample_raw.copy().select_dtypes(include=['object'])
+                object_only = sample_raw.copy().select_dtypes(include=["object"])
                 self.headerSelectCB.addItems(object_only.columns)
                 self.headerSelectCB.activated.connect(self.updateGroupSelection)
                 selected_header = self.headerSelectCB.currentText()
 
-                groupSelectLabel = QLabel('Select group:')
+                groupSelectLabel = QLabel("Select group:")
                 self.groupSelectCB = QComboBox()
                 group_list = list(object_only.groupby(selected_header).groups)
                 self.groupSelectCB.addItems(group_list)
 
-            cancelButton = QPushButton('Cancel')
+            cancelButton = QPushButton("Cancel")
             cancelButton.clicked.connect(self.processingOptionDialog.close)
-            loadButton = QPushButton('Load')
+            loadButton = QPushButton("Load")
             loadButton.clicked.connect(self.loadProcessingOptionAction)
             loadButton.clicked.connect(self.processingOptionDialog.close)
 
@@ -887,13 +887,13 @@ class SDBWidget(QWidget):
 
             grid.addWidget(self.excludeOutsideCB, 4, 1, 1, 4)
 
-            if self.trainSelectCB.currentText() == 'Random Selection':
+            if self.trainSelectCB.currentText() == "Random Selection":
                 grid.addWidget(trainPercentLabel, 5, 1, 1, 2)
                 grid.addWidget(self.trainPercentDSB, 5, 3, 1, 2)
 
                 grid.addWidget(randomStateLabel, 6, 1, 1, 2)
                 grid.addWidget(self.randomStateProcSB, 6, 3, 1, 2)
-            elif self.trainSelectCB.currentText() == 'Attribute Selection':
+            elif self.trainSelectCB.currentText() == "Attribute Selection":
                 grid.addWidget(headerSelectLabel, 5, 1, 1, 2)
                 grid.addWidget(self.headerSelectCB, 5, 3, 1, 2)
 
@@ -908,56 +908,56 @@ class SDBWidget(QWidget):
             self.processingOptionDialog.exec_()
         except NameError:
             self.warningWithClear(
-                'No depth sample loaded. Please load your depth sample!'
+                "No depth sample loaded. Please load your depth sample!"
             )
 
 
     def loadProcessingOptionAction(self):
-        '''
+        """
         Loading defined processing option input
-        '''
+        """
 
         if self.njobsSB.value() == 0:
             self.processingOptionDialog.close()
             self.warningWithoutClear(
-                'Do not insert zero on Processing Cores!'
+                "Do not insert zero on Processing Cores!"
             )
             self.processingOptionWindow()
         else:
-            proc_op_dict['backend'] = self.backendCB.currentText()
-            proc_op_dict['n_jobs'] = self.njobsSB.value()
-            proc_op_dict['auto_negative'] = self.autoNegativeCB.isChecked()
-            proc_op_dict['exclude_outside'] = self.excludeOutsideCB.isChecked()
-            if self.trainSelectCB.currentText() == 'Random Selection':
-                proc_op_dict['selection'] = {
-                    'train_size': self.trainPercentDSB.value() / 100,
-                    'random_state': self.randomStateProcSB.value()
+            proc_op_dict["backend"] = self.backendCB.currentText()
+            proc_op_dict["n_jobs"] = self.njobsSB.value()
+            proc_op_dict["auto_negative"] = self.autoNegativeCB.isChecked()
+            proc_op_dict["exclude_outside"] = self.excludeOutsideCB.isChecked()
+            if self.trainSelectCB.currentText() == "Random Selection":
+                proc_op_dict["selection"] = {
+                    "train_size": self.trainPercentDSB.value() / 100,
+                    "random_state": self.randomStateProcSB.value()
                 }
-            elif self.trainSelectCB.currentText() == 'Attribute Selection':
-                proc_op_dict['selection'] = {
-                    'header': self.headerSelectCB.currentText(),
-                    'group': self.groupSelectCB.currentText()
+            elif self.trainSelectCB.currentText() == "Attribute Selection":
+                proc_op_dict["selection"] = {
+                    "header": self.headerSelectCB.currentText(),
+                    "group": self.groupSelectCB.currentText()
                 }
 
 
     def updateTrainSelection(self):
-        '''
+        """
         Update list in train selection
-        '''
+        """
 
-        if self.trainSelectCB.currentText() == 'Random Selection':
-            proc_op_dict['selection'] = {
-                'train_size': 0.75,
-                'random_state': 0
+        if self.trainSelectCB.currentText() == "Random Selection":
+            proc_op_dict["selection"] = {
+                "train_size": 0.75,
+                "random_state": 0
             }
 
 
     def updateGroupSelection(self):
-        '''
+        """
         Update list in group selection
-        '''
+        """
 
-        object_only = sample_raw.copy().select_dtypes(include=['object'])
+        object_only = sample_raw.copy().select_dtypes(include=["object"])
         selected_header = self.headerSelectCB.currentText()
         group_list = list(object_only.groupby(selected_header).groups)
         self.groupSelectCB.clear()
@@ -965,10 +965,10 @@ class SDBWidget(QWidget):
 
 
     def predict(self):
-        '''
+        """
         Sending parameters and inputs from widget to Process Class
-        '''
-        print('widget predict')
+        """
+        print("widget predict")
 
         self.resultText.clear()
         self.progressBar.setValue(0)
@@ -983,17 +983,17 @@ class SDBWidget(QWidget):
         global time_list
         time_list = []
         init_input = {
-            'depth_label': self.depthHeaderCB.currentText(),
-            'limit_state': self.limitCheckBox.isChecked(),
-            'limit_a': self.limitADSB.value(),
-            'limit_b': self.limitBDSB.value(),
-            'method': self.methodCB.currentText(),
-            'train_select': self.trainSelectCB.currentText(),
-            'selection': proc_op_dict['selection']
+            "depth_label": self.depthHeaderCB.currentText(),
+            "limit_state": self.limitCheckBox.isChecked(),
+            "limit_a": self.limitADSB.value(),
+            "limit_b": self.limitBDSB.value(),
+            "method": self.methodCB.currentText(),
+            "train_select": self.trainSelectCB.currentText(),
+            "selection": proc_op_dict["selection"]
         }
 
         try:
-            if sample_raw[self.depthHeaderCB.currentText()].dtype == 'float':
+            if sample_raw[self.depthHeaderCB.currentText()].dtype == "float":
                 self.sdbProcess = Process()
                 self.widget_signal.connect(self.sdbProcess.inputs)
                 self.widget_signal.emit(init_input)
@@ -1003,19 +1003,19 @@ class SDBWidget(QWidget):
                 self.sdbProcess.warning_with_clear.connect(self.warningWithClear)
             else:
                 self.warningWithClear(
-                    'Please select headers correctly!'
+                    "Please select headers correctly!"
                 )
         except NameError:
             self.warningWithClear(
-                'No depth sample loaded. Please load your depth sample!'
+                "No depth sample loaded. Please load your depth sample!"
             )
 
 
     def timeCounting(self, time_text):
-        '''
+        """
         Receive time value on every step and its corresponding processing
         text to show in result text browser and increase progress bar.
-        '''
+        """
 
         time_list.append(time_text[0])
         self.resultText.append(time_text[1])
@@ -1025,56 +1025,56 @@ class SDBWidget(QWidget):
             self.completeDialog()
 
 
-    def scatter_plotter(self, x, y, plot_color='royalblue', line_color='r', title='Scatter Plot'):
+    def scatter_plotter(self, x, y, plot_color="royalblue", line_color="r", title="Scatter Plot"):
         fig, ax = plt.subplots(figsize=(5, 5))
-        ax.scatter(x, y, marker='.', color=plot_color, facecolors='none')
+        ax.scatter(x, y, marker=".", color=plot_color, facecolors="none")
         min_val, max_val = round(np.nanmin(x)), round(np.nanmax(x))
         ax.plot([min_val, max_val], [min_val, max_val], color=line_color)
-        ax.set_xlabel('True Depth')
-        ax.set_ylabel('Predicted Depth')
+        ax.set_xlabel("True Depth")
+        ax.set_ylabel("Predicted Depth")
         ax.set_title(title)
 
         return fig, ax
 
 
     def results(self, result_dict):
-        '''
+        """
         Recieve processing results and filter the predicted value to depth
         limit window (if enabled).
         Counting runtimes using saved time values and printing result info.
-        '''
+        """
 
         global z_predict
-        z_predict = result_dict['z_predict']
-        rmse, mae, r2 = result_dict['rmse'], result_dict['mae'], result_dict['r2']
+        z_predict = result_dict["z_predict"]
+        rmse, mae, r2 = result_dict["rmse"], result_dict["mae"], result_dict["r2"]
 
         global train_data_df, test_data_df
-        train_data_df, test_data_df = result_dict['train'], result_dict['test']
+        train_data_df, test_data_df = result_dict["train"], result_dict["test"]
         train_size_percent = (train_data_df.shape[0] / 
                               (train_data_df.shape[0] + test_data_df.shape[0]) *
                               100)
 
         global sample_geodataframe, sample_dataframe
-        sample_geodataframe, sample_dataframe = result_dict['sample_edit'], result_dict['sample_df']
+        sample_geodataframe, sample_dataframe = result_dict["sample_edit"], result_dict["sample_df"]
 
         if self.limitCheckBox.isChecked() == False:
-            print('checking prediction')
+            print("checking prediction")
             z_predict[z_predict < self.limitBDSB.value()] = np.nan
             z_predict[z_predict > self.limitADSB.value()] = np.nan
 
             print_limit = (
-                'Depth Limit:\t\tfrom ' + str(self.limitADSB.value()) + ' m ' +
-                'to ' + str(self.limitBDSB.value()) + ' m'
+                "Depth Limit:\t\tfrom " + str(self.limitADSB.value()) + " m " +
+                "to " + str(self.limitBDSB.value()) + " m"
             )
         else:
             print_limit = (
-                'Depth Limit:\t\tDisabled'
+                "Depth Limit:\t\tDisabled"
             )
 
-        if proc_op_dict['auto_negative'] == True:
-            auto_negative = 'Enabled'
-        elif proc_op_dict['auto_negative'] == False:
-            auto_negative = 'Disabled'
+        if proc_op_dict["auto_negative"] == True:
+            auto_negative = "Enabled"
+        elif proc_op_dict["auto_negative"] == False:
+            auto_negative = "Disabled"
 
         time_array = np.array(time_list)
         time_diff = time_array[1:] - time_array[:-1]
@@ -1086,55 +1086,55 @@ class SDBWidget(QWidget):
 
         global print_result_info
         print_result_info = (
-            'Software Version:\t' + SDB_GUI_VERSION + '\n\n' +
-            'Image Input:\t\t' + self.imglocList.toPlainText() + ' (' +
-            str(round(img_size / 2**20, 2)) + ' MB)\n' +
-            'Sample Data:\t\t' + self.samplelocList.toPlainText() + ' (' +
-            str(round(sample_size / 2**20, 2)) + ' MB)\n\n' +
-            print_limit + '\n' +
-            'Used Sample:\t\t' + str(sample_dataframe.shape[0]) + ' points (' +
+            "Software Version:\t" + SDB_GUI_VERSION + "\n\n" +
+            "Image Input:\t\t" + self.imglocList.toPlainText() + " (" +
+            str(round(img_size / 2**20, 2)) + " MB)\n" +
+            "Sample Data:\t\t" + self.samplelocList.toPlainText() + " (" +
+            str(round(sample_size / 2**20, 2)) + " MB)\n\n" +
+            print_limit + "\n" +
+            "Used Sample:\t\t" + str(sample_dataframe.shape[0]) + " points (" +
             str(round(sample_dataframe.shape[0] / sample_raw.shape[0] * 100, 2)) +
-            '% of all sample)\n' +
-            'Train Data:\t\t' + str(train_data_df.shape[0]) + ' points (' +
-            str(round(train_size_percent, 2)) + ' % of used sample)\n' +
-            'Test Data:\t\t' + str(test_data_df.shape[0]) + ' points (' +
-            str(round((100 - train_size_percent), 2)) + ' % of used sample)\n\n' +
-            'Method:\t\t' + self.methodCB.currentText() + '\n' +
-            print_parameters_info + '\n\n'
-            'Model Performance:\n'
-            'RMSE:\t\t' + str(rmse) + '\n' +
-            'MAE:\t\t' + str(mae) + '\n' +
-            'R\u00B2:\t\t' + str(r2) + '\n\n' +
-            'Train Test Selection:\t' + str(self.trainSelectCB.currentText()) + '\n' +
-            'Parallel Backend:\t' + str(proc_op_dict['backend']) + '\n' +
-            'Processing Cores:\t' + str(proc_op_dict['n_jobs']) + '\n' +
-            'Auto Negative Sign:\t' + auto_negative + '\n\n' +
-            'Reproject Runtime:\t' + str(runtime[0]) + '\n' +
-            'Filtering Runtime:\t' + str(runtime[1]) + '\n' +
-            'Sampling Runtime:\t' + str(runtime[2]) + '\n' +
-            'Fitting Runtime:\t\t' + str(runtime[3]) + '\n' +
-            'Prediction Runtime:\t' + str(runtime[4]) + '\n' +
-            'Validating Runtime:\t' + str(runtime[5]) + '\n' +
-            'Overall Runtime:\t' + str(runtime[6]) + '\n\n' +
-            'CRS:\t\t' + str(image_raw.crs) + '\n'
-            'Dimensions:\t\t' + str(image_raw.width) + ' x ' +
-            str(image_raw.height) + ' pixels\n' +
-            'Pixel Size:\t\t' + str(pixel_size[0]) + ' , ' +
-            str(pixel_size[1]) + '\n\n'
+            "% of all sample)\n" +
+            "Train Data:\t\t" + str(train_data_df.shape[0]) + " points (" +
+            str(round(train_size_percent, 2)) + " % of used sample)\n" +
+            "Test Data:\t\t" + str(test_data_df.shape[0]) + " points (" +
+            str(round((100 - train_size_percent), 2)) + " % of used sample)\n\n" +
+            "Method:\t\t" + self.methodCB.currentText() + "\n" +
+            print_parameters_info + "\n\n"
+            "Model Performance:\n"
+            "RMSE:\t\t" + str(rmse) + "\n" +
+            "MAE:\t\t" + str(mae) + "\n" +
+            "R\u00B2:\t\t" + str(r2) + "\n\n" +
+            "Train Test Selection:\t" + str(self.trainSelectCB.currentText()) + "\n" +
+            "Parallel Backend:\t" + str(proc_op_dict["backend"]) + "\n" +
+            "Processing Cores:\t" + str(proc_op_dict["n_jobs"]) + "\n" +
+            "Auto Negative Sign:\t" + auto_negative + "\n\n" +
+            "Reproject Runtime:\t" + str(runtime[0]) + "\n" +
+            "Filtering Runtime:\t" + str(runtime[1]) + "\n" +
+            "Sampling Runtime:\t" + str(runtime[2]) + "\n" +
+            "Fitting Runtime:\t\t" + str(runtime[3]) + "\n" +
+            "Prediction Runtime:\t" + str(runtime[4]) + "\n" +
+            "Validating Runtime:\t" + str(runtime[5]) + "\n" +
+            "Overall Runtime:\t" + str(runtime[6]) + "\n\n" +
+            "CRS:\t\t" + str(image_raw.crs) + "\n"
+            "Dimensions:\t\t" + str(image_raw.width) + " x " +
+            str(image_raw.height) + " pixels\n" +
+            "Pixel Size:\t\t" + str(pixel_size[0]) + " , " +
+            str(pixel_size[1]) + "\n\n"
         )
 
         self.resultText.setText(print_result_info)
 
 
     def warningWithClear(self, warning_text):
-        '''
+        """
         Show warning dialog and customized warning text
         and then clear result info and progress bar after closing
-        '''
+        """
 
         warning = QErrorMessage()
-        warning.setWindowTitle('WARNING')
-        warning.setWindowIcon(QIcon(resource_path('icons/warning-pngrepo-com.png')))
+        warning.setWindowTitle("WARNING")
+        warning.setWindowIcon(QIcon(resource_path("icons/warning-pngrepo-com.png")))
         warning.showMessage(warning_text)
 
         warning.exec_()
@@ -1143,33 +1143,33 @@ class SDBWidget(QWidget):
 
 
     def warningWithoutClear(self, warning_text):
-        '''
+        """
         Show warning dialog and customized warning text
         without clearing result info and progress bar after closing
-        '''
+        """
 
         warning = QErrorMessage()
-        warning.setWindowTitle('WARNING')
-        warning.setWindowIcon(QIcon(resource_path('icons/warning-pngrepo-com.png')))
+        warning.setWindowTitle("WARNING")
+        warning.setWindowIcon(QIcon(resource_path("icons/warning-pngrepo-com.png")))
         warning.showMessage(warning_text)
 
         warning.exec_()
 
 
     def completeDialog(self):
-        '''
+        """
         Showing complete pop up dialog
-        '''
+        """
 
         complete = QDialog()
-        complete.setWindowTitle('Complete')
-        complete.setWindowIcon(QIcon(resource_path('icons/complete-pngrepo-com.png')))
+        complete.setWindowTitle("Complete")
+        complete.setWindowIcon(QIcon(resource_path("icons/complete-pngrepo-com.png")))
         complete.resize(180,30)
 
-        textLabel = QLabel('Tasks has been completed')
+        textLabel = QLabel("Tasks has been completed")
         textLabel.setAlignment(Qt.AlignCenter)
 
-        okButton = QPushButton('OK')
+        okButton = QPushButton("OK")
         okButton.clicked.connect(complete.close)
 
         grid = QGridLayout()
@@ -1183,73 +1183,73 @@ class SDBWidget(QWidget):
 
 
     def saveOptionWindow(self):
-        '''
+        """
         Saving option window
-        '''
+        """
 
         self.saveOptionDialog = QDialog()
-        self.saveOptionDialog.setWindowTitle('Save Options')
-        self.saveOptionDialog.setWindowIcon(QIcon(resource_path('icons/load-pngrepo-com.png')))
+        self.saveOptionDialog.setWindowTitle("Save Options")
+        self.saveOptionDialog.setWindowIcon(QIcon(resource_path("icons/load-pngrepo-com.png")))
 
         global format_dict
         format_dict = {
-            'GeoTIFF (*.tif)': 'GTiff',
-            'Erdas Imagine image (*.img)': 'HFA',
-            'ASCII Gridded XYZ (*.xyz)': 'XYZ',
-            'Bathymetry Attributed Grid (*.bag)': 'BAG'
+            "GeoTIFF (*.tif)": "GTiff",
+            "Erdas Imagine image (*.img)": "HFA",
+            "ASCII Gridded XYZ (*.xyz)": "XYZ",
+            "Bathymetry Attributed Grid (*.bag)": "BAG"
         }
 
         format_list = list(format_dict)
         format_list.sort()
 
-        dataTypeLabel = QLabel('Data Type:')
+        dataTypeLabel = QLabel("Data Type:")
         self.dataTypeCB = QComboBox()
         self.dataTypeCB.addItems(format_list)
-        self.dataTypeCB.setCurrentText('GeoTIFF (*.tif)')
+        self.dataTypeCB.setCurrentText("GeoTIFF (*.tif)")
 
-        saveFileButton = QPushButton('Save File Location')
+        saveFileButton = QPushButton("Save File Location")
         saveFileButton.clicked.connect(
             lambda:self.fileDialog(
                 command=QFileDialog.getSaveFileName,
-                window_text='Save File',
+                window_text="Save File",
                 file_type=self.dataTypeCB.currentText(),
                 text_browser=self.savelocList
             )
         )
 
-        medianFilterLabel = QLabel('Median Filter Size:')
+        medianFilterLabel = QLabel("Median Filter Size:")
         self.medianFilterSB = QSpinBox()
         self.medianFilterSB.setRange(3, 33)
         self.medianFilterSB.setValue(3)
         self.medianFilterSB.setSingleStep(2)
         self.medianFilterSB.setAlignment(Qt.AlignRight)
 
-        self.medianFilterCheckBox = QCheckBox('Disable Median Filter')
+        self.medianFilterCheckBox = QCheckBox("Disable Median Filter")
         self.medianFilterCheckBox.setChecked(False)
 
-        locLabel = QLabel('Location:')
+        locLabel = QLabel("Location:")
         self.savelocList = QTextBrowser()
 
-        self.scatterPlotCheckBox = QCheckBox('Save Scatter Plot')
+        self.scatterPlotCheckBox = QCheckBox("Save Scatter Plot")
         self.scatterPlotCheckBox.setChecked(False)
 
-        self.trainTestDataCheckBox = QCheckBox('Save Training and Testing Data in')
+        self.trainTestDataCheckBox = QCheckBox("Save Training and Testing Data in")
         self.trainTestDataCheckBox.setChecked(False)
 
         self.trainTestFormatCB = QComboBox()
-        self.trainTestFormatCB.addItems(['.csv', '.shp'])
+        self.trainTestFormatCB.addItems([".csv", ".shp"])
 
-        trainTestLabel = QLabel('format')
+        trainTestLabel = QLabel("format")
 
-        self.saveDEMCheckBox = QCheckBox('Save DEM')
+        self.saveDEMCheckBox = QCheckBox("Save DEM")
         self.saveDEMCheckBox.setChecked(True)
 
-        self.reportCheckBox = QCheckBox('Save Report')
+        self.reportCheckBox = QCheckBox("Save Report")
         self.reportCheckBox.setChecked(True)
 
-        cancelButton = QPushButton('Cancel')
+        cancelButton = QPushButton("Cancel")
         cancelButton.clicked.connect(self.saveOptionDialog.close)
-        saveButton = QPushButton('Save')
+        saveButton = QPushButton("Save")
         saveButton.clicked.connect(self.saveAction)
         saveButton.clicked.connect(self.saveOptionDialog.close)
 
@@ -1283,28 +1283,28 @@ class SDBWidget(QWidget):
 
 
     def saveAction(self):
-        '''
+        """
         Saving predicted depth, training and testing data, and/or report into file.
         Applying median filter (or not) to the predicted depth array before saving.
-        '''
+        """
 
         try:
             z_img_ar = z_predict.reshape(image_raw.height, image_raw.width)
 
             if self.medianFilterCheckBox.isChecked() == False:
                 print_filter_info = (
-                    'Median Filter Size:\t' + str(self.medianFilterSB.value())
+                    "Median Filter Size:\t" + str(self.medianFilterSB.value())
                 )
                 z_img_ar = ndimage.median_filter(z_img_ar, size=self.medianFilterSB.value())
             else:
                 print_filter_info = (
-                    'Median Filter Size:\tDisabled'
+                    "Median Filter Size:\tDisabled"
                 )
 
             test_data_df_new = test_data_df.copy()
             new_img = rio.open(
                 self.savelocList.toPlainText(),
-                'w+',
+                "w+",
                 driver=format_dict[self.dataTypeCB.currentText()],
                 height=image_raw.height,
                 width=image_raw.width,
@@ -1315,11 +1315,11 @@ class SDBWidget(QWidget):
             )
             new_img.write(z_img_ar, 1)
 
-            with parallel_backend(proc_op_dict['backend'], n_jobs=proc_op_dict['n_jobs']):
+            with parallel_backend(proc_op_dict["backend"], n_jobs=proc_op_dict["n_jobs"]):
                 row, col = np.array(image_raw.index(test_data_df_new.x, test_data_df_new.y))
                 dem_band = new_img.read()[:, row, col].T
 
-            z_result = pd.DataFrame(dem_band, columns=['z_result'])
+            z_result = pd.DataFrame(dem_band, columns=["z_result"])
             test_data_df_new = pd.concat([test_data_df_new, z_result], axis=1)
             rmse_result = np.sqrt(metrics.mean_squared_error(test_data_df_new.z, z_result))
             mae_result = metrics.mean_absolute_error(test_data_df_new.z, z_result)
@@ -1328,39 +1328,39 @@ class SDBWidget(QWidget):
             new_img.close()
 
             print_result_stat_info = (
-                'Result Accuracy:\n'
-                'RMSE:\t\t' + str(rmse_result) + '\n' +
-                'MAE:\t\t' + str(mae_result) + '\n' +
-                'R\u00B2:\t\t' + str(r2_result) + '\n\n'
+                "Result Accuracy:\n"
+                "RMSE:\t\t" + str(rmse_result) + "\n" +
+                "MAE:\t\t" + str(mae_result) + "\n" +
+                "R\u00B2:\t\t" + str(r2_result) + "\n\n"
             )
 
             if self.saveDEMCheckBox.isChecked() == True:
                 new_img_size = os.path.getsize(self.savelocList.toPlainText())
                 print_dem_info = (
-                    print_filter_info + '\n\n'
-                    'DEM Output:\t\t' + self.savelocList.toPlainText() + ' (' +
-                    str(round(new_img_size / 2**10 / 2**10, 2)) + ' MB)\n'
+                    print_filter_info + "\n\n"
+                    "DEM Output:\t\t" + self.savelocList.toPlainText() + " (" +
+                    str(round(new_img_size / 2**10 / 2**10, 2)) + " MB)\n"
                 )
             elif self.saveDEMCheckBox.isChecked() == False:
                 os.remove(self.savelocList.toPlainText())
                 print_dem_info = (
-                    'DEM Output:\t\tNot Saved\n'
+                    "DEM Output:\t\tNot Saved\n"
                 )
 
             if self.trainTestDataCheckBox.isChecked() == True:
                 train_save_loc = (
                     os.path.splitext(self.savelocList.toPlainText())[0] +
-                    '_train' + self.trainTestFormatCB.currentText()
+                    "_train" + self.trainTestFormatCB.currentText()
                 )
                 test_save_loc = (
                     os.path.splitext(self.savelocList.toPlainText())[0] +
-                    '_test' + self.trainTestFormatCB.currentText()
+                    "_test" + self.trainTestFormatCB.currentText()
                 )
 
-                if self.trainTestFormatCB.currentText() == '.csv':
+                if self.trainTestFormatCB.currentText() == ".csv":
                     train_data_df.to_csv(train_save_loc, index=False)
                     test_data_df_new.to_csv(test_save_loc, index=False)
-                elif self.trainTestFormatCB.currentText() == '.shp':
+                elif self.trainTestFormatCB.currentText() == ".shp":
                     train_data_gdf = gpd.GeoDataFrame(
                         train_data_df.copy(),
                         geometry=gpd.points_from_xy(
@@ -1387,21 +1387,21 @@ class SDBWidget(QWidget):
                 test_data_size = os.path.getsize(test_save_loc)
 
                 print_train_test_info = (
-                    'Train Data Output:\t' + train_save_loc + ' (' +
-                    str(round(train_data_size / 2**10 / 2**10, 2)) + ' MB)\n'
-                    'Test Data output:\t' + test_save_loc + ' (' +
-                    str(round(test_data_size / 2**10 / 2**10, 2)) + ' MB)\n'
+                    "Train Data Output:\t" + train_save_loc + " (" +
+                    str(round(train_data_size / 2**10 / 2**10, 2)) + " MB)\n"
+                    "Test Data output:\t" + test_save_loc + " (" +
+                    str(round(test_data_size / 2**10 / 2**10, 2)) + " MB)\n"
                 )
             elif self.trainTestDataCheckBox.isChecked() == False:
                 print_train_test_info = (
-                    'Train Data Output:\tNot Saved\n'
-                    'Test Data output:\tNot Saved\n'
+                    "Train Data Output:\tNot Saved\n"
+                    "Test Data output:\tNot Saved\n"
                 )
 
             if self.scatterPlotCheckBox.isChecked() == True:
                 scatter_plot_loc = (
                     os.path.splitext(self.savelocList.toPlainText())[0] +
-                    '_scatter_plot.png'
+                    "_scatter_plot.png"
                 )
                 scatter_plot_fig, scatter_plot_ax = self.scatter_plotter(
                     x=test_data_df_new.z,
@@ -1413,11 +1413,11 @@ class SDBWidget(QWidget):
                 scatter_plot_size = os.path.getsize(scatter_plot_loc)
 
                 print_scatter_plot_info = (
-                    'Scatter Plot:\t' + scatter_plot_loc + ' (' +
-                    str(round(scatter_plot_size / 2**10, 2)) + ' KB)\n'
+                    "Scatter Plot:\t" + scatter_plot_loc + " (" +
+                    str(round(scatter_plot_size / 2**10, 2)) + " KB)\n"
                 )
             elif self.scatterPlotCheckBox.isChecked() == False:
-                print_scatter_plot_info = 'Scatter Plot:\tNotSaved\n'
+                print_scatter_plot_info = "Scatter Plot:\tNotSaved\n"
 
             self.resultText.append(print_dem_info)
             self.resultText.append(print_train_test_info)
@@ -1426,9 +1426,9 @@ class SDBWidget(QWidget):
             if self.reportCheckBox.isChecked() == True:
                 report_save_loc = (
                     os.path.splitext(self.savelocList.toPlainText())[0] +
-                    '_report.txt'
+                    "_report.txt"
                 )
-                report = open(report_save_loc, 'w')
+                report = open(report_save_loc, "w")
 
                 report.write(
                     print_result_info +
@@ -1440,29 +1440,29 @@ class SDBWidget(QWidget):
         except:
             self.saveOptionDialog.close()
             self.warningWithoutClear(
-                'Please insert save location!'
+                "Please insert save location!"
             )
             self.saveOptionWindow()
 
 
     def licensesDialog(self):
-        '''
+        """
         Showing the license of SDB GUI and another library licenses
-        '''
+        """
 
         licenses = QDialog()
-        licenses.setWindowTitle('Licenses')
-        licenses.setWindowIcon(QIcon(resource_path('icons/information-pngrepo-com.png')))
+        licenses.setWindowTitle("Licenses")
+        licenses.setWindowIcon(QIcon(resource_path("icons/information-pngrepo-com.png")))
         licenses.resize(600, 380)
 
         license_dict = {
-            'SDB GUI': 'LICENSE',
-            'NumPy': 'licenses/numpy_license',
-            'Scipy': 'licenses/scipy_license',
-            'Pandas': 'licenses/pandas_license',
-            'Rasterio': 'licenses/rasterio_license',
-            'GeoPandas': 'licenses/geopandas_license',
-            'Scikit Learn': 'licenses/scikit-learn_license'
+            "SDB GUI": "LICENSE",
+            "NumPy": "licenses/numpy_license",
+            "Scipy": "licenses/scipy_license",
+            "Pandas": "licenses/pandas_license",
+            "Rasterio": "licenses/rasterio_license",
+            "GeoPandas": "licenses/geopandas_license",
+            "Scikit Learn": "licenses/scikit-learn_license"
         }
         license_list = list(license_dict)
 
@@ -1474,11 +1474,11 @@ class SDBWidget(QWidget):
             )
         )
 
-        license_file = open(resource_path('LICENSE'), 'r')
+        license_file = open(resource_path("LICENSE"), "r")
         self.licenseText = QTextBrowser()
         self.licenseText.setText(license_file.read())
 
-        okButton = QPushButton('OK')
+        okButton = QPushButton("OK")
         okButton.clicked.connect(licenses.close)
 
         grid = QGridLayout()
@@ -1493,21 +1493,21 @@ class SDBWidget(QWidget):
 
 
     def licenseSelection(self, location):
-        '''
+        """
         Selecting license file location
-        '''
+        """
 
-        license_file = open(resource_path(location), 'r')
+        license_file = open(resource_path(location), "r")
         self.licenseText.setText(license_file.read())
 
 
 
 class Process(QThread):
-    '''
+    """
     Data processing class of SDB GUI.
     Sending inputs from SDBWidget to process in the background
-    so the GUI won't freeze while processing data.
-    '''
+    so the GUI won"t freeze while processing data.
+    """
 
     thread_signal = pyqtSignal(dict)
     time_signal = pyqtSignal(list)
@@ -1519,35 +1519,35 @@ class Process(QThread):
         QThread.__init__(self)
 
         self.method_dict = {
-            'K-Nearest Neighbors': self.knnPredict,
-            'Multiple Linear Regression': self.mlrPredict,
-            'Random Forest': self.rfPredict, 
-            'Support Vector Machines': self.svmPredict
+            "K-Nearest Neighbors": self.knnPredict,
+            "Multiple Linear Regression": self.mlrPredict,
+            "Random Forest": self.rfPredict, 
+            "Support Vector Machines": self.svmPredict
         }
 
 
     def inputs(self, input_dict):
-        '''
+        """
         Pooling inputs from widget
-        '''
+        """
 
-        self.depth_label = input_dict['depth_label']
-        self.limit_state = input_dict['limit_state']
-        self.limit_a_value = input_dict['limit_a']
-        self.limit_b_value = input_dict['limit_b']
-        self.method = input_dict['method']
-        self.train_select = input_dict['train_select']
-        self.selection = input_dict['selection']
+        self.depth_label = input_dict["depth_label"]
+        self.limit_state = input_dict["limit_state"]
+        self.limit_a_value = input_dict["limit_a"]
+        self.limit_b_value = input_dict["limit_b"]
+        self.method = input_dict["method"]
+        self.train_select = input_dict["train_select"]
+        self.selection = input_dict["selection"]
 
 
     def preprocess(self):
-        '''
+        """
         Preparing input values from widget to use on 
         training models and predicting depth by reprojecting 
         depth sample CRS, sampling raster value and depth value, 
         and then limiting or not limiting depth value.
-        '''
-        print('Pre Processing')
+        """
+        print("Pre Processing")
 
         time_start = datetime.datetime.now()
 
@@ -1556,20 +1556,20 @@ class Process(QThread):
 
         # Reproject sample CRS
         if image_crs != sample_crs:
-            start_list = [time_start, 'Reprojecting...\n']
+            start_list = [time_start, "Reprojecting...\n"]
             self.time_signal.emit(start_list)
 
             sample_edit = sample_raw.to_crs(image_crs)
         else:
-            start_list = [time_start, 'Skip Reproject...\n']
+            start_list = [time_start, "Skip Reproject...\n"]
             self.time_signal.emit(start_list)
 
             sample_edit = sample_raw.copy()
 
         # Filtering
-        if proc_op_dict['exclude_outside'] == True:
+        if proc_op_dict["exclude_outside"] == True:
             time_reproj = datetime.datetime.now()
-            reproj_list = [time_reproj, 'Filtering Out of Bound Points...\n']
+            reproj_list = [time_reproj, "Filtering Out of Bound Points...\n"]
             self.time_signal.emit(reproj_list)
 
             # Image boundary coordinates
@@ -1578,35 +1578,35 @@ class Process(QThread):
 
             # Filter out of bound points and reset index count
             sample_edit = sample_edit[
-                (sample_edit['geometry'].x > x0) &
-                (sample_edit['geometry'].x < x1) &
-                (sample_edit['geometry'].y > y0) &
-                (sample_edit['geometry'].y < y1)
+                (sample_edit["geometry"].x > x0) &
+                (sample_edit["geometry"].x < x1) &
+                (sample_edit["geometry"].y > y0) &
+                (sample_edit["geometry"].y < y1)
             ].reset_index(drop=True)
-        elif proc_op_dict['exclude_outside'] == False:
+        elif proc_op_dict["exclude_outside"] == False:
             time_reproj = datetime.datetime.now()
-            reproj_list = [time_reproj, 'Skip Filtering Out of Bound Points...\n']
+            reproj_list = [time_reproj, "Skip Filtering Out of Bound Points...\n"]
             self.time_signal.emit(reproj_list)
 
         time_filter = datetime.datetime.now()
-        filter_list = [time_filter, 'Point Sampling...\n']
+        filter_list = [time_filter, "Point Sampling...\n"]
         self.time_signal.emit(filter_list)
 
-        if self.train_select == 'Random Selection':
+        if self.train_select == "Random Selection":
             features_all, z, sample_df = self.pointSampling(data_in=sample_edit)
 
             features_all_train, features_all_test, z_train, z_test = train_test_split(
                 features_all,
                 z,
-                train_size=self.selection['train_size'],
-                random_state=self.selection['random_state']
+                train_size=self.selection["train_size"],
+                random_state=self.selection["random_state"]
             )
-        elif self.train_select == 'Attribute Selection':
-            train = sample_edit[sample_edit[self.selection['header']] == self.selection['group']]
+        elif self.train_select == "Attribute Selection":
+            train = sample_edit[sample_edit[self.selection["header"]] == self.selection["group"]]
             train =  train.reset_index(drop=True)
             features_all_train, z_train, sample_df_train = self.pointSampling(data_in=train)
 
-            test = sample_edit[sample_edit[self.selection['header']] != self.selection['group']]
+            test = sample_edit[sample_edit[self.selection["header"]] != self.selection["group"]]
             test = test.reset_index(drop=True)
             features_all_test, z_test, sample_df_test = self.pointSampling(data_in=test)
 
@@ -1636,172 +1636,172 @@ class Process(QThread):
 
 
     def pointSampling(self, data_in):
-        '''
+        """
         Point sampling, execute auto negative, and depth limit filter
-        '''
-        print('Point sampling')
+        """
+        print("Point sampling")
 
-        shp_geo = data_in['geometry']
+        shp_geo = data_in["geometry"]
 
         col_names = []
 
         # Point Sampling
-        with parallel_backend(proc_op_dict['backend'], n_jobs=proc_op_dict['n_jobs']):
+        with parallel_backend(proc_op_dict["backend"], n_jobs=proc_op_dict["n_jobs"]):
 
             row, col = np.array(image_raw.index(shp_geo.x, shp_geo.y))
             bands = image_raw.read()[:, row, col].T
 
             for i in image_raw.indexes:
-                col_names.append('band' + str(i))
+                col_names.append("band" + str(i))
 
         data_edit = pd.DataFrame(bands, columns=col_names)
-        data_edit['x'], data_edit['y'] = shp_geo.x, shp_geo.y
-        data_edit['z'] = data_in[self.depth_label]
+        data_edit["x"], data_edit["y"] = shp_geo.x, shp_geo.y
+        data_edit["z"] = data_in[self.depth_label]
 
         # Filter inf and -inf values
         data_edit = data_edit[data_edit != np.inf]
         data_edit = data_edit[data_edit != -np.inf].dropna()
 
         # Auto Negative
-        if proc_op_dict['auto_negative'] == True and np.median(data_edit['z']) > 0:
-            data_edit['z'] = data_edit['z'] * -1
+        if proc_op_dict["auto_negative"] == True and np.median(data_edit["z"]) > 0:
+            data_edit["z"] = data_edit["z"] * -1
 
         # Depth limit
         if self.limit_state == False:
-            data_edit = data_edit[data_edit['z'] >= self.limit_b_value]
-            data_edit = data_edit[data_edit['z'] <= self.limit_a_value]
+            data_edit = data_edit[data_edit["z"] >= self.limit_b_value]
+            data_edit = data_edit[data_edit["z"] <= self.limit_a_value]
 
         features_all = data_edit.iloc[:, 0:-1]
-        z = data_edit['z']
+        z = data_edit["z"]
 
         return features_all, z, data_edit
 
 
     def knnPredict(self):
-        '''
+        """
         Preparing KNN prediction and saving selected parameters
         for report
-        '''
-        print('knnPredict')
+        """
+        print("knnPredict")
 
         parameters = self.preprocess()
 
         regressor = KNeighborsRegressor(
-            n_neighbors=knn_op_dict['n_neighbors'],
-            weights=knn_op_dict['weights'],
-            algorithm=knn_op_dict['algorithm'],
-            leaf_size=knn_op_dict['leaf_size']
+            n_neighbors=knn_op_dict["n_neighbors"],
+            weights=knn_op_dict["weights"],
+            algorithm=knn_op_dict["algorithm"],
+            leaf_size=knn_op_dict["leaf_size"]
         )
 
         parameters.append(regressor)
 
         global print_parameters_info
         print_parameters_info = (
-            'N Neighbors:\t\t' + str(knn_op_dict['n_neighbors']) + '\n' +
-            'Weights:\t\t' + str(knn_op_dict['weights']) + '\n' +
-            'Algorithm:\t\t' + str(knn_op_dict['algorithm']) + '\n' +
-            'Leaf Size:\t\t' + str(knn_op_dict['leaf_size'])
+            "N Neighbors:\t\t" + str(knn_op_dict["n_neighbors"]) + "\n" +
+            "Weights:\t\t" + str(knn_op_dict["weights"]) + "\n" +
+            "Algorithm:\t\t" + str(knn_op_dict["algorithm"]) + "\n" +
+            "Leaf Size:\t\t" + str(knn_op_dict["leaf_size"])
         )
 
         return parameters
 
 
     def mlrPredict(self):
-        '''
+        """
         Preparing MLR prediction and saving selected parameters
         for report
-        '''
-        print('mlrPredict')
+        """
+        print("mlrPredict")
 
         parameters = self.preprocess()
 
         regressor = LinearRegression(
-            fit_intercept=mlr_op_dict['fit_intercept'],
-            normalize=mlr_op_dict['normalize'],
-            copy_X=mlr_op_dict['copy_x']
+            fit_intercept=mlr_op_dict["fit_intercept"],
+            normalize=mlr_op_dict["normalize"],
+            copy_X=mlr_op_dict["copy_x"]
         )
 
         parameters.append(regressor)
 
         global print_parameters_info
         print_parameters_info = (
-            'Fit Intercept:\t\t' + str(mlr_op_dict['fit_intercept']) + '\n' +
-            'Normalize:\t\t' + str(mlr_op_dict['normalize']) + '\n' +
-            'Copy X:\t\t' + str(mlr_op_dict['copy_x'])
+            "Fit Intercept:\t\t" + str(mlr_op_dict["fit_intercept"]) + "\n" +
+            "Normalize:\t\t" + str(mlr_op_dict["normalize"]) + "\n" +
+            "Copy X:\t\t" + str(mlr_op_dict["copy_x"])
         )
 
         return parameters
 
 
     def rfPredict(self):
-        '''
+        """
         Preparing RF prediction and saving selected parameters
         for report
-        '''
-        print('rfPredict')
+        """
+        print("rfPredict")
 
         parameters = self.preprocess()
 
         regressor = RandomForestRegressor(
-            n_estimators=rf_op_dict['n_estimators'],
-            criterion=rf_op_dict['criterion'],
-            bootstrap=rf_op_dict['bootstrap'],
-            random_state=rf_op_dict['random_state'])
+            n_estimators=rf_op_dict["n_estimators"],
+            criterion=rf_op_dict["criterion"],
+            bootstrap=rf_op_dict["bootstrap"],
+            random_state=rf_op_dict["random_state"])
 
         parameters.append(regressor)
 
         global print_parameters_info
         print_parameters_info = (
-            'N Trees:\t\t' + str(rf_op_dict['n_estimators']) + '\n' +
-            'Criterion:\t\t' + str(rf_op_dict['criterion']) + '\n' +
-            'Bootstrap:\t\t' + str(rf_op_dict['bootstrap']) + '\n' +
-            'Random State:\t\t' + str(rf_op_dict['random_state'])
+            "N Trees:\t\t" + str(rf_op_dict["n_estimators"]) + "\n" +
+            "Criterion:\t\t" + str(rf_op_dict["criterion"]) + "\n" +
+            "Bootstrap:\t\t" + str(rf_op_dict["bootstrap"]) + "\n" +
+            "Random State:\t\t" + str(rf_op_dict["random_state"])
         )
 
         return parameters
 
 
     def svmPredict(self):
-        '''
+        """
         Preparing SVM prediction and saving selected parameters
         for report
-        '''
-        print('svmPredict')
+        """
+        print("svmPredict")
 
         parameters = self.preprocess()
 
         regressor = SVR(
-            kernel=svm_op_dict['kernel'],
-            gamma=svm_op_dict['gamma'],
-            C=svm_op_dict['c'],
-            degree=svm_op_dict['degree'],
+            kernel=svm_op_dict["kernel"],
+            gamma=svm_op_dict["gamma"],
+            C=svm_op_dict["c"],
+            degree=svm_op_dict["degree"],
             cache_size=8000)
 
         parameters.append(regressor)
 
         global print_parameters_info
         print_parameters_info = (
-            'Kernel:\t\t' + str(svm_op_dict['kernel']) +'\n' +
-            'Gamma:\t\t' + str(svm_op_dict['gamma']) + '\n' +
-            'C:\t\t' + str(svm_op_dict['c'])
+            "Kernel:\t\t" + str(svm_op_dict["kernel"]) +"\n" +
+            "Gamma:\t\t" + str(svm_op_dict["gamma"]) + "\n" +
+            "C:\t\t" + str(svm_op_dict["c"])
         )
 
-        if svm_op_dict['kernel'] == 'poly':
+        if svm_op_dict["kernel"] == "poly":
             print_parameters_info = (
-                print_parameters_info + '\n' +
-                'Degree:\t\t' + str(svm_op_dict['degree'])
+                print_parameters_info + "\n" +
+                "Degree:\t\t" + str(svm_op_dict["degree"])
             )
 
         return parameters
 
 
     def run(self):
-        '''
+        """
         Taking pre processed input and chosen method, then 
         fitting training data to chosen model and generate prediction
         based on trained model.
-        '''
-        print('Process run')
+        """
+        print("Process run")
 
         try:
             parameters = self.method_dict[self.method]()
@@ -1813,54 +1813,54 @@ class Process(QThread):
             regressor = parameters[-1]
 
             time_sampling = datetime.datetime.now()
-            sampling_list = [time_sampling, 'Fitting...\n']
+            sampling_list = [time_sampling, "Fitting...\n"]
             self.time_signal.emit(sampling_list)
 
-            with parallel_backend(proc_op_dict['backend'], n_jobs=proc_op_dict['n_jobs']):
+            with parallel_backend(proc_op_dict["backend"], n_jobs=proc_op_dict["n_jobs"]):
 
                 regressor.fit(features_train, z_train)
                 time_fit = datetime.datetime.now()
-                fit_list = [time_fit, 'Predicting...\n']
+                fit_list = [time_fit, "Predicting...\n"]
                 self.time_signal.emit(fit_list)
 
                 z_predict = regressor.predict(bands_array)
                 time_predict = datetime.datetime.now()
-                predict_list = [time_predict,'Validating...\n']
+                predict_list = [time_predict,"Validating...\n"]
                 self.time_signal.emit(predict_list)
 
                 z_validate = regressor.predict(features_test)
                 rmse = np.sqrt(metrics.mean_squared_error(z_test, z_validate))
                 mae = metrics.mean_absolute_error(z_test, z_validate)
                 r2 = metrics.r2_score(z_test, z_validate)
-                z_validate_df = pd.DataFrame({'z_validate': z_validate})
+                z_validate_df = pd.DataFrame({"z_validate": z_validate})
                 test_data_update = pd.concat([parameters[5], z_validate_df], axis=1)
                 time_test = datetime.datetime.now()
-                test_list = [time_test, 'Done.']
+                test_list = [time_test, "Done."]
                 self.time_signal.emit(test_list)
 
             result = {
-                'z_predict': z_predict,
-                'rmse': rmse,
-                'mae': mae,
-                'r2': r2,
-                'train': parameters[4],
-                'test': test_data_update,
-                'sample_edit': parameters[6],
-                'sample_df': parameters[7]
+                "z_predict": z_predict,
+                "rmse": rmse,
+                "mae": mae,
+                "r2": r2,
+                "train": parameters[4],
+                "test": test_data_update,
+                "sample_edit": parameters[6],
+                "sample_df": parameters[7]
             }
 
             self.thread_signal.emit(result)
         except NameError:
             self.warning_with_clear.emit(
-                'No image data loaded. Please load your image data!'
+                "No image data loaded. Please load your image data!"
             )
         except IndexError:
             self.warning_with_clear.emit(
-                'Depth sample is out of image boundary'
+                "Depth sample is out of image boundary"
             )
         except KeyError:
             self.warning_with_clear.emit(
-                'Please select attribute header and group in Processing Options'
+                "Please select attribute header and group in Processing Options"
             )
 
 
@@ -1872,7 +1872,7 @@ def main():
     sdb.show()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = QApplication(sys.argv)
     main()
     sys.exit(app.exec_())
