@@ -67,7 +67,7 @@ import rasterio.vrt
 ###############################################################################
 ###############################################################################
 
-SDB_GUI_VERSION = "3.5.1"
+SDB_GUI_VERSION = "3.6.1"
 
 def resource_path(relative_path):
     """Get the absolute path to the resource, works for dev and for PyInstaller"""
@@ -105,11 +105,16 @@ class SDBWidget(QWidget):
 
         self.dir_path = os.path.abspath(Path.home())
 
+        global depth_dir_dict
+        depth_dir_dict = {
+            "Positive Up": False,
+            "Positive Down": True
+        }
+
         global proc_op_dict
         proc_op_dict = {
             "backend": "threading",
             "n_jobs": -2,
-            "auto_negative": True,
             "exclude_outside": True,
             "selection" : {
                 "train_size": 0.75,
@@ -182,6 +187,12 @@ class SDBWidget(QWidget):
 
         depthHeaderLabel = QLabel("Depth Header:")
         self.depthHeaderCB = QComboBox()
+
+        direction_list = list(depth_dir_dict.keys())
+
+        depthDirectionLabel = QLabel("Depth Direction:")
+        self.depthDirectionCB =QComboBox()
+        self.depthDirectionCB.addItems(direction_list)
 
         self.table = QTableWidget()
         scroll = QScrollArea()
@@ -269,7 +280,9 @@ class SDBWidget(QWidget):
         grid1.addWidget(self.loadSampleLabel, 2, 2, 1, 3)
 
         grid1.addWidget(depthHeaderLabel, 3, 1, 1, 1)
-        grid1.addWidget(self.depthHeaderCB, 3, 2, 1, 3)
+        grid1.addWidget(self.depthHeaderCB, 3, 2, 1, 1)
+        grid1.addWidget(depthDirectionLabel, 3, 3, 1, 1)
+        grid1.addWidget(self.depthDirectionCB, 3, 4, 1, 1)
 
         grid1.addWidget(self.table, 4, 1, 5, 4)
 
@@ -836,9 +849,6 @@ class SDBWidget(QWidget):
             self.njobsSB.setValue(proc_op_dict["n_jobs"])
             self.njobsSB.setAlignment(Qt.AlignRight)
 
-            self.autoNegativeCB = QCheckBox("Auto negative sign")
-            self.autoNegativeCB.setChecked(proc_op_dict["auto_negative"])
-
             self.excludeOutsideCB = QCheckBox("Exclude points which out of image boundary")
             self.excludeOutsideCB.setChecked(proc_op_dict["exclude_outside"])
 
@@ -883,25 +893,23 @@ class SDBWidget(QWidget):
             grid.addWidget(njobsLabel, 2, 1, 1, 2)
             grid.addWidget(self.njobsSB, 2, 3, 1, 2)
 
-            grid.addWidget(self.autoNegativeCB, 3, 1, 1, 4)
-
-            grid.addWidget(self.excludeOutsideCB, 4, 1, 1, 4)
+            grid.addWidget(self.excludeOutsideCB, 3, 1, 1, 4)
 
             if self.trainSelectCB.currentText() == "Random Selection":
-                grid.addWidget(trainPercentLabel, 5, 1, 1, 2)
-                grid.addWidget(self.trainPercentDSB, 5, 3, 1, 2)
+                grid.addWidget(trainPercentLabel, 4, 1, 1, 2)
+                grid.addWidget(self.trainPercentDSB, 4, 3, 1, 2)
 
-                grid.addWidget(randomStateLabel, 6, 1, 1, 2)
-                grid.addWidget(self.randomStateProcSB, 6, 3, 1, 2)
+                grid.addWidget(randomStateLabel, 5, 1, 1, 2)
+                grid.addWidget(self.randomStateProcSB, 5, 3, 1, 2)
             elif self.trainSelectCB.currentText() == "Attribute Selection":
-                grid.addWidget(headerSelectLabel, 5, 1, 1, 2)
-                grid.addWidget(self.headerSelectCB, 5, 3, 1, 2)
+                grid.addWidget(headerSelectLabel, 4, 1, 1, 2)
+                grid.addWidget(self.headerSelectCB, 4, 3, 1, 2)
 
-                grid.addWidget(groupSelectLabel, 6, 1, 1, 2)
-                grid.addWidget(self.groupSelectCB, 6, 3, 1, 2)
+                grid.addWidget(groupSelectLabel, 5, 1, 1, 2)
+                grid.addWidget(self.groupSelectCB, 5, 3, 1, 2)
 
-            grid.addWidget(loadButton, 7, 3, 1, 1)
-            grid.addWidget(cancelButton, 7, 4, 1, 1)
+            grid.addWidget(loadButton, 6, 3, 1, 1)
+            grid.addWidget(cancelButton, 6, 4, 1, 1)
 
             self.processingOptionDialog.setLayout(grid)
 
@@ -926,7 +934,6 @@ class SDBWidget(QWidget):
         else:
             proc_op_dict["backend"] = self.backendCB.currentText()
             proc_op_dict["n_jobs"] = self.njobsSB.value()
-            proc_op_dict["auto_negative"] = self.autoNegativeCB.isChecked()
             proc_op_dict["exclude_outside"] = self.excludeOutsideCB.isChecked()
             if self.trainSelectCB.currentText() == "Random Selection":
                 proc_op_dict["selection"] = {
@@ -984,6 +991,7 @@ class SDBWidget(QWidget):
         time_list = []
         init_input = {
             "depth_label": self.depthHeaderCB.currentText(),
+            "depth_direction": self.depthDirectionCB.currentText(),
             "limit_state": self.limitCheckBox.isChecked(),
             "limit_a": self.limitADSB.value(),
             "limit_b": self.limitBDSB.value(),
@@ -1071,11 +1079,6 @@ class SDBWidget(QWidget):
                 "Depth Limit:\t\tDisabled"
             )
 
-        if proc_op_dict["auto_negative"] == True:
-            auto_negative = "Enabled"
-        elif proc_op_dict["auto_negative"] == False:
-            auto_negative = "Disabled"
-
         time_array = np.array(time_list)
         time_diff = time_array[1:] - time_array[:-1]
         runtime = np.append(time_diff, time_list[-1] - time_list[0])
@@ -1090,7 +1093,9 @@ class SDBWidget(QWidget):
             "Image Input:\t\t" + self.imglocList.toPlainText() + " (" +
             str(round(img_size / 2**20, 2)) + " MB)\n" +
             "Sample Data:\t\t" + self.samplelocList.toPlainText() + " (" +
-            str(round(sample_size / 2**20, 2)) + " MB)\n\n" +
+            str(round(sample_size / 2**20, 2)) + " MB)\n" +
+            "Selected Header:\t" + str(self.depthHeaderCB.currentText()) + "\n" +
+            "Depth Direction:\t\t" + str(self.depthDirectionCB.currentText()) + "\n\n" +
             print_limit + "\n" +
             "Used Sample:\t\t" + str(sample_dataframe.shape[0]) + " points (" +
             str(round(sample_dataframe.shape[0] / sample_raw.shape[0] * 100, 2)) +
@@ -1108,7 +1113,6 @@ class SDBWidget(QWidget):
             "Train Test Selection:\t" + str(self.trainSelectCB.currentText()) + "\n" +
             "Parallel Backend:\t" + str(proc_op_dict["backend"]) + "\n" +
             "Processing Cores:\t" + str(proc_op_dict["n_jobs"]) + "\n" +
-            "Auto Negative Sign:\t" + auto_negative + "\n\n" +
             "Reproject Runtime:\t" + str(runtime[0]) + "\n" +
             "Filtering Runtime:\t" + str(runtime[1]) + "\n" +
             "Sampling Runtime:\t" + str(runtime[2]) + "\n" +
@@ -1207,15 +1211,11 @@ class SDBWidget(QWidget):
         self.dataTypeCB.addItems(format_list)
         self.dataTypeCB.setCurrentText("GeoTIFF (*.tif)")
 
-        saveFileButton = QPushButton("Save File Location")
-        saveFileButton.clicked.connect(
-            lambda:self.fileDialog(
-                command=QFileDialog.getSaveFileName,
-                window_text="Save File",
-                file_type=self.dataTypeCB.currentText(),
-                text_browser=self.savelocList
-            )
-        )
+        direction_list = list(depth_dir_dict.keys())
+
+        depthDirectionSaveLabel = QLabel("Depth Direction:")
+        self.depthDirectionSaveCB = QComboBox()
+        self.depthDirectionSaveCB.addItems(direction_list)
 
         medianFilterLabel = QLabel("Median Filter Size:")
         self.medianFilterSB = QSpinBox()
@@ -1226,6 +1226,16 @@ class SDBWidget(QWidget):
 
         self.medianFilterCheckBox = QCheckBox("Disable Median Filter")
         self.medianFilterCheckBox.setChecked(False)
+
+        saveFileButton = QPushButton("Save File Location")
+        saveFileButton.clicked.connect(
+            lambda:self.fileDialog(
+                command=QFileDialog.getSaveFileName,
+                window_text="Save File",
+                file_type=self.dataTypeCB.currentText(),
+                text_browser=self.savelocList
+            )
+        )
 
         locLabel = QLabel("Location:")
         self.savelocList = QTextBrowser()
@@ -1254,28 +1264,31 @@ class SDBWidget(QWidget):
         saveButton.clicked.connect(self.saveOptionDialog.close)
 
         grid = QGridLayout()
-        grid.addWidget(dataTypeLabel, 1, 1, 1, 2)
+        grid.addWidget(dataTypeLabel, 1, 1, 1, 1)
         grid.addWidget(self.dataTypeCB, 1, 2, 1, 3)
 
-        grid.addWidget(medianFilterLabel, 2, 1, 1, 1)
-        grid.addWidget(self.medianFilterSB, 2, 2, 1, 1)
-        grid.addWidget(self.medianFilterCheckBox, 2, 3, 1, 2)
+        grid.addWidget(depthDirectionSaveLabel, 2, 1, 1, 1)
+        grid.addWidget(self.depthDirectionSaveCB, 2, 2, 1, 3)
 
-        grid.addWidget(saveFileButton, 3, 1, 1, 4)
+        grid.addWidget(medianFilterLabel, 3, 1, 1, 1)
+        grid.addWidget(self.medianFilterSB, 3, 2, 1, 1)
+        grid.addWidget(self.medianFilterCheckBox, 3, 3, 1, 2)
 
-        grid.addWidget(locLabel, 4, 1, 1, 4)
-        grid.addWidget(self.savelocList, 5, 1, 1, 4)
+        grid.addWidget(saveFileButton, 4, 1, 1, 4)
 
-        grid.addWidget(self.scatterPlotCheckBox, 6, 1, 1, 2)
+        grid.addWidget(locLabel, 5, 1, 1, 4)
+        grid.addWidget(self.savelocList, 6, 1, 1, 4)
 
-        grid.addWidget(self.trainTestDataCheckBox, 7, 1, 1, 2)
-        grid.addWidget(self.trainTestFormatCB, 7, 3, 1, 1)
-        grid.addWidget(trainTestLabel, 7, 4, 1, 1)
+        grid.addWidget(self.scatterPlotCheckBox, 7, 1, 1, 2)
 
-        grid.addWidget(self.saveDEMCheckBox, 8, 1, 1, 1)
-        grid.addWidget(self.reportCheckBox, 8, 2, 1, 1)
-        grid.addWidget(saveButton, 8, 3, 1, 1)
-        grid.addWidget(cancelButton, 8, 4, 1, 1)
+        grid.addWidget(self.trainTestDataCheckBox, 8, 1, 1, 2)
+        grid.addWidget(self.trainTestFormatCB, 8, 3, 1, 1)
+        grid.addWidget(trainTestLabel, 8, 4, 1, 1)
+
+        grid.addWidget(self.saveDEMCheckBox, 9, 1, 1, 1)
+        grid.addWidget(self.reportCheckBox, 9, 2, 1, 1)
+        grid.addWidget(saveButton, 9, 3, 1, 1)
+        grid.addWidget(cancelButton, 9, 4, 1, 1)
 
         self.saveOptionDialog.setLayout(grid)
 
@@ -1302,6 +1315,14 @@ class SDBWidget(QWidget):
                 )
 
             test_data_df_new = test_data_df.copy()
+
+            # Positive Down save
+            if depth_dir_dict[self.depthDirectionSaveCB.currentText()]:
+                z_img_ar *=-1
+                test_data_df_new["z"] *=-1
+                test_data_df_new["z_validate"] *=-1
+                train_data_df["z"] *=-1
+
             new_img = rio.open(
                 self.savelocList.toPlainText(),
                 "w+",
@@ -1315,6 +1336,7 @@ class SDBWidget(QWidget):
             )
             new_img.write(z_img_ar, 1)
 
+            # Point Sampling result image after Median Filtering
             with parallel_backend(proc_op_dict["backend"], n_jobs=proc_op_dict["n_jobs"]):
                 row, col = np.array(image_raw.index(test_data_df_new.x, test_data_df_new.y))
                 dem_band = new_img.read()[:, row, col].T
@@ -1532,6 +1554,7 @@ class Process(QThread):
         """
 
         self.depth_label = input_dict["depth_label"]
+        self.depth_direction = input_dict["depth_direction"]
         self.limit_state = input_dict["limit_state"]
         self.limit_a_value = input_dict["limit_a"]
         self.limit_b_value = input_dict["limit_b"]
@@ -1637,7 +1660,7 @@ class Process(QThread):
 
     def pointSampling(self, data_in):
         """
-        Point sampling, execute auto negative, and depth limit filter
+        Point sampling and depth limit filter
         """
         print("Point sampling")
 
@@ -1662,9 +1685,9 @@ class Process(QThread):
         data_edit = data_edit[data_edit != np.inf]
         data_edit = data_edit[data_edit != -np.inf].dropna()
 
-        # Auto Negative
-        if proc_op_dict["auto_negative"] == True and np.median(data_edit["z"]) > 0:
-            data_edit["z"] = data_edit["z"] * -1
+        # Positive Down
+        if depth_dir_dict[self.depth_direction]:
+            data_edit["z"] *=-1
 
         # Depth limit
         if self.limit_state == False:
