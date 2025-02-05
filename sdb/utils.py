@@ -1,7 +1,7 @@
-from scipy import ndimage
 import numpy as np
 import pandas as pd
 import xarray as xr
+from scipy import ndimage
 
 
 def point_sampling(raster: xr.DataArray, x, y, include_xy: bool = True):

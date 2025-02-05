@@ -1,8 +1,8 @@
 from .io import read_geotiff, read_shapefile, write_geotiff, write_shapefile
-from .preprocessing import unravel, reproject_vector, clip_vector
-from .preprocessing import in_depth_filter, features_label
-from .preprocessing import split_random, split_attribute
 from .modeling import k_nearest_neighbors, linear_regression, random_forest
-from .postprocessing import out_depth_filter, reshape_prediction, evaluate
-from .postprocessing import scatter_plotter
-from .utils import point_sampling, median_filter, array_to_dataarray
+from .postprocessing import (evaluate, out_depth_filter, reshape_prediction,
+                             scatter_plotter)
+from .preprocessing import (clip_vector, features_label, in_depth_filter,
+                            reproject_vector, split_attribute, split_random,
+                            unravel)
+from .utils import array_to_dataarray, median_filter, point_sampling

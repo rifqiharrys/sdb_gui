@@ -1,8 +1,8 @@
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn.linear_model import LinearRegression
-from sklearn.ensemble import RandomForestRegressor
-from joblib import parallel_backend
 import pandas as pd
+from joblib import parallel_backend
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression
+from sklearn.neighbors import KNeighborsRegressor
 
 
 def k_nearest_neighbors(
