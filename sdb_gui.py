@@ -1072,15 +1072,7 @@ class SDBWidget(QWidget):
             QIcon(resource_path('icons/load-pngrepo-com.png'))
         )
 
-        global format_dict
-        format_dict = {
-            'GeoTIFF (*.tif)': 'GTiff',
-            'Erdas Imagine image (*.img)': 'HFA',
-            'ASCII Gridded XYZ (*.xyz)': 'XYZ',
-            'Bathymetry Attributed Grid (*.bag)': 'BAG'
-        }
-
-        format_list = list(format_dict)
+        format_list = ['GeoTIFF (*.tif)','ASCII Gridded XYZ (*.xyz)']
         format_list.sort()
 
         dataTypeLabel = QLabel('Data Type:')
