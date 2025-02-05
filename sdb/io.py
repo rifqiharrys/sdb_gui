@@ -79,6 +79,8 @@ def write_shapefile(
         Y coordinates column name.
     crs
         Coordinate Reference System.
+    z_col_name: str | None = None
+        Z coordinates column name.
     """
 
     x = table[x_col_name]
