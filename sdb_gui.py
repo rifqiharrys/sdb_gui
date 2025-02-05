@@ -23,23 +23,30 @@ SOFTWARE.
 
 """
 
-import numpy as np
-import sdb
-from pathlib import Path
-import sys, os
 import datetime
+import os
+import sys
 import webbrowser
+from pathlib import Path
+
+import numpy as np
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
-from PyQt5.QtWidgets import (QApplication, QWidget, QTextBrowser, QProgressBar, QFileDialog, QDialog,
-                             QGridLayout, QPushButton, QVBoxLayout, QComboBox, QLabel, QCheckBox,
-                             QDoubleSpinBox, QSpinBox, QTableWidgetItem, QTableWidget, QScrollArea,
-                             QErrorMessage)
 from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDialog,
+                             QDoubleSpinBox, QErrorMessage, QFileDialog,
+                             QGridLayout, QLabel, QProgressBar, QPushButton,
+                             QScrollArea, QSpinBox, QTableWidget,
+                             QTableWidgetItem, QTextBrowser, QVBoxLayout,
+                             QWidget)
+
+import sdb
 
 SDB_GUI_VERSION = '4.0.0'
 
 def resource_path(relative_path):
-    """Get the absolute path to the resource, works for dev and for PyInstaller"""
+    """
+    Get the absolute path to the resource, works for dev and for PyInstaller
+    """
     try:
         # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS
@@ -117,8 +124,8 @@ class SDBWidget(QWidget):
         global val_if_nan
         val_if_nan = -999.0
 
-        global progress_step
-        progress_step = 6
+        global PROGRESS_STEP
+        PROGRESS_STEP = 6
 
         ####### Default Values #######
 
@@ -131,7 +138,7 @@ class SDBWidget(QWidget):
         """
 
         self.setGeometry(300, 100, 480, 640)
-        self.setWindowTitle('Satellite Derived Bathymetry (v%s)' %SDB_GUI_VERSION)
+        self.setWindowTitle(f'Satellite Derived Bathymetry v{SDB_GUI_VERSION}')
         self.setWindowIcon(QIcon(resource_path('icons/satellite.png')))
 
         loadImageButton = QPushButton('Load Image')
@@ -216,7 +223,7 @@ class SDBWidget(QWidget):
         self.progressBar = QProgressBar()
         self.progressBar.setFormat('%p%')
         self.progressBar.setMinimum(0)
-        self.progressBar.setMaximum(progress_step)
+        self.progressBar.setMaximum(PROGRESS_STEP)
 
         releaseButton =  QPushButton('Releases')
         releaseButton.clicked.connect(lambda: webbrowser.open(
@@ -304,7 +311,7 @@ class SDBWidget(QWidget):
         Showing file dialog, whether opening file or saving.
         """
 
-        fileFilter = 'All Files (*.*) ;; ' + file_type
+        fileFilter = f'All Files (*.*) ;; {file_type}'
         selectedFilter = file_type
         fname = command(self, window_text, self.dir_path, fileFilter, selectedFilter)
 
@@ -329,7 +336,9 @@ class SDBWidget(QWidget):
 
         self.loadImageDialog = QDialog()
         self.loadImageDialog.setWindowTitle('Load Image')
-        self.loadImageDialog.setWindowIcon(QIcon(resource_path('icons/load-pngrepo-com.png')))
+        self.loadImageDialog.setWindowIcon(
+            QIcon(resource_path('icons/load-pngrepo-com.png'))
+        )
 
         openFilesButton = QPushButton('Open File')
         openFilesButton.clicked.connect(
@@ -485,11 +494,15 @@ class SDBWidget(QWidget):
                 self.table.setRowCount(len(data.index))
 
                 for h in range(len(data.columns)):
-                    self.table.setHorizontalHeaderItem(h, QTableWidgetItem(data.columns[h]))
+                    self.table.setHorizontalHeaderItem(
+                        h, QTableWidgetItem(data.columns[h])
+                    )
 
                 for i in range(len(data.index)):
                     for j in range(len(data.columns)):
-                        self.table.setItem(i, j, QTableWidgetItem(str(data.iloc[i, j])))
+                        self.table.setItem(
+                            i, j, QTableWidgetItem(str(data.iloc[i, j]))
+                        )
 
                 self.table.resizeColumnsToContents()
                 self.table.resizeRowsToContents()
@@ -510,7 +523,9 @@ class SDBWidget(QWidget):
 
         optionDialog = QDialog()
         optionDialog.setWindowTitle('Options (K Neighbors)')
-        optionDialog.setWindowIcon(QIcon(resource_path('icons/setting-tool-pngrepo-com.png')))
+        optionDialog.setWindowIcon(
+            QIcon(resource_path('icons/setting-tool-pngrepo-com.png'))
+        )
 
         nneighborLabel = QLabel('Number of Neighbors:')
         self.nneighborSB = QSpinBox()
@@ -580,7 +595,9 @@ class SDBWidget(QWidget):
 
         optionDialog = QDialog()
         optionDialog.setWindowTitle('Options (MLR)')
-        optionDialog.setWindowIcon(QIcon(resource_path('icons/setting-tool-pngrepo-com.png')))
+        optionDialog.setWindowIcon(
+            QIcon(resource_path('icons/setting-tool-pngrepo-com.png'))
+        )
 
         fitInterceptLabel = QLabel('Fit Intercept:')
         self.fitInterceptCB = QComboBox()
@@ -634,7 +651,9 @@ class SDBWidget(QWidget):
 
         optionDialog = QDialog()
         optionDialog.setWindowTitle('Options (Random Forest)')
-        optionDialog.setWindowIcon(QIcon(resource_path('icons/setting-tool-pngrepo-com.png')))
+        optionDialog.setWindowIcon(
+            QIcon(resource_path('icons/setting-tool-pngrepo-com.png'))
+        )
 
         ntreeLabel = QLabel('Number of Trees:')
         self.ntreeSB = QSpinBox()
@@ -698,7 +717,9 @@ class SDBWidget(QWidget):
         try:
             self.processingOptionDialog = QDialog()
             self.processingOptionDialog.setWindowTitle('Processing Options')
-            self.processingOptionDialog.setWindowIcon(QIcon(resource_path('icons/setting-tool-pngrepo-com.png')))
+            self.processingOptionDialog.setWindowIcon(
+                QIcon(resource_path('icons/setting-tool-pngrepo-com.png'))
+            )
 
             backendLabel = QLabel('Parallel Backend:')
             self.backendCB = QComboBox()
@@ -711,7 +732,7 @@ class SDBWidget(QWidget):
             self.njobsSB.setValue(proc_op_dict['n_jobs'])
             self.njobsSB.setAlignment(Qt.AlignRight)
 
-            self.excludeOutsideCB = QCheckBox('Exclude points which out of image boundary')
+            self.excludeOutsideCB = QCheckBox('Exclude out of image boundary points')
             self.excludeOutsideCB.setChecked(proc_op_dict['exclude_outside'])
 
             if self.trainSelectCB.currentText() == 'Random Selection':
@@ -719,14 +740,18 @@ class SDBWidget(QWidget):
                 self.trainPercentDSB = QDoubleSpinBox()
                 self.trainPercentDSB.setRange(10.0, 90.0)
                 self.trainPercentDSB.setDecimals(2)
-                self.trainPercentDSB.setValue(proc_op_dict['selection']['train_size'] * 100)
+                self.trainPercentDSB.setValue(
+                    proc_op_dict['selection']['train_size'] * 100
+                )
                 self.trainPercentDSB.setSuffix(' %')
                 self.trainPercentDSB.setAlignment(Qt.AlignRight)
 
                 randomStateLabel = QLabel('Random State:')
                 self.randomStateProcSB = QSpinBox()
                 self.randomStateProcSB.setRange(0, 1000)
-                self.randomStateProcSB.setValue(proc_op_dict['selection']['random_state'])
+                self.randomStateProcSB.setValue(
+                    proc_op_dict['selection']['random_state']
+                )
                 self.randomStateProcSB.setAlignment(Qt.AlignRight)
             elif self.trainSelectCB.currentText() == 'Attribute Selection':
                 headerSelectLabel = QLabel('Select header')
@@ -921,8 +946,8 @@ class SDBWidget(QWidget):
 
         if self.limitCheckBox.isChecked() == False:
             print_limit = (
-                'Depth Limit:\t\tfrom ' + str(self.limitADSB.value()) + ' m ' +
-                'to ' + str(self.limitBDSB.value()) + ' m'
+                f'Depth Limit:\t\tfrom {self.limitADSB.value():.1f} m '
+                f'to {self.limitBDSB.value():.1f} m'
             )
         else:
             print_limit = (
@@ -935,40 +960,40 @@ class SDBWidget(QWidget):
 
         global print_result_info
         print_result_info = (
-            'Software Version:\t' + SDB_GUI_VERSION + '\n\n' +
-            'Image Input:\t\t' + self.imglocList.toPlainText() + ' (' +
-            str(round(self.img_size / 2**20, 2)) + ' MB)\n' +
-            'Sample Data:\t\t' + self.samplelocList.toPlainText() + ' (' +
-            str(round(sample_size / 2**20, 2)) + ' MB)\n' +
-            'Selected Header:\t' + str(self.depthHeaderCB.currentText()) + '\n' +
-            'Depth Direction:\t\t' + str(self.depthDirectionCB.currentText()) + '\n\n' +
-            print_limit + '\n' +
-            'Used Sample:\t\t' + str(used_sample_size) + ' points (' +
-            str(round(used_sample_size / sample_raw.shape[0] * 100, 2)) +
-            '% of all sample)\n' +
-            'Train Data:\t\t' + str(end_results['train'].shape[0]) + ' points (' +
-            str(round(train_size_percent, 2)) + ' % of used sample)\n' +
-            'Test Data:\t\t' + str(end_results['test'].shape[0]) + ' points (' +
-            str(round((100 - train_size_percent), 2)) + ' % of used sample)\n\n' +
-            'Method:\t\t' + self.methodCB.currentText() + '\n' +
-            print_parameters_info + '\n'
-            'RMSE:\t\t' + str(rmse) + '\n' +
-            'MAE:\t\t' + str(mae) + '\n' +
-            'R\u00B2:\t\t' + str(r2) + '\n\n' +
-            'Train Test Selection:\t' + str(self.trainSelectCB.currentText()) + '\n' +
-            'Parallel Backend:\t' + str(proc_op_dict['backend']) + '\n' +
-            'Processing Cores:\t' + str(proc_op_dict['n_jobs']) + '\n' +
-            'Clipping Runtime:\t' + str(runtime[0]) + '\n' +
-            'Filtering Runtime:\t' + str(runtime[1]) + '\n' +
-            'Splitting Runtime:\t' + str(runtime[2]) + '\n' +
-            'Modeling Runtime:\t' + str(runtime[3]) + '\n' +
-            'Evaluation Runtime:\t' + str(runtime[4]) + '\n' +
-            'Overall Runtime:\t' + str(runtime[5]) + '\n\n' +
-            'CRS:\t\t' + str(image_raw.rio.crs) + '\n'
-            'Dimensions:\t\t' + str(image_raw.rio.width) + ' x ' +
-            str(image_raw.rio.height) + ' pixels\n' +
-            'Pixel Size:\t\t' + str(abs(image_raw.rio.resolution()[0])) +
-            ' , ' + str(abs(image_raw.rio.resolution()[1])) + '\n\n'
+            f'Software Version:\t{SDB_GUI_VERSION}\n\n'
+            f'Image Input:\t\t{self.imglocList.toPlainText()} '
+            f'({round(self.img_size / 2**20, 2)} MB)\n'
+            f'Sample Data:\t\t{self.samplelocList.toPlainText()} '
+            f'({round(sample_size / 2**20, 2)} MB)\n'
+            f'Selected Header:\t{self.depthHeaderCB.currentText()}\n'
+            f'Depth Direction:\t\t{self.depthDirectionCB.currentText()}\n\n'
+            f'{print_limit}\n'
+            f'Used Sample:\t\t{used_sample_size} points '
+            f'({round(used_sample_size / sample_raw.shape[0] * 100, 2)}% '
+            f'of all sample)\n'
+            f'Train Data:\t\t{end_results["train"].shape[0]} points '
+            f'({round(train_size_percent, 2)} % of used sample)\n'
+            f'Test Data:\t\t{end_results["test"].shape[0]} points '
+            f'({round((100 - train_size_percent), 2)} % of used sample)\n\n'
+            f'Method:\t\t{self.methodCB.currentText()}\n'
+            f'{print_parameters_info}\n'
+            f'RMSE:\t\t{rmse}\n'
+            f'MAE:\t\t{mae}\n'
+            f'R\u00B2:\t\t{r2}\n\n'
+            f'Train Test Selection:\t{self.trainSelectCB.currentText()}\n'
+            f'Parallel Backend:\t{proc_op_dict["backend"]}\n'
+            f'Processing Cores:\t{proc_op_dict["n_jobs"]}\n'
+            f'Clipping Runtime:\t{runtime[0]}\n'
+            f'Filtering Runtime:\t{runtime[1]}\n'
+            f'Splitting Runtime:\t{runtime[2]}\n'
+            f'Modeling Runtime:\t{runtime[3]}\n'
+            f'Evaluation Runtime:\t{runtime[4]}\n'
+            f'Overall Runtime:\t{runtime[5]}\n\n'
+            f'CRS:\t\t{image_raw.rio.crs}\n'
+            f'Dimensions:\t\t{image_raw.rio.width} x '
+            f'{image_raw.rio.height} pixels\n'
+            f'Pixel Size:\t\t{abs(image_raw.rio.resolution()[0])} , '
+            f'{abs(image_raw.rio.resolution()[1])}\n\n'
         )
 
         self.resultText.setText(print_result_info)
@@ -982,7 +1007,9 @@ class SDBWidget(QWidget):
 
         warning = QErrorMessage()
         warning.setWindowTitle('WARNING')
-        warning.setWindowIcon(QIcon(resource_path('icons/warning-pngrepo-com.png')))
+        warning.setWindowIcon(
+            QIcon(resource_path('icons/warning-pngrepo-com.png'))
+        )
         warning.showMessage(warning_text)
 
         warning.exec_()
@@ -998,7 +1025,9 @@ class SDBWidget(QWidget):
 
         warning = QErrorMessage()
         warning.setWindowTitle('WARNING')
-        warning.setWindowIcon(QIcon(resource_path('icons/warning-pngrepo-com.png')))
+        warning.setWindowIcon(
+            QIcon(resource_path('icons/warning-pngrepo-com.png'))
+        )
         warning.showMessage(warning_text)
 
         warning.exec_()
@@ -1011,7 +1040,9 @@ class SDBWidget(QWidget):
 
         complete = QDialog()
         complete.setWindowTitle('Complete')
-        complete.setWindowIcon(QIcon(resource_path('icons/complete-pngrepo-com.png')))
+        complete.setWindowIcon(
+            QIcon(resource_path('icons/complete-pngrepo-com.png'))
+        )
         complete.resize(180,30)
 
         textLabel = QLabel('Tasks has been completed')
@@ -1037,7 +1068,9 @@ class SDBWidget(QWidget):
 
         self.saveOptionDialog = QDialog()
         self.saveOptionDialog.setWindowTitle('Save Options')
-        self.saveOptionDialog.setWindowIcon(QIcon(resource_path('icons/load-pngrepo-com.png')))
+        self.saveOptionDialog.setWindowIcon(
+            QIcon(resource_path('icons/load-pngrepo-com.png'))
+        )
 
         global format_dict
         format_dict = {
@@ -1179,9 +1212,9 @@ class SDBWidget(QWidget):
             if self.saveDEMCheckBox.isChecked() == True:
                 new_img_size = os.path.getsize(self.savelocList.toPlainText())
                 print_dem_info = (
-                    print_filter_info + '\n\n'
-                    'DEM Output:\t\t' + self.savelocList.toPlainText() + ' (' +
-                    str(round(new_img_size / 2**10 / 2**10, 2)) + ' MB)\n'
+                    f'{print_filter_info}\n\n'
+                    f'DEM Output:\t\t{self.savelocList.toPlainText()} '
+                    f'({round(new_img_size / 2**10 / 2**10, 2)} MB)\n'
                 )
             elif self.saveDEMCheckBox.isChecked() == False:
                 os.remove(self.savelocList.toPlainText())
@@ -1191,12 +1224,12 @@ class SDBWidget(QWidget):
 
             if self.trainTestDataCheckBox.isChecked() == True:
                 train_save_loc = (
-                    os.path.splitext(self.savelocList.toPlainText())[0] +
-                    '_train' + self.trainTestFormatCB.currentText()
+                    f'{os.path.splitext(self.savelocList.toPlainText())[0]}'
+                    f'_train{self.trainTestFormatCB.currentText()}'
                 )
                 test_save_loc = (
-                    os.path.splitext(self.savelocList.toPlainText())[0] +
-                    '_test' + self.trainTestFormatCB.currentText()
+                    f'{os.path.splitext(self.savelocList.toPlainText())[0]}'
+                    f'_test{self.trainTestFormatCB.currentText()}'
                 )
 
                 if self.trainTestFormatCB.currentText() == '.csv':
@@ -1224,10 +1257,10 @@ class SDBWidget(QWidget):
                 test_data_size = os.path.getsize(test_save_loc)
 
                 print_train_test_info = (
-                    'Train Data Output:\t' + train_save_loc + ' (' +
-                    str(round(train_data_size / 2**10 / 2**10, 2)) + ' MB)\n'
-                    'Test Data output:\t' + test_save_loc + ' (' +
-                    str(round(test_data_size / 2**10 / 2**10, 2)) + ' MB)\n'
+                    f'Train Data Output:\t{train_save_loc} '
+                    f'({round(train_data_size / 2**10 / 2**10, 2)} MB)\n'
+                    f'Test Data output:\t{test_save_loc} '
+                    f'({round(test_data_size / 2**10 / 2**10, 2)} MB)\n'
                 )
             elif self.trainTestDataCheckBox.isChecked() == False:
                 print_train_test_info = (
@@ -1250,8 +1283,8 @@ class SDBWidget(QWidget):
                 scatter_plot_size = os.path.getsize(scatter_plot_loc)
 
                 print_scatter_plot_info = (
-                    'Scatter Plot:\t' + scatter_plot_loc + ' (' +
-                    str(round(scatter_plot_size / 2**10, 2)) + ' KB)\n'
+                    f'Scatter Plot:\t{scatter_plot_loc} '
+                    f'({round(scatter_plot_size / 2**10, 2)} KB)\n'
                 )
             elif self.scatterPlotCheckBox.isChecked() == False:
                 print_scatter_plot_info = 'Scatter Plot:\tNotSaved\n'
@@ -1289,7 +1322,9 @@ class SDBWidget(QWidget):
 
         licenses = QDialog()
         licenses.setWindowTitle('Licenses')
-        licenses.setWindowIcon(QIcon(resource_path('icons/information-pngrepo-com.png')))
+        licenses.setWindowIcon(
+            QIcon(resource_path('icons/information-pngrepo-com.png'))
+        )
         licenses.resize(600, 380)
 
         license_dict = {
@@ -1460,10 +1495,10 @@ class Process(QThread):
 
         global print_parameters_info
         print_parameters_info = (
-            'N Neighbors:\t\t' + str(knn_op_dict['n_neighbors']) + '\n' +
-            'Weights:\t\t' + str(knn_op_dict['weights']) + '\n' +
-            'Algorithm:\t\t' + str(knn_op_dict['algorithm']) + '\n' +
-            'Leaf Size:\t\t' + str(knn_op_dict['leaf_size'])
+            f'N Neighbors:\t\t{knn_op_dict["n_neighbors"]}\n'
+            f'Weights:\t\t{knn_op_dict["weights"]}\n'
+            f'Algorithm:\t\t{knn_op_dict["algorithm"]}\n'
+            f'Leaf Size:\t\t{knn_op_dict["leaf_size"]}'
         )
 
         return results
@@ -1496,9 +1531,8 @@ class Process(QThread):
 
         global print_parameters_info
         print_parameters_info = (
-            'Fit Intercept:\t\t' + str(mlr_op_dict['fit_intercept']) + '\n' +
-            # 'Normalize:\t\t' + str(mlr_op_dict['normalize']) + '\n' +
-            'Copy X:\t\t' + str(mlr_op_dict['copy_x'])
+            f'Fit Intercept:\t\t{mlr_op_dict["fit_intercept"]}\n'
+            f'Copy X:\t\t{mlr_op_dict["copy_x"]}'
         )
 
         return results
@@ -1532,10 +1566,9 @@ class Process(QThread):
 
         global print_parameters_info
         print_parameters_info = (
-            'N Trees:\t\t' + str(rf_op_dict['n_estimators']) + '\n' +
-            'Criterion:\t\t' + str(rf_op_dict['criterion']) + '\n' +
-            'Bootstrap:\t\t' + str(rf_op_dict['bootstrap']) + '\n'
-            # 'Random State:\t\t' + str(rf_op_dict['random_state'])
+            f'N Trees:\t\t{rf_op_dict["n_estimators"]}\n'
+            f'Criterion:\t\t{rf_op_dict["criterion"]}\n'
+            f'Bootstrap:\t\t{rf_op_dict["bootstrap"]}\n'
         )
 
         return results
