@@ -1304,7 +1304,7 @@ class SDBWidget(QWidget):
                 'Please insert odd number on filter size!'
             )
             self.saveOptionWindow()
-        except:#TODO - Check this!
+        except:#TODO - Check how to do multiple error handling!
             self.saveOptionDialog.close()
             self.warningWithoutClear(
                 'Please insert save location!'
