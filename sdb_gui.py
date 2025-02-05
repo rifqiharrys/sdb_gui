@@ -394,7 +394,7 @@ class SDBWidget(QWidget):
                 os.path.split(self.imglocList.toPlainText())[1]
             )
             print(image_raw.rio.crs)
-        except:
+        except: #TODO - Check error raised!
             self.loadImageDialog.close()
             self.warningWithClear(
                 'No data loaded. Please load your data!'
@@ -508,7 +508,7 @@ class SDBWidget(QWidget):
                 self.table.resizeRowsToContents()
 
                 print(sample_raw.crs)
-        except:
+        except: #TODO - Check error raised!
             self.loadSampleDialog.close()
             self.warningWithClear(
                 'No data loaded. Please load your data!'
@@ -1302,12 +1302,17 @@ class SDBWidget(QWidget):
 
                 report.write(
                     print_result_info +
-                    # print_result_stat_info +
                     print_dem_info +
                     print_train_test_info +
                     print_scatter_plot_info
                 )
-        except:
+        except ValueError:
+            self.saveOptionDialog.close()
+            self.warningWithoutClear(
+                'Please insert odd number on filter size!'
+            )
+            self.saveOptionWindow()
+        except:#TODO - Check this!
             self.saveOptionDialog.close()
             self.warningWithoutClear(
                 'Please insert save location!'
