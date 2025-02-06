@@ -8,7 +8,7 @@ def point_sampling(raster: xr.DataArray, x, y, include_xy: bool = True):
     """
     Extract raster values from a dataarray based on xy coordinates.
     XY coordinates have to be in the same CRS as raster.
-    
+
     Parameters
     ----------
     raster : xr.DataArray
@@ -17,7 +17,7 @@ def point_sampling(raster: xr.DataArray, x, y, include_xy: bool = True):
         X coordinates.
     y : array-like
         Y coordinates.
-    
+
     Returns
     -------
     DataFrame
@@ -48,14 +48,14 @@ def median_filter(
 ) -> np.ndarray:
     """
     Calculate median filter of a 2D array.
-    
+
     Parameters
     ----------
     array : np.ndarray
         2D array data.
     raster : xr.DataArray
         Raster data that read using rioxarray.
-    
+
     Returns
     -------
     np.ndarray
@@ -79,7 +79,7 @@ def array_to_dataarray(
     """
     Create a new DataArray from a 2D Numpy array based on 
     rioxarray image specification but only contain 1 band.
-    
+
     Parameters
     ----------
     array : np.ndarray
@@ -90,7 +90,7 @@ def array_to_dataarray(
         A name for the band, by default 1.
     attrs : bool, optional
         Copy attributes, by default False.
-    
+
     Returns
     -------
     xr.DataArray

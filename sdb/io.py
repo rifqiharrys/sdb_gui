@@ -70,7 +70,7 @@ def write_shapefile(
 ):
     """
     Write dataframe to ESRI Shapefile.
-    
+
     Parameters
     ----------
     table : pd.DataFrame
@@ -85,7 +85,7 @@ def write_shapefile(
         Coordinate Reference System.
     z_col_name : str, optional
         Z coordinates column name, by default None.
-    
+
     Returns
     -------
     None

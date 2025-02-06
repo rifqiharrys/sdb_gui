@@ -13,12 +13,12 @@ def unravel(raster: xr.DataArray):
     and stack it over every band in the form of columns.
     This function also changes values that potentially have issues
     in the upcoming process such as inf, -inf, and NaN to -999.0.
-    
+
     Parameters
     ----------
     raster : xr.DataArray
         DataArray from rioxarray.
-    
+
     Returns
     -------
     pd.DataFrame
@@ -58,14 +58,14 @@ def reproject_vector(
 ) -> gpd.GeoDataFrame:
     """
     Reproject vector data if it has different CRS with raster data.
-    
+
     Parameters
     ----------
     raster : xr.DataArray
         Raster data.
     vector : gpd.GeoDataFrame
         Vector data location containing point depth samples.
-    
+
     Returns
     -------
     gpd.GeoDataFrame
@@ -91,14 +91,14 @@ def clip_vector(
 ) -> gpd.GeoDataFrame:
     """
     Clip vector that is located outside raster boundary.
-    
+
     Parameters
     ----------
     raster : xr.DataArray
         Raster data.
     vector : gpd.GeoDataFrame
         Vector data location containing point depth samples.
-    
+
     Returns
     -------
     gpd.GeoDataFrame
@@ -130,7 +130,7 @@ def in_depth_filter(
     """
     Change depth data in vector data to positive up and then filter it
     based on allowed depth in positive up direction.
-    
+
     Parameters
     ----------
     vector : gpd.GeoDataFrame
@@ -144,7 +144,7 @@ def in_depth_filter(
         Top depth limit in positive up. Default value is 0.
     bottom_limit : float
         Bottom depth limit in positive up. Default value is 12.0.
-    
+
     Returns
     -------
     pd.DataFrame
@@ -190,7 +190,7 @@ def features_label(
     containing raster values from every bands in the raster, xy coordinates,
     and z or depth values.
     XY coordinates are included.
-    
+
     Parameters
     ----------
     raster : xr.DataArray
@@ -199,7 +199,7 @@ def features_label(
         Vector data of depth points in GeoDataFrame type.
     header : str
         Header name of depth data.
-    
+
     Returns
     -------
     pd.DataFrame
@@ -235,7 +235,7 @@ def split_random(
     features and label, and lastly splitting train and test data from features
     and label using train_test_split function from scikit-learn.
     XY coordinates are included.
-    
+
     Parameters
     ----------
     raster : xr.DataArray
@@ -248,7 +248,7 @@ def split_random(
         Train data size, by default 0.75.
     random_state : int, optional
         Random state, by default 0.
-    
+
     Returns
     -------
     Tuple
@@ -282,7 +282,7 @@ def split_attribute(
     group, then point sampling every depth point from train and test data, and
     lastly separating features and label from train and test data.
     XY coordinates are included.
-    
+
     Parameters
     ----------
     raster : xr.DataArray
@@ -295,7 +295,7 @@ def split_attribute(
         Header name of data that separates train and test data.
     group_name : str
         Group name that identifies the data as train data.
-    
+
     Returns
     -------
     Tuple
