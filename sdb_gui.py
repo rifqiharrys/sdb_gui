@@ -121,9 +121,6 @@ class SDBWidget(QWidget):
             )
         }
 
-        global val_if_nan
-        val_if_nan = -999.0
-
         global PROGRESS_STEP
         PROGRESS_STEP = 6
 
