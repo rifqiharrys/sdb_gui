@@ -382,6 +382,9 @@ class SDBWidget(QWidget):
         """
 
         try:
+            if not self.imglocList.toPlainText():
+                raise ValueError('empty file path')
+
             self.img_size = os.path.getsize(self.imglocList.toPlainText())
 
             global image_raw
@@ -394,12 +397,13 @@ class SDBWidget(QWidget):
                 os.path.split(self.imglocList.toPlainText())[1]
             )
             print(image_raw.rio.crs)
-        except: #TODO - Check error raised!
-            self.loadImageDialog.close()
-            self.warningWithClear(
-                'No data loaded. Please load your data!'
-            )
-            self.loadImageWindow()
+        except ValueError as e:
+            if 'empty file path' in str(e):
+                self.loadImageDialog.close()
+                self.warningWithClear(
+                    'No data loaded. Please load your data!'
+                )
+                self.loadImageWindow()
 
 
     def loadSampleWindow(self):
@@ -458,6 +462,9 @@ class SDBWidget(QWidget):
         """
 
         try:
+            if not self.samplelocList.toPlainText():
+                raise ValueError('empty file path')
+
             global sample_size
             sample_size = os.path.getsize(self.samplelocList.toPlainText())
 
@@ -508,12 +515,13 @@ class SDBWidget(QWidget):
                 self.table.resizeRowsToContents()
 
                 print(sample_raw.crs)
-        except: #TODO - Check error raised!
-            self.loadSampleDialog.close()
-            self.warningWithClear(
-                'No data loaded. Please load your data!'
-            )
-            self.loadSampleWindow()
+        except ValueError as e:
+            if 'empty file path' in str(e):
+                self.loadSampleDialog.close()
+                self.warningWithClear(
+                    'No data loaded. Please load your data!'
+                )
+                self.loadSampleWindow()
 
 
     def knnOptionWindow(self):
@@ -620,9 +628,6 @@ class SDBWidget(QWidget):
         grid.addWidget(fitInterceptLabel, 1, 1, 1, 2)
         grid.addWidget(self.fitInterceptCB, 1, 3, 1, 2)
 
-        # grid.addWidget(normalizeLabel, 2, 1, 1, 2)
-        # grid.addWidget(self.normalizeCB, 2, 3, 1, 2)
-
         grid.addWidget(copyXLabel, 2, 1, 1, 2)
         grid.addWidget(self.copyXCB, 2, 3, 1, 2)
 
@@ -640,7 +645,6 @@ class SDBWidget(QWidget):
         """
 
         mlr_op_dict['fit_intercept'] = self.str2bool(self.fitInterceptCB.currentText())
-        # mlr_op_dict['normalize'] = self.str2bool(self.normalizeCB.currentText())
         mlr_op_dict['copy_x'] = self.str2bool(self.copyXCB.currentText())
 
 
@@ -687,9 +691,6 @@ class SDBWidget(QWidget):
 
         grid.addWidget(bootstrapLabel, 3, 1, 1, 2)
         grid.addWidget(self.bootstrapCB, 3, 3, 1, 2)
-
-        # grid.addWidget(randomStateLabel, 4, 1, 1, 2)
-        # grid.addWidget(self.randomStateRFSB, 4, 3, 1, 2)
 
         grid.addWidget(loadButton, 4, 3, 1, 1)
         grid.addWidget(cancelButton, 4, 4, 1, 1)
