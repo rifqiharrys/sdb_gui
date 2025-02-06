@@ -1329,7 +1329,8 @@ class SDBWidget(QWidget):
             'NumPy': 'licenses/numpy_license',
             'Scipy': 'licenses/scipy_license',
             'Pandas': 'licenses/pandas_license',
-            'Rasterio': 'licenses/rasterio_license',
+            'Xarray': 'licenses/xarray_license',
+            'Rioxarray': 'licenses/rioxarray_license',
             'GeoPandas': 'licenses/geopandas_license',
             'Scikit Learn': 'licenses/scikit-learn_license'
         }
