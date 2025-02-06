@@ -754,14 +754,14 @@ class SDBWidget(QWidget):
                 )
                 self.randomStateProcSB.setAlignment(Qt.AlignRight)
             elif self.trainSelectCB.currentText() == 'Attribute Selection':
-                headerSelectLabel = QLabel('Select header')
+                headerSelectLabel = QLabel('Select header:')
                 self.headerSelectCB = QComboBox()
                 object_only = sample_raw.copy().select_dtypes(include=['object'])
                 self.headerSelectCB.addItems(object_only.columns)
                 self.headerSelectCB.activated.connect(self.updateGroupSelection)
                 selected_header = self.headerSelectCB.currentText()
 
-                groupSelectLabel = QLabel('Select group:')
+                groupSelectLabel = QLabel('Train group name:')
                 self.groupSelectCB = QComboBox()
                 group_list = list(object_only.groupby(selected_header).groups)
                 self.groupSelectCB.addItems(group_list)
@@ -1451,9 +1451,9 @@ class Process(QThread):
             f_train, f_test, z_train, z_test = sdb.split_attribute(
                 raster=image_raw,
                 vector=depth_filtered_sample,
-                header=self.depth_label,
-                header_group=self.selection['header'],
-                group=self.selection['group']
+                depth_header=self.depth_label,
+                split_header=self.selection['header'],
+                group_name=self.selection['group']
             )
 
         results = {
