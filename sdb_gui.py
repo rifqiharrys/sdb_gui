@@ -1196,6 +1196,9 @@ class SDBWidget(QWidget):
                 test_df_copy['z_predict'] *=-1
                 train_df_copy['z'] *=-1
 
+            if not self.savelocList.toPlainText():
+                raise ValueError('empty save location')
+
             sdb.write_geotiff(
                 daz_filtered,
                 self.savelocList.toPlainText()
@@ -1298,18 +1301,19 @@ class SDBWidget(QWidget):
                     print_train_test_info +
                     print_scatter_plot_info
                 )
-        except ValueError:
-            self.saveOptionDialog.close()
-            self.warningWithoutClear(
-                'Please insert odd number on filter size!'
-            )
-            self.saveOptionWindow()
-        except:#TODO - Check how to do multiple error handling!
-            self.saveOptionDialog.close()
-            self.warningWithoutClear(
-                'Please insert save location!'
-            )
-            self.saveOptionWindow()
+        except ValueError as e:
+            if 'Allowed value: >= 3 or odd numbers' in str(e):
+                self.saveOptionDialog.close()
+                self.warningWithoutClear(
+                    'Please insert odd number on filter size!'
+                )
+                self.saveOptionWindow()
+            elif 'empty save location' in str(e):
+                self.saveOptionDialog.close()
+                self.warningWithoutClear(
+                    'Please insert save location!'
+                )
+                self.saveOptionWindow()
 
 
     def licensesDialog(self):
