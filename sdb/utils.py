@@ -63,10 +63,7 @@ def median_filter(
     """
 
     if filter_size < 3 or filter_size % 2 == 0:
-        raise ValueError(
-            f'Invalid filter_size value: {filter_size}\n'
-            f'Allowed value: >= 3 or odd numbers'
-        )
+        raise ValueError('Allowed value: >= 3 or odd numbers')
 
     filtered = ndimage.median_filter(array, size=filter_size)
 
