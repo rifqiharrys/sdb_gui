@@ -10,18 +10,19 @@ from .utils import point_sampling
 def unravel(raster: xr.DataArray):
     """
     Unravel every band from rioxarray raster input to become a 1D array
-    and stack it over every bands in the form of columns.
-    This function also include change values that potentially have issue
+    and stack it over every band in the form of columns.
+    This function also changes values that potentially have issues
     in the upcoming process such as inf, -inf, and NaN to -999.0.
-
-    Parameter:
+    
+    Parameters
     ----------
-    raster: xr.DataArray
+    raster : xr.DataArray
         DataArray from rioxarray.
-
-    Return
-    ------
-    DataFrame
+    
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with unraveled and stacked bands.
     """
 
     # Check raster size
@@ -57,17 +58,17 @@ def reproject_vector(
 ) -> gpd.GeoDataFrame:
     """
     Reproject vector data if it has different CRS with raster data.
-
-    Parameter:
+    
+    Parameters
     ----------
-    raster: xr.DataArray
+    raster : xr.DataArray
         Raster data.
-    vector: gpd.GeoDataFrame
+    vector : gpd.GeoDataFrame
         Vector data location containing point depth samples.
-
-    Return
-    ------
-    GeoDataFrame
+    
+    Returns
+    -------
+    gpd.GeoDataFrame
         Reprojected vector data.
     """
 
@@ -89,18 +90,18 @@ def clip_vector(
         vector: gpd.GeoDataFrame
 ) -> gpd.GeoDataFrame:
     """
-    Clip vector that located outside raster boundary
-
-    Parameter:
+    Clip vector that is located outside raster boundary.
+    
+    Parameters
     ----------
-    raster: xr.DataArray
+    raster : xr.DataArray
         Raster data.
-    vector: gpd.GeoDataFrame
+    vector : gpd.GeoDataFrame
         Vector data location containing point depth samples.
-
-    Return
-    ------
-    GeoDataFrame
+    
+    Returns
+    -------
+    gpd.GeoDataFrame
         Clipped vector data.
     """
 
@@ -129,24 +130,25 @@ def in_depth_filter(
     """
     Change depth data in vector data to positive up and then filter it
     based on allowed depth in positive up direction.
-
-    Parameter:
+    
+    Parameters
     ----------
-    vector: gpd.GeoDataFrame
+    vector : gpd.GeoDataFrame
         Vector data of depth points in GeoDataFrame type.
-    header: str
+    header : str
         Header name of depth data.
-    depth_direction: {'up', 'down'}
+    depth_direction : {'up', 'down'}
         Depth data direction either positive up ('up') or positive down ('down').
         Default value is 'up'.
-    top_limit: float
-        Top depth limit in positive up. Defaula value is 0.
-    bottom_limit: float
-        Bottom depth limit in positive up. Defaula value is 12.0.
-
-    Return
-    ------
-    DataFrame
+    top_limit : float
+        Top depth limit in positive up. Default value is 0.
+    bottom_limit : float
+        Bottom depth limit in positive up. Default value is 12.0.
+    
+    Returns
+    -------
+    pd.DataFrame
+        Filtered depth data.
     """
 
     # Exchange value of top_limit and bottom_limit if top < bottom
@@ -188,17 +190,20 @@ def features_label(
     containing raster values from every bands in the raster, xy coordinates,
     and z or depth values.
     XY coordinates are included.
-
-    raster: xr.DataArray
+    
+    Parameters
+    ----------
+    raster : xr.DataArray
         DataArray from rioxarray.
-    vector: gpd.GeoDataFrame
+    vector : gpd.GeoDataFrame
         Vector data of depth points in GeoDataFrame type.
-    header: str
+    header : str
         Header name of depth data.
-
-    Return
-    ------
-    A dataframe containing features and label
+    
+    Returns
+    -------
+    pd.DataFrame
+        A dataframe containing features and label.
     """
 
     x = vector.geometry.x
@@ -226,27 +231,28 @@ def split_random(
 ):
     """
     Split train and test data randomly based on percentage.
-    This process begin by point sampling every depth points, then separating
-    features and label, and last splitting train and test data from features
-    and label using train_test_split function from scikit learn.
+    This process begins by point sampling every depth point, then separating
+    features and label, and lastly splitting train and test data from features
+    and label using train_test_split function from scikit-learn.
     XY coordinates are included.
-
-    Parameter:
+    
+    Parameters
     ----------
-    raster: xr.DataArray
+    raster : xr.DataArray
         DataArray from rioxarray.
-    vector: gpd.GeoDataFrame
+    vector : gpd.GeoDataFrame
         Vector data of depth points in GeoDataFrame type.
-    header: str
+    header : str
         Header name of depth data.
-    train_size: float = 0.75
-        Train data size.
-    random_state: int = 0
-        Random state
-
-    Return
-    ------
+    train_size : float, optional
+        Train data size, by default 0.75.
+    random_state : int, optional
+        Random state, by default 0.
+    
+    Returns
+    -------
     Tuple
+        A tuple containing train and test data.
     """
 
     df = features_label(raster, vector, header)
@@ -272,27 +278,28 @@ def split_attribute(
 ):
     """
     Split train and test data based on assigned attribute.
-    This process begin by separating train and test data based on attribute
+    This process begins by separating train and test data based on attribute
     group, then point sampling every depth point from train and test data, and
-    last separate features and label from in train and test data.
+    lastly separating features and label from train and test data.
     XY coordinates are included.
-
-    Parameter:
+    
+    Parameters
     ----------
-    raster: xr.DataArray
+    raster : xr.DataArray
         DataArray from rioxarray.
-    vector: gpd.GeoDataFrame
+    vector : gpd.GeoDataFrame
         Vector data of depth points in GeoDataFrame type.
-    depth_header: str
+    depth_header : str
         Header name of depth data.
-    split_header: str
-        Header name of data that separate train and test data.
-    group_name: str
-        Group name that identify the data as train data.
-
-    Return
-    ------
+    split_header : str
+        Header name of data that separates train and test data.
+    group_name : str
+        Group name that identifies the data as train data.
+    
+    Returns
+    -------
     Tuple
+        A tuple containing train and test data.
     """
 
     train = vector[vector[split_header] == group_name].reset_index(drop=True)

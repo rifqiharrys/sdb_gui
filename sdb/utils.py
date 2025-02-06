@@ -8,18 +8,18 @@ def point_sampling(raster: xr.DataArray, x, y, include_xy: bool = True):
     """
     Extract raster values from a dataarray based on xy coordinates.
     XY coordinates have to be in the same CRS as raster.
-
-    Parameter:
+    
+    Parameters
     ----------
-    raster: xr.DataArray
+    raster : xr.DataArray
         DataArray from rioxarray.
-    x
+    x : array-like
         X coordinates.
-    y
+    y : array-like
         Y coordinates.
-
-    Return
-    ------
+    
+    Returns
+    -------
     DataFrame
     """
 
@@ -48,17 +48,18 @@ def median_filter(
 ) -> np.ndarray:
     """
     Calculate median filter of a 2D array.
-
-    Parameter:
+    
+    Parameters
     ----------
-    array: np.ndarray
+    array : np.ndarray
         2D array data.
-    raster: xr.DataArray
+    raster : xr.DataArray
         Raster data that read using rioxarray.
-
-    Return
-    ------
-    Filtered array.
+    
+    Returns
+    -------
+    np.ndarray
+        Filtered array.
     """
 
     if filter_size < 3 or filter_size % 2 == 0:
@@ -79,23 +80,24 @@ def array_to_dataarray(
         attrs: bool = False
 ):
     """
-    Create a new Dataarray from a 2D Numpy array based on 
+    Create a new DataArray from a 2D Numpy array based on 
     rioxarray image specification but only contain 1 band.
-
-    Parameter:
+    
+    Parameters
     ----------
-    array: np.ndrray
-        image data that read using rioxarray
-    data_array: xr.DataArray
-        dataarray from rioxarray
-    band_name: str | int = 1
-        A name for the band
-    attrs: bool = False
-        Copy attributes
-
-    Return
-    ------
-    A dataarray with the same dimension and coordinates as input dataarray
+    array : np.ndarray
+        Image data that read using rioxarray.
+    data_array : xr.DataArray
+        DataArray from rioxarray.
+    band_name : str | int, optional
+        A name for the band, by default 1.
+    attrs : bool, optional
+        Copy attributes, by default False.
+    
+    Returns
+    -------
+    xr.DataArray
+        A DataArray with the same dimension and coordinates as input DataArray.
     """
 
     new_da = xr.DataArray(

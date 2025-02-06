@@ -16,22 +16,25 @@ def k_nearest_neighbors(
     """
     Predicting depth using K-Nearest Neighbors.
 
-    Parameter:
+    Parameters
     ----------
-    unraveled_band: pd.DataFrame
+    unraveled_band : pd.DataFrame
         Unraveled raster data.
-    features_train: pd.DataFrame
+    features_train : pd.DataFrame
         Features from train data.
-    label_train: pd.Series
+    label_train : pd.Series
         Label from train data.
-    n_neighbors: int = 3
-        Number of neighbors in KNN.
-    backend: str = 'threading'
-    n_jobs: int = -2
+    n_neighbors : int, optional
+        Number of neighbors in KNN. Default is 3.
+    backend : str, optional
+        Backend to use for parallel processing. Default is 'threading'.
+    n_jobs : int, optional
+        The number of jobs to run in parallel. Default is -2.
 
-    Result
-    ------
-    An array of predicted depth from trained model using unraveled raster data.
+    Returns
+    -------
+    np.ndarray
+        An array of predicted depth from trained model using unraveled raster data.
     """
 
     allowed_backend = {'loky', 'threading', 'multiprocessing'}
@@ -62,20 +65,27 @@ def linear_regression(
     """
     Predicting depth using Linear Regression.
 
-    Parameter:
+    Parameters
     ----------
-    unraveled_band: pd.DataFrame
+    unraveled_band : pd.DataFrame
         Unraveled raster data.
-    features_train: pd.DataFrame
+    features_train : pd.DataFrame
         Features from train data.
-    label_train: pd.Series 
+    label_train : pd.Series
         Label from train data.
-    backend: str = 'threading'
-    n_jobs: int = -2
+    fit_intercept : bool, optional
+        Whether to calculate the intercept for this model. Default is True.
+    copy_X : bool, optional
+        If True, X will be copied; else, it may be overwritten. Default is True.
+    backend : str, optional
+        Backend to use for parallel processing. Default is 'threading'.
+    n_jobs : int, optional
+        The number of jobs to run in parallel. Default is -2.
 
-    Result
-    ------  
-    An array of predicted depth from trained model using unraveled raster data.
+    Returns
+    -------
+    np.ndarray
+        An array of predicted depth from trained model using unraveled raster data.
     """
 
     allowed_backend = {'loky', 'threading', 'multiprocessing'}
@@ -110,23 +120,29 @@ def random_forest(
     """
     Predicting depth using Random Forest.
 
-    Parameter:
+    Parameters
     ----------
-    unraveled_band: pd.DataFrame
+    unraveled_band : pd.DataFrame
         Unraveled raster data.
-    features_train: pd.DataFrame
+    features_train : pd.DataFrame
         Features from train data.
-    label_train: pd.Series
+    label_train : pd.Series
         Label from train data.
-    ntree: int = 300
-        Number of tree in Randomised Forest.
-    criterion: str = 'squared_error'
-    backend: str = 'threading'
-    n_jobs: int = -2
+    ntree : int, optional
+        Number of trees in the Random Forest. Default is 300.
+    criterion : str, optional
+        The function to measure the quality of a split. Default is 'squared_error'.
+    bootstrap : bool, optional
+        Whether bootstrap samples are used when building trees. Default is True.
+    backend : str, optional
+        Backend to use for parallel processing. Default is 'threading'.
+    n_jobs : int, optional
+        The number of jobs to run in parallel. Default is -2.
 
-    Result
-    ------
-    An array of predicted depth from trained model using unraveled raster data.
+    Returns
+    -------
+    np.ndarray
+        An array of predicted depth from trained model using unraveled raster data.
     """
 
     allowed_criterion = {

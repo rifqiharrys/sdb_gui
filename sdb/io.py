@@ -8,14 +8,14 @@ def read_geotiff(raster_loc: str) -> xr.DataArray:
     """
     Read Geotiff raster data using Xarray (using rioxarray extension).
 
-    Parameter:
+    Parameters
     ----------
-    raster_loc: str
+    raster_loc : str
         Raster data location.
 
-    Return
-    ------
-    xarray.DataArray
+    Returns
+    -------
+    xr.DataArray
     """
 
     return rxr.open_rasterio(raster_loc, masked=True)
@@ -25,13 +25,13 @@ def read_shapefile(vector_loc: str) -> gpd.GeoDataFrame:
     """
     Read shapefile vector data containing depth samples using Geopandas.
 
-    Parameter:
+    Parameters
     ----------
-    vector_loc: str
+    vector_loc : str
         Vector data location containing point depth samples.
 
-    Return
-    ------
+    Returns
+    -------
     GeoDataFrame
     """
 
@@ -45,12 +45,16 @@ def write_geotiff(
     """
     Write dataarray to Geotiff.
 
-    Parameter:
+    Parameters
     ----------
-    raster: xr.DataArray
+    raster : xr.DataArray
         Raster data in dataarray.
-    raster_loc: str
+    raster_loc : str
         Raster save data location.
+
+    Returns
+    -------
+    None
     """
 
     raster.rio.to_raster(raster_loc)
@@ -66,21 +70,25 @@ def write_shapefile(
 ):
     """
     Write dataframe to ESRI Shapefile.
-
-    Parameter:
+    
+    Parameters
     ----------
-    table: pd.DataFrame
+    table : pd.DataFrame
         A dataframe containing XY coordinates.
-    vector_loc: str
+    vector_loc : str
         Vector save data location.
-    x_col_name: str
+    x_col_name : str
         X coordinates column name.
-    y_col_name: str
+    y_col_name : str
         Y coordinates column name.
-    crs
+    crs : Any
         Coordinate Reference System.
-    z_col_name: str | None = None
-        Z coordinates column name.
+    z_col_name : str, optional
+        Z coordinates column name, by default None.
+    
+    Returns
+    -------
+    None
     """
 
     x = table[x_col_name]

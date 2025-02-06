@@ -10,21 +10,22 @@ def out_depth_filter(
         bottom_limit: float = -12.0
 ):
     """
-    Filter depth prediction output in 1D Array based on allowed depth
-    in positive up direction by change it to NaN.
+    Filter depth prediction output in 1D array based on allowed depth
+    in positive up direction by changing it to NaN.
 
-    Parameter:
+    Parameters
     ----------
-    array: np.ndarray
+    array : np.ndarray
         1D array of depth data.
-    top_limit: float
-        Top depth limit in positive up. Defaula value is 0.
-    bottom_limit: float
-        Bottom depth limit in positive up. Defaula value is 12.0.
+    top_limit : float, optional
+        Top depth limit in positive up. Default value is 0.0.
+    bottom_limit : float, optional
+        Bottom depth limit in positive up. Default value is -12.0.
 
-    Return
-    ------
-    Array
+    Returns
+    -------
+    np.ndarray
+        Filtered array with values outside the limits set to NaN.
     """
 
     # Exchange value of top_limit and bottom_limit if top < bottom
@@ -48,16 +49,17 @@ def reshape_prediction(
     Reshape depth prediction in 1D array to a 2D array shape
     that is similar to its source raster.
 
-    Parameter:
+    Parameters
     ----------
-    array: np.ndarray
+    array : np.ndarray
         Depth prediction data in the shape of 1D array.
-    raster: xr.DataArray
-        Raster data that read using rioxarray.
+    raster : xr.DataArray
+        Raster data that is read using rioxarray.
 
-    Return
-    ------
-    Reshaped array
+    Returns
+    -------
+    np.ndarray
+        Reshaped array.
     """
 
     reshaped = array.reshape(raster.values[0].shape)
@@ -70,17 +72,17 @@ def evaluate(true_val, pred_val):
     Evaluate predicted values from true values by calculating
     RMSE, MAE, and R Squared values.
 
-    Parameter:
+    Parameters
     ----------
-
-    true_val
+    true_val : array-like
         True values.
-    pred_val
+    pred_val : array-like
         Predicted values.
 
-    Return
-    ------
-    Tuple of RMSE, MAE, and R Squared.
+    Returns
+    -------
+    tuple
+        Tuple of RMSE, MAE, and R Squared.
     """
 
     rmse = metrics.root_mean_squared_error(true_val, pred_val)
@@ -99,24 +101,25 @@ def scatter_plotter(
 ):
     """
     Create a scatter plot of in situ depth against predicted depth
-    and plot a y=x line
+    and plot a y=x line.
 
-    Parameter:
+    Parameters
     ----------
-    x: 
-        X coordinates
-    y: 
-        Y coordinates
-    plot_color: str = 'royalblue'
-        Point color
-    line_color: str = 'r'
-        Line color
-    title: str = 'Scatter Plot'
-        Graph title
+    x : array-like
+        X coordinates.
+    y : array-like
+        Y coordinates.
+    plot_color : str, optional
+        Point color. Default is 'royalblue'.
+    line_color : str, optional
+        Line color. Default is 'r'.
+    title : str, optional
+        Graph title. Default is 'Scatter Plot'.
 
-    Return
-    ------
-    A tuple of figure and axes
+    Returns
+    -------
+    tuple
+        A tuple of figure and axes.
     """
 
     fig, ax = plt.subplots(figsize=(5, 5))
