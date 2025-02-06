@@ -47,7 +47,10 @@ def unravel(raster: xr.DataArray):
     bands_array[np.isnan(bands_array)] = -999.0
 
     # Create dataframe from bands array
-    bands_df = pd.DataFrame(bands_array, columns=[f'band_{i}' for i in raster.band.values])
+    bands_df = pd.DataFrame(
+        bands_array,
+        columns=[f'band_{i}' for i in raster.band.values]
+    )
 
     return bands_df
 
