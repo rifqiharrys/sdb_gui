@@ -90,7 +90,6 @@ class SDBWidget(QWidget):
         proc_op_dict = {
             'backend': 'threading',
             'n_jobs': -2,
-            'exclude_outside': True,
             'selection' : {
                 'train_size': 0.75,
                 'random_state': 0
@@ -730,9 +729,6 @@ class SDBWidget(QWidget):
             self.njobsSB.setValue(proc_op_dict['n_jobs'])
             self.njobsSB.setAlignment(Qt.AlignRight)
 
-            self.excludeOutsideCB = QCheckBox('Exclude out of image boundary points')
-            self.excludeOutsideCB.setChecked(proc_op_dict['exclude_outside'])
-
             if self.trainSelectCB.currentText() == 'Random Selection':
                 trainPercentLabel = QLabel('Train Data (Percent):')
                 self.trainPercentDSB = QDoubleSpinBox()
@@ -778,23 +774,21 @@ class SDBWidget(QWidget):
             grid.addWidget(njobsLabel, 2, 1, 1, 2)
             grid.addWidget(self.njobsSB, 2, 3, 1, 2)
 
-            grid.addWidget(self.excludeOutsideCB, 3, 1, 1, 4)
-
             if self.trainSelectCB.currentText() == 'Random Selection':
-                grid.addWidget(trainPercentLabel, 4, 1, 1, 2)
-                grid.addWidget(self.trainPercentDSB, 4, 3, 1, 2)
+                grid.addWidget(trainPercentLabel, 3, 1, 1, 2)
+                grid.addWidget(self.trainPercentDSB, 3, 3, 1, 2)
 
-                grid.addWidget(randomStateLabel, 5, 1, 1, 2)
-                grid.addWidget(self.randomStateProcSB, 5, 3, 1, 2)
+                grid.addWidget(randomStateLabel, 4, 1, 1, 2)
+                grid.addWidget(self.randomStateProcSB, 4, 3, 1, 2)
             elif self.trainSelectCB.currentText() == 'Attribute Selection':
-                grid.addWidget(headerSelectLabel, 4, 1, 1, 2)
-                grid.addWidget(self.headerSelectCB, 4, 3, 1, 2)
+                grid.addWidget(headerSelectLabel, 3, 1, 1, 2)
+                grid.addWidget(self.headerSelectCB, 3, 3, 1, 2)
 
-                grid.addWidget(groupSelectLabel, 5, 1, 1, 2)
-                grid.addWidget(self.groupSelectCB, 5, 3, 1, 2)
+                grid.addWidget(groupSelectLabel, 4, 1, 1, 2)
+                grid.addWidget(self.groupSelectCB, 4, 3, 1, 2)
 
-            grid.addWidget(loadButton, 6, 3, 1, 1)
-            grid.addWidget(cancelButton, 6, 4, 1, 1)
+            grid.addWidget(loadButton, 5, 3, 1, 1)
+            grid.addWidget(cancelButton, 5, 4, 1, 1)
 
             self.processingOptionDialog.setLayout(grid)
 
@@ -819,7 +813,6 @@ class SDBWidget(QWidget):
         else:
             proc_op_dict['backend'] = self.backendCB.currentText()
             proc_op_dict['n_jobs'] = self.njobsSB.value()
-            proc_op_dict['exclude_outside'] = self.excludeOutsideCB.isChecked()
             if self.trainSelectCB.currentText() == 'Random Selection':
                 proc_op_dict['selection'] = {
                     'train_size': self.trainPercentDSB.value() / 100,
