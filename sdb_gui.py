@@ -1487,6 +1487,9 @@ class Process(QThread):
             features_train=results['f_train'].drop(columns=['x', 'y']),
             label_train=results['z_train'],
             n_neighbors=knn_op_dict['n_neighbors'],
+            weights=knn_op_dict['weights'],
+            algorithm=knn_op_dict['algorithm'],
+            leaf_size=knn_op_dict['leaf_size'],
             backend=proc_op_dict['backend'],
             n_jobs=proc_op_dict['n_jobs']
         )

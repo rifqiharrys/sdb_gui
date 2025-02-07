@@ -10,6 +10,9 @@ def k_nearest_neighbors(
         features_train: pd.DataFrame,
         label_train: pd.Series,
         n_neighbors: int = 3,
+        weights: str = 'distance',
+        algorithm: str = 'auto',
+        leaf_size: int = 30,
         backend: str = 'threading',
         n_jobs: int = -2
 ):
@@ -26,6 +29,12 @@ def k_nearest_neighbors(
         Label from train data.
     n_neighbors : int, optional
         Number of neighbors in KNN. Default is 3.
+    weights : str, optional
+        Weight function used in prediction. Default is 'distance'.
+    algorithm : str, optional
+        Algorithm used to compute the nearest neighbors. Default is 'auto'.
+    leaf_size : int, optional
+        Leaf size passed to BallTree or KDTree. Default is 30.
     backend : str, optional
         Backend to use for parallel processing. Default is 'threading'.
     n_jobs : int, optional
@@ -44,7 +53,26 @@ def k_nearest_neighbors(
             f'Allowed: {allowed_backend}'
         )
 
-    regressor = KNeighborsRegressor(n_neighbors=n_neighbors)
+    allowed_weights = {'uniform', 'distance'}
+    if weights not in allowed_weights:
+        raise ValueError(
+            f'Invalid weights: {weights}.\n'
+            f'Allowed: {allowed_weights}'
+        )
+
+    allowed_algorithm = {'auto', 'ball_tree', 'kd_tree', 'brute'}
+    if algorithm not in allowed_algorithm:
+        raise ValueError(
+            f'Invalid algorithm: {algorithm}.\n'
+            f'Allowed: {allowed_algorithm}'
+        )
+
+    regressor = KNeighborsRegressor(
+        n_neighbors=n_neighbors,
+        weights=weights,
+        algorithm=algorithm,
+        leaf_size=leaf_size
+    )
 
     with parallel_backend(backend=backend, n_jobs=n_jobs):
         regressor.fit(features_train, label_train)
