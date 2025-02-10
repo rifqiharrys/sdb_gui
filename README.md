@@ -22,11 +22,37 @@ This SDB project is using python and its packages listed below:
 |[matplotlib](https://matplotlib.org/)|A plotting library for creating static, animated, and interactive visualizations in Python. |
 |[pyqt5](https://www.riverbankcomputing.com/static/Docs/PyQt5/)|Used to create the GUI of this software. It is a set of Python bindings for Nokia's Qt application framework and runs on all platforms supported by Qt including Windows, OS X, Linux, iOS and Android. |
 
+## Workflow
+
+Image below is the workflow of predicting bathymetric depth using SDB GUI if you're running the latest [release](https://github.com/rifqiharrys/sdb_gui/releases) and the latest source code or release version 3 and up.
+
+![workflow](workflow_sdb_gui.png "Workflow")
+
+## Table of Contents
+
+- [Satellite Derived Bathymetry (SDB) GUI](#satellite-derived-bathymetry-sdb-gui)
+  - [Preface](#preface)
+  - [Workflow](#workflow)
+  - [Table of Contents](#table-of-contents)
+  - [1. Setup and Preparation](#1-setup-and-preparation)
+    - [a. Download executable file or source code](#a-download-executable-file-or-source-code)
+    - [b. Python and packages installation](#b-python-and-packages-installation)
+    - [c. Data preparation](#c-data-preparation)
+  - [2. How To Use SDB GUI](#2-how-to-use-sdb-gui)
+    - [a. Open SDB GUI and load data](#a-open-sdb-gui-and-load-data)
+    - [b. Insert parameters and setting options](#b-insert-parameters-and-setting-options)
+    - [c. Generate depth prediction](#c-generate-depth-prediction)
+    - [d. Save depth prediction into file](#d-save-depth-prediction-into-file)
+  - [3. Notebook](#3-notebook)
+  - [Releases](#releases)
+  - [License](#license)
+  - [Citation](#citation)
+
 ## 1. Setup and Preparation
 
 ### a. Download executable file or source code
 
-You can download the latest [release](https://github.com/rifqiharrys/sdb_gui/releases) or the latest source code from [sdb_gui](https://github.com/rifqiharrys/sdb_gui). If you are using the executable version, you can skip the python and packages installation steps and head to...
+You can download the latest [release](https://github.com/rifqiharrys/sdb_gui/releases) or the latest source code from [sdb_gui](https://github.com/rifqiharrys/sdb_gui). If you are using the executable version, you can skip the python and packages installation steps and head to [Data Preparation](#c-data-preparation).
 
 ### b. Python and packages installation
 
@@ -87,63 +113,11 @@ Generate depth prediction by pressing **Generate Prediction** button. While proc
 
 ### d. Save depth prediction into file
 
-After depth prediction was generated, you can save it into a Geotiff or XYZ file. You can also generate a report
+After depth prediction was generated, you can save it into a Geotiff or XYZ file. In the save file window, there are other options to use median filter to remove noise (default is on), save report, save train and test data, and create scatter plot using test data.
 
-## Workflow
+## 3. Notebook
 
-Image below is the workflow of predicting bathymetric depth using SDB GUI if you're running the latest [release](https://github.com/rifqiharrys/sdb_gui/releases) and the latest source code or release version 3.x.x.
-
-![workflow](workflow_sdb_gui.png "Workflow")
-
-Inside SDB GUI Processing, the software first check if data inputs, which are raster data and depth samples have the same Coordinate Reference System (CRS). If they don't match with each other, the depth samples' CRS will reprojected into raster input reference system. And then, SDB GUI extracting each depth point samples coordinates and their respective raster value from raster input.
-
-The next process is depth limit filtering. The depth limitation process is based on depth points as seamless land and water height points, so the software will automatically multiply all the depth sample points by `-1` if most of the depth sample values are positives. However, this could be turned off from `Processing Options` so the software will process the data as it is, but remember to adjust the depth limit to the original values.
-
-When the depth samples is filtered, then it is separated into features and result so the machine learning library Scikit Learn know which are input variables and its corresponding results. And to test the resulting data, both features and result are splitted into train data and test data. The train data then used to train the selected model to fit the known results.
-
-## Notebook
-
-To have a better understanding about SDB processing workflow using SDB GUI v3, you could read a [Jupyter Notebook](https://github.com/rifqiharrys/sdb_gui/blob/main/notebooks/sdb.ipynb) in this repository. The notebook contain a simple SDB processing workflow without GUI using Random Forest Regression.
-
-## Methods
-
-There are four methods available make depth prediction using SDB GUI. All of which are Machine Learning methods that is available on [Scikit Learn](https://scikit-learn.org). The methods are [K-Nearest Neighbors](https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsRegressor.html#sklearn.neighbors.KNeighborsRegressor "KNN Regressor"), [Multiple Linear Regression](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html#sklearn.linear_model.LinearRegression "MLR Regression"), [Random Forest](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html#sklearn.ensemble.RandomForestRegressor "RF Regressor") and [Support Vector Machines](https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVR.html#sklearn.svm.SVR "SVM Regressor"). All of which are using [Scikit Learn](https://scikit-learn.org) module. Overall, Random Forest method has the tiniest RMSE value when using high number of sample. Meanwhile, Multiple Linear Regression is the fastest method, but usually resulting in the largest RMSE value.
-
-### K-Nearest Neighbors
-
-This method implements learning based on k nearest neighbors of each query point. The adjustable hyperparameters for this method are number of neighbors, weights, algorithm, and leaf size. The default values are 3, distance, auto, and 300.
-
-### Multiple Linear Regression
-
-In Scikit Learn modules, this method called only with the name Linear Regression. The 'Multiple' implies that the Linear Regression is used on multiple features as input.
-
-### Random Forest
-
-The adjustable hyperparameters for Random Forest method are the number of trees, the function to measure the quality of a split (criterion), bootstrap, and random state. The default values respectively are 300 and mse (Mean Square Error). The other value for the criterion is mae (Mean Absolute Error).
-
-### Support Vector Machines
-
-The adjustable hyperparameters for SVM method are kernel type, kernel coefficient (gamma), regularization parameter (C), and degree (which working for polynomial kernel only). The default hyperparameter values are rbf for kernel type, 0.1 for gamma, 1.0 for C, and 3 for degree.
-
-## Features
-
-SDB GUI has some features that helps making prediction and saving output data. These features are Depth Limitation, Median Filter, and Used Depth Samples output. User could disable these features when they are not needed.
-
-### Depth Limitation
-
-Visible light that comes from the sun and goes through sea surface will weaken as it goes into the water body. The maximum depth the visible light could penetrate into water body varies depend on its water properties. Depth Limitation will filter depth on input sample and prediction output by creating accepted depth window from zero depth until selected depth limit (default value is -30).
-
-### Median Filter
-
-Median Filter is an image filter that will clear outliers (salt-and-pepper noise) that seems out of place from the depth prediction process. The default value of Median Filter size is 3. The filter size value should only in odd numbers because the matrix size of odd numbers will always have one array as the center.
-
-### Used Depth Samples
-
-Create depth samples outputs that was used in data training and testing. The outputs are splitted train and test depth samples in Comma Separated Value or ESRI Shapefile. Those two outputs are containing sampled raster values, xy coordinates and depth values.
-
-### Scatter Plot
-
-Create scatter plot of the predicted result against its real value. The scatter plot saved in PNG file format.
+To have a better understanding about the new SDB processing workflow in SDB GUI project, you could read a [Jupyter Notebook](https://github.com/rifqiharrys/sdb_gui/blob/main/notebooks/sdb-how-to-xarray-workflow.ipynb) in this repository. The notebook contain a simple SDB processing workflow without GUI using Random Forest Regression. Although the workflow might be a bit different from the recent SDB GUI, the basic idea is the same and this notebook is a prototype to the recent update (v4) of SDB GUI.
 
 ## Releases
 
