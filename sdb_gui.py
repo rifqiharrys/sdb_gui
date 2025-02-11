@@ -41,7 +41,44 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDialog,
 
 import sdb
 
+## CONSTANTS ##
 SDB_GUI_VERSION = '4.0.0'
+PROGRESS_STEP = 6
+DEPTH_DIR_DICT = {
+    'Positive Up': ('up', False),
+    'Positive Down': ('down', True),
+}
+
+## DEVAULT VALUES ##
+proc_op_dict = {
+    'backend': 'threading',
+    'n_jobs': -2,
+    'selection' : {
+        'train_size': 0.75,
+        'random_state': 0
+    }
+}
+
+knn_op_dict = {
+    'n_neighbors': 5,
+    'weights': 'distance',
+    'algorithm': 'auto',
+    'leaf_size': 30
+}
+
+mlr_op_dict = {
+    'fit_intercept': True,
+    'copy_x': True
+}
+
+rf_op_dict = {
+    'n_estimators': 300,
+    'criterion': 'squared_error',
+    'bootstrap': True,
+    'criterion_set': (
+        'squared_error', 'absolute_error', 'poisson', 'friedman_mse'
+    )
+}
 
 def resource_path(relative_path):
     """
@@ -70,8 +107,6 @@ class SDBWidget(QWidget):
 
         super(SDBWidget, self).__init__()
 
-        ####### Default Values #######
-
         self.method_dict = {
             'K-Nearest Neighbors': self.knnOptionWindow,
             'Multiple Linear Regression': self.mlrOptionWindow,
@@ -79,51 +114,6 @@ class SDBWidget(QWidget):
         }
 
         self.dir_path = os.path.abspath(Path.home())
-
-        global depth_dir_dict
-        depth_dir_dict = {
-            'Positive Up': ('up', False),
-            'Positive Down': ('down', True),
-        }
-
-        global proc_op_dict
-        proc_op_dict = {
-            'backend': 'threading',
-            'n_jobs': -2,
-            'selection' : {
-                'train_size': 0.75,
-                'random_state': 0
-            }
-        }
-
-        global knn_op_dict
-        knn_op_dict = {
-            'n_neighbors': 5,
-            'weights': 'distance',
-            'algorithm': 'auto',
-            'leaf_size': 30
-        }
-
-        global mlr_op_dict
-        mlr_op_dict = {
-            'fit_intercept': True,
-            'copy_x': True
-        }
-
-        global rf_op_dict
-        rf_op_dict = {
-            'n_estimators': 300,
-            'criterion': 'squared_error',
-            'bootstrap': True,
-            'criterion_set': (
-                'squared_error', 'absolute_error', 'poisson', 'friedman_mse'
-            )
-        }
-
-        global PROGRESS_STEP
-        PROGRESS_STEP = 6
-
-        ####### Default Values #######
 
         self.initUI()
 
@@ -152,7 +142,7 @@ class SDBWidget(QWidget):
         depthHeaderLabel = QLabel('Depth Header:')
         self.depthHeaderCB = QComboBox()
 
-        direction_list = list(depth_dir_dict.keys())
+        direction_list = list(DEPTH_DIR_DICT.keys())
 
         depthDirectionLabel = QLabel('Depth Direction:')
         self.depthDirectionCB =QComboBox()
@@ -1071,7 +1061,7 @@ class SDBWidget(QWidget):
         self.dataTypeCB.addItems(format_list)
         self.dataTypeCB.setCurrentText('GeoTIFF (*.tif)')
 
-        direction_list = list(depth_dir_dict.keys())
+        direction_list = list(DEPTH_DIR_DICT.keys())
 
         depthDirectionSaveLabel = QLabel('Depth Direction:')
         self.depthDirectionSaveCB = QComboBox()
@@ -1181,7 +1171,7 @@ class SDBWidget(QWidget):
             test_df_copy = end_results['test'].copy()
 
             # Positive Down save
-            if depth_dir_dict[self.depthDirectionSaveCB.currentText()][1]:
+            if DEPTH_DIR_DICT[self.depthDirectionSaveCB.currentText()][1]:
                 daz_filtered.values[0] *=-1
                 test_df_copy['z'] *=-1
                 test_df_copy['z_predict'] *=-1
@@ -1425,7 +1415,7 @@ class Process(QThread):
         depth_filtered_sample = sdb.in_depth_filter(
             vector=clipped_sample,
             header=self.depth_label,
-            depth_direction=depth_dir_dict[self.depth_direction][0],
+            depth_direction=DEPTH_DIR_DICT[self.depth_direction][0],
             disable_depth_filter=self.limit_state,
             top_limit=self.limit_a_value,
             bottom_limit=self.limit_b_value
