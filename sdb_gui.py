@@ -166,7 +166,7 @@ class SDBWidget(QWidget):
         self.limitBDSB = QDoubleSpinBox()
         self.limitBDSB.setRange(-100, 100)
         self.limitBDSB.setDecimals(1)
-        self.limitBDSB.setValue(-30)
+        self.limitBDSB.setValue(-15)
         self.limitBDSB.setSuffix(' m')
         self.limitBDSB.setAlignment(Qt.AlignRight)
 
