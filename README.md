@@ -97,11 +97,11 @@ Load your data into SDB GUI. When your data is successfully loaded, the GUI will
 
 ### b. Insert parameters and setting options
 
-After loading depth sample data, you will notice a table loaded with said data and show the first 100 rows (or all depend your chosen setting while loading data). Above the table are two selection about the loaded sample data. The first one is the header of the depth data, while the second one is the direction of the depth data.
+After loading depth sample data, you will notice a table loaded with said data and show the first 100 rows (or all depend on your chosen setting while loading data). Above the table are two selection about the loaded sample data. The first one is the header of the depth data, while the second one is the direction of the depth data.
 
 Correctly selecting depth header and depth direction is important because it will allow SDB GUI to process the data correctly. The first selection is the column name or header name of the column of the depth data. The selection will show all of the header/column names of the sample data. The second selection will show two options, which are **Positive Up** and **Positive Down**. If your depth data decreases in values as it goes deeper, choose **Positive Up** because the positive values are going up, otherwise choose **Positive Down**.
 
-The next parameters are depth limitation window for sample data input. There are two values for depth limit window, upper limit (default value is 0) and bottom limit (default value is -30). Both values are in the **Positive Up** direction manner. You could disable depth limitation by checking the Disable Depth Limitation checkbox.
+The next parameters are depth limitation window for sample data input. There are two values for depth limit window, upper limit (default value is 0) and bottom limit (default value is -15). Both values are in the **Positive Up** direction manner. You could disable depth limitation by checking the Disable Depth Limitation checkbox.
 
 Next, select your desired regression method. There are three options to select, which are K-Nearest Neighbors, Multiple Linear Regression, and Random Forest. For every regression method, you could change its hyperparameters by clicking the **Method Options** button. The explanation of every hyperparameter is in [scikit-learn user guide](https://scikit-learn.org/stable/user_guide.html).
 
