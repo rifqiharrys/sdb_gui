@@ -17,10 +17,13 @@ def point_sampling(raster: xr.DataArray, x, y, include_xy: bool = True):
         X coordinates.
     y : array-like
         Y coordinates.
+    include_xy : bool, optional
+        Whether to include the x and y coordinates in the output DataFrame. Default is True.
 
     Returns
     -------
-    DataFrame
+    pd.DataFrame
+        DataFrame containing the extracted raster values and optionally the x and y coordinates.
     """
 
     x_reindex = x.reset_index(drop=True)
