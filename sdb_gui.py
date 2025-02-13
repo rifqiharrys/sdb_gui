@@ -1250,8 +1250,8 @@ class SDBWidget(QWidget):
                     '_scatter_plot.png'
                 )
                 scatter_plot = sdb.scatter_plotter(
-                    x=test_df_copy['z'],
-                    y=test_df_copy['z_predict'],
+                    true_val=test_df_copy['z'],
+                    pred_val=test_df_copy['z_predict'],
                     title=self.methodCB.currentText()
                 )
                 scatter_plot[0].savefig(scatter_plot_loc)
