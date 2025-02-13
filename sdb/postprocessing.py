@@ -93,22 +93,22 @@ def evaluate(true_val, pred_val):
 
 
 def scatter_plotter(
-        x,
-        y,
+        true_val,
+        pred_val,
         plot_color: str = 'royalblue',
         line_color: str = 'r',
         title: str = 'Scatter Plot'
 ):
     """
     Create a scatter plot of in situ depth against predicted depth
-    and plot a y=x line.
+    and plot a pred_val=true_val line.
 
     Parameters
     ----------
-    x : array-like
-        X coordinates.
-    y : array-like
-        Y coordinates.
+    true_val : array-like
+        X coordinates. True values.
+    pred_val : array-like
+        Y coordinates. Predicted values.
     plot_color : str, optional
         Point color. Default is 'royalblue'.
     line_color : str, optional
@@ -123,8 +123,8 @@ def scatter_plotter(
     """
 
     fig, ax = plt.subplots(figsize=(5, 5))
-    ax.scatter(x, y, marker='.', color=plot_color, facecolors='none')
-    min_val, max_val = round(np.nanmin(x)), round(np.nanmax(x))
+    ax.scatter(true_val, pred_val, marker='.', color=plot_color, facecolors='none')
+    min_val, max_val = round(np.nanmin(true_val)), round(np.nanmax(true_val))
     ax.plot([min_val, max_val], [min_val, max_val], color=line_color)
     ax.set_xlabel('True Depth')
     ax.set_ylabel('Predicted Depth')
