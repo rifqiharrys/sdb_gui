@@ -93,15 +93,15 @@ def write_shapefile(
 
     x = table[x_col_name]
     y = table[y_col_name]
-    z = table[z_col_name]
 
-    if z is None:
+    if z_col_name is None:
         gdf = gpd.GeoDataFrame(
             table,
             geometry=gpd.points_from_xy(x, y),
             crs=crs
         )
     else:
+        z = table[z_col_name]
         gdf = gpd.GeoDataFrame(
             table,
             geometry=gpd.points_from_xy(x, y, z),
