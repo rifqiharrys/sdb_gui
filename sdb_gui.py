@@ -1605,12 +1605,12 @@ class Process(QThread):
             test_list = [time_test, 'Done.']
             self.time_signal.emit(test_list)
 
-            train_df = results['f_train'].copy().reset_index(drop=True)
-            train_df['z'] = results['z_train'].reset_index(drop=True)
+            train_df = results['f_train'].copy()
+            train_df['z'] = results['z_train'].copy()
 
-            test_df = results['f_test'].copy().reset_index(drop=True)
-            test_df['z'] = results['z_test'].reset_index(drop=True)
-            test_df['z_predict'] = dfz_predict['band_1']
+            test_df = results['f_test'].copy()
+            test_df['z'] = results['z_test'].copy()
+            test_df['z_predict'] = dfz_predict['band_1'].copy()
 
             results.update({
                 'daz_predict': daz_predict,
