@@ -269,6 +269,11 @@ def split_random(
         random_state=random_state
     )
 
+    features_train = features_train.reset_index(drop=True)
+    features_test = features_test.reset_index(drop=True)
+    z_train = z_train.reset_index(drop=True)
+    z_test = z_test.reset_index(drop=True)
+
     return features_train, features_test, z_train, z_test
 
 
