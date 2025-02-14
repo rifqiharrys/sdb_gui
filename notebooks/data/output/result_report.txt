@@ -5,29 +5,29 @@ Sample Data:		D:/Git/sdb_gui/notebooks/data/input/depth_sample.shp (0.35 MB)
 Selected Header:	Z_Koreksi
 Depth Direction:		Positive Down
 
-Depth Limit:		from 0.0 m to -15.0 m
-Used Sample:		4634 points (45.95% of all sample)
-Train Data:		3475 points (74.99 % of used sample)
-Test Data:		1159 points (25.01 % of used sample)
+Depth Limit:		from 0.0 m to -10.0 m
+Used Sample:		4554 points (45.16% of all sample)
+Train Data:		2839 points (62.34 % of used sample)
+Test Data:		1715 points (37.66 % of used sample)
 
 Method:		Random Forest
 N Trees:		300
 Criterion:		squared_error
 Bootstrap:		True
 
-RMSE:		0.33574128393592695
-MAE:		0.1858224309761095
-R²:		0.9752465839469339
+RMSE:		0.771
+MAE:		0.495
+R²:		0.829
 
-Train Test Selection:	Random Selection
+Train Test Selection:	Attribute Selection
 Parallel Backend:	threading
 Processing Cores:	-2
-Clipping Runtime:	0:00:00.006053
-Filtering Runtime:	0:00:00.002007
-Splitting Runtime:	0:00:00.011117
-Modeling Runtime:	0:00:00.527919
-Evaluation Runtime:	0:00:00.010005
-Overall Runtime:	0:00:00.557101
+Clipping Runtime:	0:00:00.005511
+Filtering Runtime:	0:00:00.003000
+Splitting Runtime:	0:00:00.017774
+Modeling Runtime:	0:00:00.613446
+Evaluation Runtime:	0:00:00.011068
+Overall Runtime:	0:00:00.650799
 
 CRS:		EPSG:32748
 Dimensions:		344 x 192 pixels
@@ -36,6 +36,6 @@ Pixel Size:		10.0 , 10.0
 Median Filter Size:	3
 
 DEM Output:		D:/Git/sdb_gui/notebooks/data/output/result.tif (0.5 MB)
-Train Data Output:	D:/Git/sdb_gui/notebooks/data/output/result_train.csv (0.2 MB)
-Test Data output:	D:/Git/sdb_gui/notebooks/data/output/result_test.csv (0.09 MB)
-Scatter Plot:	D:/Git/sdb_gui/notebooks/data/output/result_scatter_plot.png (39.53 KB)
+Train Data Output:	D:/Git/sdb_gui/notebooks/data/output/result_train.csv (0.16 MB)
+Test Data output:	D:/Git/sdb_gui/notebooks/data/output/result_test.csv (0.13 MB)
+Scatter Plot:	D:/Git/sdb_gui/notebooks/data/output/result_scatter_plot.png (48.25 KB)
