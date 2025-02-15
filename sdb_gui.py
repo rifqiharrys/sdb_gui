@@ -1217,7 +1217,6 @@ class SDBWidget(QWidget):
                         train_save_loc,
                         x_col_name='x',
                         y_col_name='y',
-                        z_col_name='z',
                         crs=end_results['sample_gdf'].crs
                     )
                     sdb.write_shapefile(
@@ -1225,7 +1224,6 @@ class SDBWidget(QWidget):
                         test_save_loc,
                         x_col_name='x',
                         y_col_name='y',
-                        z_col_name='z',
                         crs=end_results['sample_gdf'].crs
                     )
 
