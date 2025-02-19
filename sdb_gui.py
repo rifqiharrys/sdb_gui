@@ -156,10 +156,12 @@ class SDBWidget(QWidget):
 
         makePredictionButton = QPushButton('Generate Prediction')
         makePredictionButton.clicked.connect(self.predict)
-        saveFileButton = QPushButton('Save Into File')
-        saveFileButton.clicked.connect(self.saveOptionWindow)
+        stopProcessingButton = QPushButton('Stop Processing')
+        stopProcessingButton.clicked.connect(self.stopProcess)
 
         resultInfo = QLabel('Result Information')
+        saveFileButton = QPushButton('Save Into File')
+        saveFileButton.clicked.connect(self.saveOptionWindow)
         self.resultText = QTextBrowser()
         self.resultText.setAlignment(Qt.AlignRight)
 
@@ -225,9 +227,10 @@ class SDBWidget(QWidget):
 
         grid4 = QGridLayout()
         grid4.addWidget(makePredictionButton, 1, 1, 1, 2)
-        grid4.addWidget(saveFileButton, 1, 3, 1, 2)
+        grid4.addWidget(stopProcessingButton, 1, 3, 1, 2)
 
-        grid4.addWidget(resultInfo, 2, 1, 1, 4)
+        grid4.addWidget(resultInfo, 2, 1, 1, 2)
+        grid4.addWidget(saveFileButton, 2, 3, 1, 2)
         grid4.addWidget(self.resultText, 3, 1, 1, 4)
 
         grid4.addWidget(self.progressBar, 7, 1, 1, 4)
@@ -937,6 +940,18 @@ class SDBWidget(QWidget):
         self.resultText.setText(print_result_info)
 
 
+    def stopProcess(self):
+        """
+        Stop processing and clear result info and progress bar
+        """
+
+        if hasattr(self, 'sdbProcess') and self.sdbProcess.isRunning():
+            self.sdbProcess.stop()
+            self.sdbProcess.wait()
+            self.resultText.clear()
+            self.progressBar.setValue(0)
+
+
     def warningWithClear(self, warning_text):
         """
         Show warning dialog and customized warning text
@@ -1334,6 +1349,8 @@ class Process(QThread):
             'Random Forest': self.rfPredict
         }
 
+        self._is_running = True  # Flag to indicate if the thread should keep running
+
 
     def inputs(self, input_dict):
         """
@@ -1589,6 +1606,13 @@ class Process(QThread):
             self.warning_with_clear.emit(
                 'Please select attribute header and group in Processing Options'
             )
+
+
+    def stop(self):
+        """
+        Stop the processing thread.
+        """
+        self._is_running = False
 
 
 
