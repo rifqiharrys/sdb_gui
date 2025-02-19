@@ -49,49 +49,6 @@ DEPTH_DIR_DICT = {
     'Positive Down': ('down', True),
 }
 
-## DEVAULT VALUES ##
-proc_op_dict = {
-    'backend': 'threading',
-    'n_jobs': -2,
-    'selection' : {
-        'train_size': 0.75,
-        'random_state': 0
-    }
-}
-
-knn_op_dict = {
-    'n_neighbors': 5,
-    'weights': 'distance',
-    'algorithm': 'auto',
-    'leaf_size': 30
-}
-
-mlr_op_dict = {
-    'fit_intercept': True,
-    'copy_x': True
-}
-
-rf_op_dict = {
-    'n_estimators': 300,
-    'criterion': 'squared_error',
-    'bootstrap': True,
-    'criterion_set': (
-        'squared_error', 'absolute_error', 'poisson', 'friedman_mse'
-    )
-}
-
-def resource_path(relative_path):
-    """
-    Get the absolute path to the resource, works for dev and for PyInstaller
-    """
-    try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath('.')
-    return os.path.join(base_path, relative_path)
-
-
 
 class SDBWidget(QWidget):
     """
@@ -1641,6 +1598,70 @@ def main():
     sdb_gui = SDBWidget()
     sdb_gui.show()
 
+
+def default_values():
+    """
+    Default values container
+    """
+
+    proc_op_dict = {
+        'backend': 'threading',
+        'n_jobs': -2,
+        'selection' : {
+            'train_size': 0.75,
+            'random_state': 0
+        }
+    }
+
+    knn_op_dict = {
+        'n_neighbors': 5,
+        'weights': 'distance',
+        'algorithm': 'auto',
+        'leaf_size': 30
+    }
+
+    mlr_op_dict = {
+        'fit_intercept': True,
+        'copy_x': True
+    }
+
+    rf_op_dict = {
+        'n_estimators': 300,
+        'criterion': 'squared_error',
+        'bootstrap': True,
+        'criterion_set': (
+            'squared_error', 'absolute_error', 'poisson', 'friedman_mse'
+        )
+    }
+
+    default_dict = {
+        'proc_op_dict': proc_op_dict,
+        'knn_op_dict': knn_op_dict,
+        'mlr_op_dict': mlr_op_dict,
+        'rf_op_dict': rf_op_dict
+    }
+
+    return default_dict
+
+
+def resource_path(relative_path):
+    """
+    Get the absolute path to the resource, works for dev and for PyInstaller
+    """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath('.')
+    return os.path.join(base_path, relative_path)
+
+
+default = default_values()
+
+proc_op_dict = default['proc_op_dict']
+knn_op_dict = default['knn_op_dict']
+mlr_op_dict = default['mlr_op_dict']
+rf_op_dict = default['rf_op_dict']
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
