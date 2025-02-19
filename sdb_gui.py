@@ -141,6 +141,9 @@ class SDBWidget(QWidget):
             )
         )
 
+        self.optionsButton = QPushButton('Method Options')
+        self.optionsButton.clicked.connect(self.knnOptionWindow)
+
         selection_list = ['Random Selection', 'Attribute Selection']
 
         trainSelectLabel = QLabel('Train Data Selection:')
@@ -148,16 +151,13 @@ class SDBWidget(QWidget):
         self.trainSelectCB.addItems(selection_list)
         self.trainSelectCB.activated.connect(self.updateTrainSelection)
 
-        self.optionsButton = QPushButton('Method Options')
-        self.optionsButton.clicked.connect(self.knnOptionWindow)
+        self.processingOptionsButton = QPushButton('Processing Options')
+        self.processingOptionsButton.clicked.connect(self.processingOptionWindow)
 
         makePredictionButton = QPushButton('Generate Prediction')
         makePredictionButton.clicked.connect(self.predict)
         saveFileButton = QPushButton('Save Into File')
         saveFileButton.clicked.connect(self.saveOptionWindow)
-
-        self.processingOptionsButton = QPushButton('Processing Options')
-        self.processingOptionsButton.clicked.connect(self.processingOptionWindow)
 
         resultInfo = QLabel('Result Information')
         self.resultText = QTextBrowser()
