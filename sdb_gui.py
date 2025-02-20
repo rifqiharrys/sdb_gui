@@ -1374,12 +1374,17 @@ class Process(QThread):
         depth sample CRS, sampling raster value and depth value, 
         and then limiting or not limiting depth value.
         """
+        if not self._is_running:  # Check if the thread should keep running
+            return None
         print('Pre Processing')
 
         time_start = datetime.datetime.now()
         start_list = [time_start, 'Clipping and Reprojecting...\n']
         self.time_signal.emit(start_list)
         clipped_sample = sdb.clip_vector(image_raw, sample_raw)
+
+        if not self._is_running:  # Check if the thread should keep running
+            return None
 
         time_clip = datetime.datetime.now()
         clip_list = [time_clip, 'Depth Filtering...\n']
@@ -1392,6 +1397,9 @@ class Process(QThread):
             top_limit=self.limit_a_value,
             bottom_limit=self.limit_b_value
         )
+
+        if not self._is_running:  # Check if the thread should keep running
+            return None
 
         time_depth_filter = datetime.datetime.now()
         depth_filter_list = [time_depth_filter, 'Split Train and Test...\n']
@@ -1429,6 +1437,8 @@ class Process(QThread):
         Preparing KNN prediction and saving selected parameters
         for report
         """
+        if not self._is_running:  # Check if the thread should keep running
+            return None
         print('knnPredict')
 
         results = self.preprocess()
@@ -1467,6 +1477,8 @@ class Process(QThread):
         Preparing MLR prediction and saving selected parameters
         for report
         """
+        if not self._is_running:  # Check if the thread should keep running
+            return None
         print('mlrPredict')
 
         results = self.preprocess()
@@ -1501,6 +1513,8 @@ class Process(QThread):
         Preparing RF prediction and saving selected parameters
         for report
         """
+        if not self._is_running:  # Check if the thread should keep running
+            return None
         print('rfPredict')
 
         results = self.preprocess()
