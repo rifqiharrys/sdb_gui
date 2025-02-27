@@ -1557,6 +1557,13 @@ class Process(QThread):
         try:
             results = self.method_dict[self.method]()
 
+            # Early return if process was stopped
+            if results is None:
+                return None
+
+            if not self._is_running:  # Check if the thread should keep running
+                return None
+
             time_model = datetime.datetime.now()
             model_list = [time_model, 'Evaluating...\n']
             self.time_signal.emit(model_list)
@@ -1627,6 +1634,8 @@ class Process(QThread):
         Stop the processing thread.
         """
         self._is_running = False
+        self.quit()  # Tell the event loop to exit
+        self.wait()  # Wait for the thread to finish
 
 
 
