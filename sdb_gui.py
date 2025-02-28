@@ -1143,7 +1143,6 @@ class SDBWidget(QWidget):
             train_df_copy = end_results['train'].copy()
             test_df_copy = end_results['test'].copy()
 
-            # Positive Down save
             if DEPTH_DIR_DICT[self.depthDirectionSaveCB.currentText()][1]:
                 daz_filtered.values[0] *=-1
                 test_df_copy['z'] *=-1
@@ -1350,7 +1349,6 @@ class Process(QThread):
             'Random Forest': self.rfPredict
         }
 
-        # Flag to indicate if the thread should keep running
         self._is_running = True
 
 
@@ -1377,7 +1375,6 @@ class Process(QThread):
         and then limiting or not limiting depth value.
         """
 
-        # Check if the thread should keep running
         if not self._is_running:
             return None
         print('Pre Processing')
@@ -1387,7 +1384,6 @@ class Process(QThread):
         self.time_signal.emit(start_list)
         clipped_sample = sdb.clip_vector(image_raw, sample_raw)
 
-        # Check if the thread should keep running
         if not self._is_running:
             return None
 
@@ -1403,7 +1399,6 @@ class Process(QThread):
             bottom_limit=self.limit_b_value
         )
 
-        # Check if the thread should keep running
         if not self._is_running:
             return None
 
@@ -1444,14 +1439,12 @@ class Process(QThread):
         for report
         """
 
-        # Check if the thread should keep running
         if not self._is_running:
             return None
         print('knnPredict')
 
         results = self.preprocess()
 
-        # Add early return if preprocess was stopped
         if results is None or not self._is_running:
             return None
 
@@ -1471,7 +1464,6 @@ class Process(QThread):
             n_jobs=proc_op_dict['n_jobs']
         )
 
-        # Add similar checks before updating results
         if not self._is_running:
             return None
 
@@ -1494,14 +1486,12 @@ class Process(QThread):
         for report
         """
 
-        # Check if the thread should keep running
         if not self._is_running:
             return None
         print('mlrPredict')
 
         results = self.preprocess()
 
-        # Add early return if preprocess was stopped
         if results is None or not self._is_running:
             return None
 
@@ -1519,7 +1509,6 @@ class Process(QThread):
             n_jobs=proc_op_dict['n_jobs']
         )
 
-        # Add similar checks before updating results
         if not self._is_running:
             return None
 
@@ -1540,14 +1529,12 @@ class Process(QThread):
         for report
         """
 
-        # Check if the thread should keep running
         if not self._is_running:
             return None
         print('rfPredict')
 
         results = self.preprocess()
 
-        # Add early return if preprocess was stopped
         if results is None or not self._is_running:
             return None
 
@@ -1566,7 +1553,6 @@ class Process(QThread):
             n_jobs=proc_op_dict['n_jobs']
         )
 
-        # Add similar checks before updating results
         if not self._is_running:
             return None
 
@@ -1593,7 +1579,6 @@ class Process(QThread):
         try:
             results = self.method_dict[self.method]()
 
-            # Early return if process was stopped or results is None
             if results is None or not self._is_running:
                 return None
 
@@ -1667,8 +1652,8 @@ class Process(QThread):
         Stop the processing thread.
         """
         self._is_running = False
-        self.quit()  # Tell the event loop to exit
-        self.wait()  # Wait for the thread to finish
+        self.quit()
+        self.wait()
 
 
 
