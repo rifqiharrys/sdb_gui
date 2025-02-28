@@ -1474,7 +1474,7 @@ class Process(QThread):
             f'N Neighbors:\t\t{knn_op_dict["n_neighbors"]}\n'
             f'Weights:\t\t{knn_op_dict["weights"]}\n'
             f'Algorithm:\t\t{knn_op_dict["algorithm"]}\n'
-            f'Leaf Size:\t\t{knn_op_dict["leaf_size"]}'
+            f'Leaf Size:\t\t{knn_op_dict["leaf_size"]}\n'
         )
 
         return results
@@ -1517,7 +1517,7 @@ class Process(QThread):
         global print_parameters_info
         print_parameters_info = (
             f'Fit Intercept:\t\t{mlr_op_dict["fit_intercept"]}\n'
-            f'Copy X:\t\t{mlr_op_dict["copy_x"]}'
+            f'Copy X:\t\t{mlr_op_dict["copy_x"]}\n'
         )
 
         return results
