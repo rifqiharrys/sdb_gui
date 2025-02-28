@@ -950,6 +950,7 @@ class SDBWidget(QWidget):
             self.sdbProcess.wait()
             self.resultText.clear()
             self.progressBar.setValue(0)
+            self.resultText.setText('Processing has been stopped!')
 
 
     def warningWithClear(self, warning_text):
@@ -1349,7 +1350,8 @@ class Process(QThread):
             'Random Forest': self.rfPredict
         }
 
-        self._is_running = True  # Flag to indicate if the thread should keep running
+        # Flag to indicate if the thread should keep running
+        self._is_running = True
 
 
     def inputs(self, input_dict):
@@ -1374,7 +1376,9 @@ class Process(QThread):
         depth sample CRS, sampling raster value and depth value, 
         and then limiting or not limiting depth value.
         """
-        if not self._is_running:  # Check if the thread should keep running
+
+        # Check if the thread should keep running
+        if not self._is_running:
             return None
         print('Pre Processing')
 
@@ -1383,7 +1387,8 @@ class Process(QThread):
         self.time_signal.emit(start_list)
         clipped_sample = sdb.clip_vector(image_raw, sample_raw)
 
-        if not self._is_running:  # Check if the thread should keep running
+        # Check if the thread should keep running
+        if not self._is_running:
             return None
 
         time_clip = datetime.datetime.now()
@@ -1398,7 +1403,8 @@ class Process(QThread):
             bottom_limit=self.limit_b_value
         )
 
-        if not self._is_running:  # Check if the thread should keep running
+        # Check if the thread should keep running
+        if not self._is_running:
             return None
 
         time_depth_filter = datetime.datetime.now()
@@ -1437,11 +1443,17 @@ class Process(QThread):
         Preparing KNN prediction and saving selected parameters
         for report
         """
-        if not self._is_running:  # Check if the thread should keep running
+
+        # Check if the thread should keep running
+        if not self._is_running:
             return None
         print('knnPredict')
 
         results = self.preprocess()
+
+        # Add early return if preprocess was stopped
+        if results is None or not self._is_running:
+            return None
 
         time_split = datetime.datetime.now()
         split_list = [time_split, 'Modeling...\n']
@@ -1458,6 +1470,10 @@ class Process(QThread):
             backend=proc_op_dict['backend'],
             n_jobs=proc_op_dict['n_jobs']
         )
+
+        # Add similar checks before updating results
+        if not self._is_running:
+            return None
 
         results.update({'z_predict': z_predict})
 
@@ -1477,11 +1493,17 @@ class Process(QThread):
         Preparing MLR prediction and saving selected parameters
         for report
         """
-        if not self._is_running:  # Check if the thread should keep running
+
+        # Check if the thread should keep running
+        if not self._is_running:
             return None
         print('mlrPredict')
 
         results = self.preprocess()
+
+        # Add early return if preprocess was stopped
+        if results is None or not self._is_running:
+            return None
 
         time_split = datetime.datetime.now()
         split_list = [time_split, 'Modeling...\n']
@@ -1496,6 +1518,10 @@ class Process(QThread):
             backend=proc_op_dict['backend'],
             n_jobs=proc_op_dict['n_jobs']
         )
+
+        # Add similar checks before updating results
+        if not self._is_running:
+            return None
 
         results.update({'z_predict': z_predict})
 
@@ -1513,11 +1539,17 @@ class Process(QThread):
         Preparing RF prediction and saving selected parameters
         for report
         """
-        if not self._is_running:  # Check if the thread should keep running
+
+        # Check if the thread should keep running
+        if not self._is_running:
             return None
         print('rfPredict')
 
         results = self.preprocess()
+
+        # Add early return if preprocess was stopped
+        if results is None or not self._is_running:
+            return None
 
         time_split = datetime.datetime.now()
         split_list = [time_split, 'Modeling...\n']
@@ -1533,6 +1565,10 @@ class Process(QThread):
             backend=proc_op_dict['backend'],
             n_jobs=proc_op_dict['n_jobs']
         )
+
+        # Add similar checks before updating results
+        if not self._is_running:
+            return None
 
         results.update({'z_predict': z_predict})
 
@@ -1557,11 +1593,8 @@ class Process(QThread):
         try:
             results = self.method_dict[self.method]()
 
-            # Early return if process was stopped
-            if results is None:
-                return None
-
-            if not self._is_running:  # Check if the thread should keep running
+            # Early return if process was stopped or results is None
+            if results is None or not self._is_running:
                 return None
 
             time_model = datetime.datetime.now()
