@@ -49,49 +49,6 @@ DEPTH_DIR_DICT = {
     'Positive Down': ('down', True),
 }
 
-## DEVAULT VALUES ##
-proc_op_dict = {
-    'backend': 'threading',
-    'n_jobs': -2,
-    'selection' : {
-        'train_size': 0.75,
-        'random_state': 0
-    }
-}
-
-knn_op_dict = {
-    'n_neighbors': 5,
-    'weights': 'distance',
-    'algorithm': 'auto',
-    'leaf_size': 30
-}
-
-mlr_op_dict = {
-    'fit_intercept': True,
-    'copy_x': True
-}
-
-rf_op_dict = {
-    'n_estimators': 300,
-    'criterion': 'squared_error',
-    'bootstrap': True,
-    'criterion_set': (
-        'squared_error', 'absolute_error', 'poisson', 'friedman_mse'
-    )
-}
-
-def resource_path(relative_path):
-    """
-    Get the absolute path to the resource, works for dev and for PyInstaller
-    """
-    try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath('.')
-    return os.path.join(base_path, relative_path)
-
-
 
 class SDBWidget(QWidget):
     """
@@ -184,6 +141,9 @@ class SDBWidget(QWidget):
             )
         )
 
+        self.optionsButton = QPushButton('Method Options')
+        self.optionsButton.clicked.connect(self.knnOptionWindow)
+
         selection_list = ['Random Selection', 'Attribute Selection']
 
         trainSelectLabel = QLabel('Train Data Selection:')
@@ -191,18 +151,17 @@ class SDBWidget(QWidget):
         self.trainSelectCB.addItems(selection_list)
         self.trainSelectCB.activated.connect(self.updateTrainSelection)
 
-        self.optionsButton = QPushButton('Method Options')
-        self.optionsButton.clicked.connect(self.knnOptionWindow)
-
-        makePredictionButton = QPushButton('Generate Prediction')
-        makePredictionButton.clicked.connect(self.predict)
-        saveFileButton = QPushButton('Save Into File')
-        saveFileButton.clicked.connect(self.saveOptionWindow)
-
         self.processingOptionsButton = QPushButton('Processing Options')
         self.processingOptionsButton.clicked.connect(self.processingOptionWindow)
 
+        makePredictionButton = QPushButton('Generate Prediction')
+        makePredictionButton.clicked.connect(self.predict)
+        stopProcessingButton = QPushButton('Stop Processing')
+        stopProcessingButton.clicked.connect(self.stopProcess)
+
         resultInfo = QLabel('Result Information')
+        saveFileButton = QPushButton('Save Into File')
+        saveFileButton.clicked.connect(self.saveOptionWindow)
         self.resultText = QTextBrowser()
         self.resultText.setAlignment(Qt.AlignRight)
 
@@ -268,9 +227,10 @@ class SDBWidget(QWidget):
 
         grid4 = QGridLayout()
         grid4.addWidget(makePredictionButton, 1, 1, 1, 2)
-        grid4.addWidget(saveFileButton, 1, 3, 1, 2)
+        grid4.addWidget(stopProcessingButton, 1, 3, 1, 2)
 
-        grid4.addWidget(resultInfo, 2, 1, 1, 4)
+        grid4.addWidget(resultInfo, 2, 1, 1, 2)
+        grid4.addWidget(saveFileButton, 2, 3, 1, 2)
         grid4.addWidget(self.resultText, 3, 1, 1, 4)
 
         grid4.addWidget(self.progressBar, 7, 1, 1, 4)
@@ -980,6 +940,19 @@ class SDBWidget(QWidget):
         self.resultText.setText(print_result_info)
 
 
+    def stopProcess(self):
+        """
+        Stop processing and clear result info and progress bar
+        """
+
+        if hasattr(self, 'sdbProcess') and self.sdbProcess.isRunning():
+            self.sdbProcess.stop()
+            self.sdbProcess.wait()
+            self.resultText.clear()
+            self.progressBar.setValue(0)
+            self.resultText.setText('Processing has been stopped!')
+
+
     def warningWithClear(self, warning_text):
         """
         Show warning dialog and customized warning text
@@ -1170,7 +1143,6 @@ class SDBWidget(QWidget):
             train_df_copy = end_results['train'].copy()
             test_df_copy = end_results['test'].copy()
 
-            # Positive Down save
             if DEPTH_DIR_DICT[self.depthDirectionSaveCB.currentText()][1]:
                 daz_filtered.values[0] *=-1
                 test_df_copy['z'] *=-1
@@ -1377,6 +1349,8 @@ class Process(QThread):
             'Random Forest': self.rfPredict
         }
 
+        self._is_running = True
+
 
     def inputs(self, input_dict):
         """
@@ -1400,12 +1374,18 @@ class Process(QThread):
         depth sample CRS, sampling raster value and depth value, 
         and then limiting or not limiting depth value.
         """
+
+        if not self._is_running:
+            return None
         print('Pre Processing')
 
         time_start = datetime.datetime.now()
         start_list = [time_start, 'Clipping and Reprojecting...\n']
         self.time_signal.emit(start_list)
         clipped_sample = sdb.clip_vector(image_raw, sample_raw)
+
+        if not self._is_running:
+            return None
 
         time_clip = datetime.datetime.now()
         clip_list = [time_clip, 'Depth Filtering...\n']
@@ -1418,6 +1398,9 @@ class Process(QThread):
             top_limit=self.limit_a_value,
             bottom_limit=self.limit_b_value
         )
+
+        if not self._is_running:
+            return None
 
         time_depth_filter = datetime.datetime.now()
         depth_filter_list = [time_depth_filter, 'Split Train and Test...\n']
@@ -1455,9 +1438,15 @@ class Process(QThread):
         Preparing KNN prediction and saving selected parameters
         for report
         """
+
+        if not self._is_running:
+            return None
         print('knnPredict')
 
         results = self.preprocess()
+
+        if results is None or not self._is_running:
+            return None
 
         time_split = datetime.datetime.now()
         split_list = [time_split, 'Modeling...\n']
@@ -1474,6 +1463,9 @@ class Process(QThread):
             backend=proc_op_dict['backend'],
             n_jobs=proc_op_dict['n_jobs']
         )
+
+        if not self._is_running:
+            return None
 
         results.update({'z_predict': z_predict})
 
@@ -1493,9 +1485,15 @@ class Process(QThread):
         Preparing MLR prediction and saving selected parameters
         for report
         """
+
+        if not self._is_running:
+            return None
         print('mlrPredict')
 
         results = self.preprocess()
+
+        if results is None or not self._is_running:
+            return None
 
         time_split = datetime.datetime.now()
         split_list = [time_split, 'Modeling...\n']
@@ -1510,6 +1508,9 @@ class Process(QThread):
             backend=proc_op_dict['backend'],
             n_jobs=proc_op_dict['n_jobs']
         )
+
+        if not self._is_running:
+            return None
 
         results.update({'z_predict': z_predict})
 
@@ -1527,9 +1528,15 @@ class Process(QThread):
         Preparing RF prediction and saving selected parameters
         for report
         """
+
+        if not self._is_running:
+            return None
         print('rfPredict')
 
         results = self.preprocess()
+
+        if results is None or not self._is_running:
+            return None
 
         time_split = datetime.datetime.now()
         split_list = [time_split, 'Modeling...\n']
@@ -1545,6 +1552,9 @@ class Process(QThread):
             backend=proc_op_dict['backend'],
             n_jobs=proc_op_dict['n_jobs']
         )
+
+        if not self._is_running:
+            return None
 
         results.update({'z_predict': z_predict})
 
@@ -1568,6 +1578,9 @@ class Process(QThread):
 
         try:
             results = self.method_dict[self.method]()
+
+            if results is None or not self._is_running:
+                return None
 
             time_model = datetime.datetime.now()
             model_list = [time_model, 'Evaluating...\n']
@@ -1634,6 +1647,15 @@ class Process(QThread):
             )
 
 
+    def stop(self):
+        """
+        Stop the processing thread.
+        """
+        self._is_running = False
+        self.quit()
+        self.wait()
+
+
 
 def main():
 
@@ -1641,6 +1663,70 @@ def main():
     sdb_gui = SDBWidget()
     sdb_gui.show()
 
+
+def default_values():
+    """
+    Default values container
+    """
+
+    proc_op_dict = {
+        'backend': 'threading',
+        'n_jobs': -2,
+        'selection' : {
+            'train_size': 0.75,
+            'random_state': 0
+        }
+    }
+
+    knn_op_dict = {
+        'n_neighbors': 5,
+        'weights': 'distance',
+        'algorithm': 'auto',
+        'leaf_size': 30
+    }
+
+    mlr_op_dict = {
+        'fit_intercept': True,
+        'copy_x': True
+    }
+
+    rf_op_dict = {
+        'n_estimators': 300,
+        'criterion': 'squared_error',
+        'bootstrap': True,
+        'criterion_set': (
+            'squared_error', 'absolute_error', 'poisson', 'friedman_mse'
+        )
+    }
+
+    default_dict = {
+        'proc_op_dict': proc_op_dict,
+        'knn_op_dict': knn_op_dict,
+        'mlr_op_dict': mlr_op_dict,
+        'rf_op_dict': rf_op_dict
+    }
+
+    return default_dict
+
+
+def resource_path(relative_path):
+    """
+    Get the absolute path to the resource, works for dev and for PyInstaller
+    """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath('.')
+    return os.path.join(base_path, relative_path)
+
+
+default = default_values()
+
+proc_op_dict = default['proc_op_dict']
+knn_op_dict = default['knn_op_dict']
+mlr_op_dict = default['mlr_op_dict']
+rf_op_dict = default['rf_op_dict']
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
