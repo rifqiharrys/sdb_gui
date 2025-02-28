@@ -43,7 +43,6 @@ Image below is the workflow of predicting bathymetric depth using SDB GUI if you
     - [b. Insert parameters and setting options](#b-insert-parameters-and-setting-options)
     - [c. Generate depth prediction](#c-generate-depth-prediction)
     - [d. Save depth prediction into file](#d-save-depth-prediction-into-file)
-  - [3. Notebook](#3-notebook)
   - [Releases](#releases)
   - [License](#license)
   - [Citation](#citation)
@@ -114,10 +113,6 @@ Generate depth prediction by pressing **Generate Prediction** button. While proc
 ### d. Save depth prediction into file
 
 After depth prediction was generated, you can save it into a Geotiff or XYZ file. In the save file window, there are other options to use median filter to remove noise (default is on), save report, save train and test data, and create scatter plot using test data.
-
-## 3. Notebook
-
-To have a better understanding about the new SDB processing workflow in SDB GUI project, you could read a [Jupyter Notebook](./notebooks/) in this repository. There are two notebooks in this repository, which are `sdb-how-to-xarray-workflow.ipynb` and `sdb-module-how-to.ipynb`. Both notebooks contain a simple SDB processing workflow without GUI using Random Forest Regression.  The workflow of the first notebook might be a bit different from the recent SDB GUI, the basic idea is the same and this notebook is a prototype to the recent update (v4) of SDB GUI. The second notebook contain SDB processing using SDB module.
 
 ## Releases
 
