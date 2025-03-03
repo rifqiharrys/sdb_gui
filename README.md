@@ -43,6 +43,7 @@ Image below is the workflow of predicting bathymetric depth using SDB GUI if you
     - [b. Insert parameters and setting options](#b-insert-parameters-and-setting-options)
     - [c. Generate depth prediction](#c-generate-depth-prediction)
     - [d. Save depth prediction into file](#d-save-depth-prediction-into-file)
+  - [3. How To Create An Executable File Using Auto PY To EXE](#3-how-to-create-an-executable-file-using-auto-py-to-exe)
   - [Releases](#releases)
   - [License](#license)
   - [Citation](#citation)
@@ -113,6 +114,27 @@ Generate depth prediction by pressing **Generate Prediction** button. While proc
 ### d. Save depth prediction into file
 
 After depth prediction was generated, you can save it into a Geotiff or XYZ file. In the save file window, there are other options to use median filter to remove noise (default is on), save report, save train and test data, and create scatter plot using test data.
+
+## 3. How To Create An Executable File Using Auto PY To EXE
+
+These are the important steps:
+
+1. Run `auto-py-to-exe` in terminal and a graphical interface will show.
+2. Insert `sdb_gui.py` in script location.
+3. Use One File and Console Based.
+4. Insert `sdb_gui.ico` in icon.
+5. Insert the following additional file and directories in Additional Files:
+   1. LICENSE file --add files.
+   2. icons, licenses, and sdb directories --add folder.
+   3. GDAL directory (usually in \your-directory\Library\share\gdal) --add folder.
+6. Go to Advanced options,
+   1. add hidden import:
+      1. rasterio.sample
+      2. pyogrio._geometry
+      3. fiona
+   2. add runtime hook and select `hook-gdal.py`.
+7. Go to Settings options and specify your output directory.
+8. CONVERT .PY TO .EXE
 
 ## Releases
 
