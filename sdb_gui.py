@@ -1546,7 +1546,7 @@ class Process(QThread):
             unraveled_band=bands_df,
             features_train=results['f_train'].drop(columns=['x', 'y']),
             label_train=results['z_train'],
-            ntree=rf_op_dict['n_estimators'],
+            n_estimators=rf_op_dict['n_estimators'],
             criterion=rf_op_dict['criterion'],
             bootstrap=rf_op_dict['bootstrap'],
             backend=proc_op_dict['backend'],
