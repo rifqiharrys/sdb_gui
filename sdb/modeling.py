@@ -14,7 +14,8 @@ def k_nearest_neighbors(
         algorithm: str = 'auto',
         leaf_size: int = 30,
         backend: str = 'threading',
-        n_jobs: int = -2
+        n_jobs: int = -2,
+        **params
 ):
     """
     Predicting depth using K-Nearest Neighbors.
@@ -39,6 +40,8 @@ def k_nearest_neighbors(
         Backend to use for parallel processing. Default is 'threading'.
     n_jobs : int, optional
         The number of jobs to run in parallel. Default is -2.
+    **params : dict
+        Additional parameters to pass to KNeighborsRegressor.
 
     Returns
     -------
@@ -71,7 +74,8 @@ def k_nearest_neighbors(
         n_neighbors=n_neighbors,
         weights=weights,
         algorithm=algorithm,
-        leaf_size=leaf_size
+        leaf_size=leaf_size,
+        **params
     )
 
     with parallel_backend(backend=backend, n_jobs=n_jobs):
@@ -88,7 +92,8 @@ def linear_regression(
         fit_intercept: bool = True,
         copy_X: bool = True,
         backend: str = 'threading',
-        n_jobs: int = -2
+        n_jobs: int = -2,
+        **params
 ):
     """
     Predicting depth using Linear Regression.
@@ -109,6 +114,8 @@ def linear_regression(
         Backend to use for parallel processing. Default is 'threading'.
     n_jobs : int, optional
         The number of jobs to run in parallel. Default is -2.
+    **params : dict
+        Additional parameters to pass to KNeighborsRegressor.
 
     Returns
     -------
@@ -125,7 +132,8 @@ def linear_regression(
 
     regressor = LinearRegression(
         fit_intercept=fit_intercept,
-        copy_X=copy_X
+        copy_X=copy_X,
+        **params
     )
 
     with parallel_backend(backend=backend, n_jobs=n_jobs):
@@ -139,11 +147,12 @@ def random_forest(
         unraveled_band: pd.DataFrame,
         features_train: pd.DataFrame,
         label_train: pd.Series,
-        ntree: int = 300,
+        n_estimators: int = 300,
         criterion: str = 'squared_error',
         bootstrap: bool = True,
         backend: str = 'threading',
-        n_jobs: int = -2
+        n_jobs: int = -2,
+        **params
 ):
     """
     Predicting depth using Random Forest.
@@ -156,7 +165,7 @@ def random_forest(
         Features from train data.
     label_train : pd.Series
         Label from train data.
-    ntree : int, optional
+    n_estimators : int, optional
         Number of trees in the Random Forest. Default is 300.
     criterion : str, optional
         The function to measure the quality of a split. Default is 'squared_error'.
@@ -166,6 +175,8 @@ def random_forest(
         Backend to use for parallel processing. Default is 'threading'.
     n_jobs : int, optional
         The number of jobs to run in parallel. Default is -2.
+    **params : dict
+        Additional parameters to pass to KNeighborsRegressor.
 
     Returns
     -------
@@ -190,9 +201,10 @@ def random_forest(
         )
 
     regressor = RandomForestRegressor(
-        n_estimators=ntree,
+        n_estimators=n_estimators,
         criterion=criterion,
-        bootstrap=bootstrap
+        bootstrap=bootstrap,
+        **params
     )
 
     with parallel_backend(backend=backend, n_jobs=n_jobs):
