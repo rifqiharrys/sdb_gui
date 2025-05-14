@@ -115,7 +115,7 @@ def linear_regression(
     n_jobs : int, optional
         The number of jobs to run in parallel. Default is -2.
     **params : dict
-        Additional parameters to pass to KNeighborsRegressor.
+        Additional parameters to pass to LinearRegression.
 
     Returns
     -------
@@ -176,7 +176,7 @@ def random_forest(
     n_jobs : int, optional
         The number of jobs to run in parallel. Default is -2.
     **params : dict
-        Additional parameters to pass to KNeighborsRegressor.
+        Additional parameters to pass to RandomForestRegressor.
 
     Returns
     -------
