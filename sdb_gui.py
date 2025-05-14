@@ -1452,16 +1452,20 @@ class Process(QThread):
         split_list = [time_split, 'Modeling...\n']
         self.time_signal.emit(split_list)
 
+        knn_parameters = {
+            'n_neighbors': knn_op_dict['n_neighbors'],
+            'weights': knn_op_dict['weights'],
+            'algorithm': knn_op_dict['algorithm'],
+            'leaf_size': knn_op_dict['leaf_size']
+        }
+
         z_predict = sdb.k_nearest_neighbors(
             unraveled_band=bands_df,
             features_train=results['f_train'].drop(columns=['x', 'y']),
             label_train=results['z_train'],
-            n_neighbors=knn_op_dict['n_neighbors'],
-            weights=knn_op_dict['weights'],
-            algorithm=knn_op_dict['algorithm'],
-            leaf_size=knn_op_dict['leaf_size'],
             backend=proc_op_dict['backend'],
-            n_jobs=proc_op_dict['n_jobs']
+            n_jobs=proc_op_dict['n_jobs'],
+            **knn_parameters
         )
 
         if not self._is_running:
@@ -1499,14 +1503,18 @@ class Process(QThread):
         split_list = [time_split, 'Modeling...\n']
         self.time_signal.emit(split_list)
 
+        mlr_parameters = {
+            'fit_intercept': mlr_op_dict['fit_intercept'],
+            'copy_X': mlr_op_dict['copy_x']
+        }
+
         z_predict = sdb.linear_regression(
             unraveled_band=bands_df,
             features_train=results['f_train'].drop(columns=['x', 'y']),
             label_train=results['z_train'],
-            fit_intercept=mlr_op_dict['fit_intercept'],
-            copy_X=mlr_op_dict['copy_x'],
             backend=proc_op_dict['backend'],
-            n_jobs=proc_op_dict['n_jobs']
+            n_jobs=proc_op_dict['n_jobs'],
+            **mlr_parameters
         )
 
         if not self._is_running:
@@ -1542,15 +1550,19 @@ class Process(QThread):
         split_list = [time_split, 'Modeling...\n']
         self.time_signal.emit(split_list)
 
+        rf_parameters = {
+            'n_estimators': rf_op_dict['n_estimators'],
+            'criterion': rf_op_dict['criterion'],
+            'bootstrap': rf_op_dict['bootstrap']
+        }
+
         z_predict = sdb.random_forest(
             unraveled_band=bands_df,
             features_train=results['f_train'].drop(columns=['x', 'y']),
             label_train=results['z_train'],
-            n_estimators=rf_op_dict['n_estimators'],
-            criterion=rf_op_dict['criterion'],
-            bootstrap=rf_op_dict['bootstrap'],
             backend=proc_op_dict['backend'],
-            n_jobs=proc_op_dict['n_jobs']
+            n_jobs=proc_op_dict['n_jobs'],
+            **rf_parameters
         )
 
         if not self._is_running:
