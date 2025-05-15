@@ -484,23 +484,27 @@ class SDBWidget(QWidget):
         nneighborLabel = QLabel('Number of Neighbors:')
         self.nneighborSB = QSpinBox()
         self.nneighborSB.setRange(1, 1000)
-        self.nneighborSB.setValue(knn_op_dict['n_neighbors'])
+        self.nneighborSB.setValue(knn_op_dict['model_parameters']['n_neighbors'])
         self.nneighborSB.setAlignment(Qt.AlignRight)
 
         weightsLabel = QLabel('Weights:')
         self.weightsCB = QComboBox()
-        self.weightsCB.addItems(['uniform', 'distance'])
-        self.weightsCB.setCurrentText(knn_op_dict['weights'])
+        self.weightsCB.addItems(knn_op_dict['weights_set'])
+        self.weightsCB.setCurrentText(
+            knn_op_dict['model_parameters']['weights']
+        )
 
         algorithmLabel = QLabel('Algorithm:')
         self.algorithmCB = QComboBox()
-        self.algorithmCB.addItems(['auto', 'ball_tree', 'kd_tree', 'brute'])
-        self.algorithmCB.setCurrentText(knn_op_dict['algorithm'])
+        self.algorithmCB.addItems(knn_op_dict['algorithm_set'])
+        self.algorithmCB.setCurrentText(
+            knn_op_dict['model_parameters']['algorithm']
+        )
 
         leafSizeLabel = QLabel('Leaf Size:')
         self.leafSizeSB = QSpinBox()
         self.leafSizeSB.setRange(1, 1000)
-        self.leafSizeSB.setValue(knn_op_dict['leaf_size'])
+        self.leafSizeSB.setValue(knn_op_dict['model_parameters']['leaf_size'])
         self.leafSizeSB.setAlignment(Qt.AlignRight)
 
         cancelButton = QPushButton('Cancel')
@@ -536,10 +540,10 @@ class SDBWidget(QWidget):
         Loading defined KNN option input
         """
 
-        knn_op_dict['n_neighbors'] = self.nneighborSB.value()
-        knn_op_dict['weights'] = self.weightsCB.currentText()
-        knn_op_dict['algorithm'] = self.algorithmCB.currentText()
-        knn_op_dict['leaf_size'] = self.leafSizeSB.value()
+        knn_op_dict['model_parameters']['n_neighbors'] = self.nneighborSB.value()
+        knn_op_dict['model_parameters']['weights'] = self.weightsCB.currentText()
+        knn_op_dict['model_parameters']['algorithm'] = self.algorithmCB.currentText()
+        knn_op_dict['model_parameters']['leaf_size'] = self.leafSizeSB.value()
 
 
     def mlrOptionWindow(self):
@@ -556,12 +560,16 @@ class SDBWidget(QWidget):
         fitInterceptLabel = QLabel('Fit Intercept:')
         self.fitInterceptCB = QComboBox()
         self.fitInterceptCB.addItems(['True', 'False'])
-        self.fitInterceptCB.setCurrentText(str(mlr_op_dict['fit_intercept']))
+        self.fitInterceptCB.setCurrentText(
+            str(mlr_op_dict['model_parameters']['fit_intercept'])
+        )
 
         copyXLabel = QLabel('Copy X:')
         self.copyXCB = QComboBox()
         self.copyXCB.addItems(['True', 'False'])
-        self.copyXCB.setCurrentText(str(mlr_op_dict['copy_x']))
+        self.copyXCB.setCurrentText(
+            str(mlr_op_dict['model_parameters']['copy_X'])
+        )
 
         cancelButton = QPushButton('Cancel')
         cancelButton.clicked.connect(optionDialog.close)
@@ -590,8 +598,12 @@ class SDBWidget(QWidget):
         Loading defined MLR option input
         """
 
-        mlr_op_dict['fit_intercept'] = self.str2bool(self.fitInterceptCB.currentText())
-        mlr_op_dict['copy_x'] = self.str2bool(self.copyXCB.currentText())
+        mlr_op_dict['model_parameters']['fit_intercept'] = self.str2bool(
+            self.fitInterceptCB.currentText()
+        )
+        mlr_op_dict['model_parameters']['copy_X'] = self.str2bool(
+            self.copyXCB.currentText()
+        )
 
 
     def rfOptionWindow(self):
@@ -608,18 +620,22 @@ class SDBWidget(QWidget):
         ntreeLabel = QLabel('Number of Trees:')
         self.ntreeSB = QSpinBox()
         self.ntreeSB.setRange(1, 10000)
-        self.ntreeSB.setValue(rf_op_dict['n_estimators'])
+        self.ntreeSB.setValue(rf_op_dict['model_parameters']['n_estimators'])
         self.ntreeSB.setAlignment(Qt.AlignRight)
 
         criterionLabel = QLabel('Criterion:')
         self.criterionCB = QComboBox()
         self.criterionCB.addItems(rf_op_dict['criterion_set'])
-        self.criterionCB.setCurrentText(rf_op_dict['criterion'])
+        self.criterionCB.setCurrentText(
+            rf_op_dict['model_parameters']['criterion']
+        )
 
         bootstrapLabel = QLabel('Bootstrap:')
         self.bootstrapCB = QComboBox()
         self.bootstrapCB.addItems(['True', 'False'])
-        self.bootstrapCB.setCurrentText(str(rf_op_dict['bootstrap']))
+        self.bootstrapCB.setCurrentText(
+            str(rf_op_dict['model_parameters']['bootstrap'])
+        )
 
         cancelButton = QPushButton('Cancel')
         cancelButton.clicked.connect(optionDialog.close)
@@ -651,9 +667,11 @@ class SDBWidget(QWidget):
         Loading defined RF option input
         """
 
-        rf_op_dict['n_estimators'] = self.ntreeSB.value()
-        rf_op_dict['criterion'] = self.criterionCB.currentText()
-        rf_op_dict['bootstrap'] = self.str2bool(self.bootstrapCB.currentText())
+        rf_op_dict['model_parameters']['n_estimators'] = self.ntreeSB.value()
+        rf_op_dict['model_parameters']['criterion'] = self.criterionCB.currentText()
+        rf_op_dict['model_parameters']['bootstrap'] = self.str2bool(
+            self.bootstrapCB.currentText()
+        )
 
 
     def processingOptionWindow(self):
@@ -1343,12 +1361,6 @@ class Process(QThread):
 
         QThread.__init__(self)
 
-        self.method_dict = {
-            'K-Nearest Neighbors': self.knnPredict,
-            'Multiple Linear Regression': self.mlrPredict,
-            'Random Forest': self.rfPredict
-        }
-
         self._is_running = True
 
 
@@ -1433,15 +1445,15 @@ class Process(QThread):
         return results
 
 
-    def knnPredict(self):
+    def predict(self, method):
         """
-        Preparing KNN prediction and saving selected parameters
-        for report
+        Preparing prediction using selected method/model
+        and saving selected parameters for report
         """
 
         if not self._is_running:
             return None
-        print('knnPredict')
+        print(f'prediction using {method}')
 
         results = self.preprocess()
 
@@ -1452,20 +1464,23 @@ class Process(QThread):
         split_list = [time_split, 'Modeling...\n']
         self.time_signal.emit(split_list)
 
-        knn_parameters = {
-            'n_neighbors': knn_op_dict['n_neighbors'],
-            'weights': knn_op_dict['weights'],
-            'algorithm': knn_op_dict['algorithm'],
-            'leaf_size': knn_op_dict['leaf_size']
-        }
+        if method == 'K-Nearest Neighbors':
+            model_parameters = knn_op_dict['model_parameters']
+        elif method == 'Multiple Linear Regression':
+            model_parameters = mlr_op_dict['model_parameters']
+        elif method == 'Random Forest':
+            model_parameters = rf_op_dict['model_parameters']
 
-        z_predict = sdb.k_nearest_neighbors(
+        print(model_parameters)
+
+        z_predict = sdb.prediction(
+            model=method,
             unraveled_band=bands_df,
             features_train=results['f_train'].drop(columns=['x', 'y']),
             label_train=results['z_train'],
             backend=proc_op_dict['backend'],
             n_jobs=proc_op_dict['n_jobs'],
-            **knn_parameters
+            **model_parameters
         )
 
         if not self._is_running:
@@ -1474,108 +1489,24 @@ class Process(QThread):
         results.update({'z_predict': z_predict})
 
         global print_parameters_info
-        print_parameters_info = (
-            f'N Neighbors:\t\t{knn_op_dict["n_neighbors"]}\n'
-            f'Weights:\t\t{knn_op_dict["weights"]}\n'
-            f'Algorithm:\t\t{knn_op_dict["algorithm"]}\n'
-            f'Leaf Size:\t\t{knn_op_dict["leaf_size"]}\n'
-        )
-
-        return results
-
-
-    def mlrPredict(self):
-        """
-        Preparing MLR prediction and saving selected parameters
-        for report
-        """
-
-        if not self._is_running:
-            return None
-        print('mlrPredict')
-
-        results = self.preprocess()
-
-        if results is None or not self._is_running:
-            return None
-
-        time_split = datetime.datetime.now()
-        split_list = [time_split, 'Modeling...\n']
-        self.time_signal.emit(split_list)
-
-        mlr_parameters = {
-            'fit_intercept': mlr_op_dict['fit_intercept'],
-            'copy_X': mlr_op_dict['copy_x']
-        }
-
-        z_predict = sdb.linear_regression(
-            unraveled_band=bands_df,
-            features_train=results['f_train'].drop(columns=['x', 'y']),
-            label_train=results['z_train'],
-            backend=proc_op_dict['backend'],
-            n_jobs=proc_op_dict['n_jobs'],
-            **mlr_parameters
-        )
-
-        if not self._is_running:
-            return None
-
-        results.update({'z_predict': z_predict})
-
-        global print_parameters_info
-        print_parameters_info = (
-            f'Fit Intercept:\t\t{mlr_op_dict["fit_intercept"]}\n'
-            f'Copy X:\t\t{mlr_op_dict["copy_x"]}\n'
-        )
-
-        return results
-
-
-    def rfPredict(self):
-        """
-        Preparing RF prediction and saving selected parameters
-        for report
-        """
-
-        if not self._is_running:
-            return None
-        print('rfPredict')
-
-        results = self.preprocess()
-
-        if results is None or not self._is_running:
-            return None
-
-        time_split = datetime.datetime.now()
-        split_list = [time_split, 'Modeling...\n']
-        self.time_signal.emit(split_list)
-
-        rf_parameters = {
-            'n_estimators': rf_op_dict['n_estimators'],
-            'criterion': rf_op_dict['criterion'],
-            'bootstrap': rf_op_dict['bootstrap']
-        }
-
-        z_predict = sdb.random_forest(
-            unraveled_band=bands_df,
-            features_train=results['f_train'].drop(columns=['x', 'y']),
-            label_train=results['z_train'],
-            backend=proc_op_dict['backend'],
-            n_jobs=proc_op_dict['n_jobs'],
-            **rf_parameters
-        )
-
-        if not self._is_running:
-            return None
-
-        results.update({'z_predict': z_predict})
-
-        global print_parameters_info
-        print_parameters_info = (
-            f'N Trees:\t\t{rf_op_dict["n_estimators"]}\n'
-            f'Criterion:\t\t{rf_op_dict["criterion"]}\n'
-            f'Bootstrap:\t\t{rf_op_dict["bootstrap"]}\n'
-        )
+        if method == 'K-Nearest Neighbors':
+            print_parameters_info = (
+                f'N Neighbors:\t\t{knn_op_dict["model_parameters"]["n_neighbors"]}\n'
+                f'Weights:\t\t{knn_op_dict["model_parameters"]["weights"]}\n'
+                f'Algorithm:\t\t{knn_op_dict["model_parameters"]["algorithm"]}\n'
+                f'Leaf Size:\t\t{knn_op_dict["model_parameters"]["leaf_size"]}\n'
+            )
+        elif method == 'Multiple Linear Regression':
+            print_parameters_info = (
+                f'Fit Intercept:\t\t{mlr_op_dict["model_parameters"]["fit_intercept"]}\n'
+                f'Copy X:\t\t{mlr_op_dict["model_parameters"]["copy_X"]}\n'
+            )
+        elif method == 'Random Forest':
+            print_parameters_info = (
+                f'N Trees:\t\t{rf_op_dict["model_parameters"]["n_estimators"]}\n'
+                f'Criterion:\t\t{rf_op_dict["model_parameters"]["criterion"]}\n'
+                f'Bootstrap:\t\t{rf_op_dict["model_parameters"]["bootstrap"]}\n'
+            )
 
         return results
 
@@ -1589,7 +1520,7 @@ class Process(QThread):
         print('Process run')
 
         try:
-            results = self.method_dict[self.method]()
+            results = self.predict(method=self.method)
 
             if results is None or not self._is_running:
                 return None
@@ -1691,21 +1622,33 @@ def default_values():
     }
 
     knn_op_dict = {
-        'n_neighbors': 5,
-        'weights': 'distance',
-        'algorithm': 'auto',
-        'leaf_size': 30
+        'model_parameters': {
+            'n_neighbors': 5,
+            'weights': 'distance',
+            'algorithm': 'auto',
+            'leaf_size': 30
+        },
+        'weights_set': (
+            'uniform', 'distance'
+        ),
+        'algorithm_set': (
+            'auto', 'ball_tree', 'kd_tree', 'brute'
+        )
     }
 
     mlr_op_dict = {
-        'fit_intercept': True,
-        'copy_x': True
+        'model_parameters': {
+            'fit_intercept': True,
+            'copy_X': True
+        }
     }
 
     rf_op_dict = {
-        'n_estimators': 300,
-        'criterion': 'squared_error',
-        'bootstrap': True,
+        'model_parameters': {
+            'n_estimators': 300,
+            'criterion': 'squared_error',
+            'bootstrap': True,
+        },
         'criterion_set': (
             'squared_error', 'absolute_error', 'poisson', 'friedman_mse'
         )
@@ -1727,7 +1670,7 @@ def resource_path(relative_path):
     """
     try:
         # PyInstaller creates a temp folder and stores path in _MEIPASS
-        base_path = sys._MEIPASS
+        base_path = sys._MEIPASS # type: ignore
     except Exception:
         base_path = os.path.abspath('.')
     return os.path.join(base_path, relative_path)
