@@ -1,5 +1,6 @@
 from .io import read_geotiff, read_shapefile, write_geotiff, write_shapefile
-from .modeling import k_nearest_neighbors, linear_regression, random_forest
+from .modeling import (k_nearest_neighbors, linear_regression, prediction,
+                       random_forest)
 from .postprocessing import (evaluate, out_depth_filter, reshape_prediction,
                              scatter_plotter)
 from .preprocessing import (clip_vector, features_label, in_depth_filter,
