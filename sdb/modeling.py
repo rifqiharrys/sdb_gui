@@ -4,6 +4,72 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.neighbors import KNeighborsRegressor
 
+def prediction(
+        model: str,
+        unraveled_band: pd.DataFrame,
+        features_train: pd.DataFrame,
+        label_train: pd.Series,
+        backend: str = 'threading',
+        n_jobs: int = -2,
+        **params
+):
+    """
+    Predicting depth using different models.
+
+    Parameters
+    ----------
+    model : str
+        The model to use for prediction. Options are 'knn', 'linear', or 'rf'.
+    unraveled_band : pd.DataFrame
+        Unraveled raster data.
+    features_train : pd.DataFrame
+        Features from train data.
+    label_train : pd.Series
+        Label from train data.
+    backend : str, optional
+        Backend to use for parallel processing. Default is 'threading'.
+    n_jobs : int, optional
+        The number of jobs to run in parallel. Default is -2.
+    **params : dict
+        Parameters to pass to the respective model.
+
+    Returns
+    -------
+    np.ndarray
+        An array of predicted depth from trained model using unraveled raster data.
+    """
+
+    allowed_backend = {'loky', 'threading', 'multiprocessing'}
+    if backend not in allowed_backend:
+        raise ValueError(
+            f'Invalid backend: {backend}.\n'
+            f'Allowed: {allowed_backend}'
+        )
+
+    model_alias_dict = {
+        'knn': {'knn', 'k_nearest_neighbors'},
+        'linear': {'mlr', 'linear', 'linear_regression'},
+        'rf': {'rf', 'random_forest'}
+    }
+
+    if model.lower() in model_alias_dict['knn']:
+        regressor = KNeighborsRegressor(**params)
+    elif model.lower() in model_alias_dict['linear']:
+        regressor = LinearRegression(**params)
+    elif model.lower() in model_alias_dict['rf']:
+        regressor = RandomForestRegressor(**params)
+    else:
+        raise ValueError(
+            f'Invalid model: {model}.\n'
+            f'Allowed: {set.union(*model_alias_dict.values())}'
+        )
+
+    with parallel_backend(backend=backend, n_jobs=n_jobs):
+        regressor.fit(features_train, label_train)
+        z_predict = regressor.predict(unraveled_band)
+
+    return z_predict
+
 
 def k_nearest_neighbors(
         unraveled_band: pd.DataFrame,
