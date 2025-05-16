@@ -688,7 +688,7 @@ class SDBWidget(QWidget):
 
             backendLabel = QLabel('Parallel Backend:')
             self.backendCB = QComboBox()
-            self.backendCB.addItems(['loky', 'threading', 'multiprocessing'])
+            self.backendCB.addItems(proc_op_dict['backend_set'])
             self.backendCB.setCurrentText(proc_op_dict['backend'])
 
             njobsLabel = QLabel('Processing Cores:')
@@ -1600,7 +1600,10 @@ def default_values():
         'selection' : {
             'train_size': 0.75,
             'random_state': 0
-        }
+        },
+        'backend_set': (
+            'loky', 'threading', 'multiprocessing'
+        )
     }
 
     knn_op_dict = {
