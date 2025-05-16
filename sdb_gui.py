@@ -1464,14 +1464,16 @@ class Process(QThread):
         split_list = [time_split, 'Modeling...\n']
         self.time_signal.emit(split_list)
 
-        if method == 'K-Nearest Neighbors':
-            model_parameters = knn_op_dict['model_parameters']
-        elif method == 'Multiple Linear Regression':
-            model_parameters = mlr_op_dict['model_parameters']
-        elif method == 'Random Forest':
-            model_parameters = rf_op_dict['model_parameters']
+        model_parameters = option_pool['method'][method]['model_parameters']
 
         print(model_parameters)
+
+        global print_parameters_info
+        print_parameters_info = ''
+        for key, value in model_parameters.items():
+            print_parameters_info += (
+                f'{key.replace('_', ' ').title()}:\t\t{value}\n'
+            )
 
         z_predict = sdb.prediction(
             model=method,
@@ -1487,26 +1489,6 @@ class Process(QThread):
             return None
 
         results.update({'z_predict': z_predict})
-
-        global print_parameters_info
-        if method == 'K-Nearest Neighbors':
-            print_parameters_info = (
-                f'N Neighbors:\t\t{knn_op_dict["model_parameters"]["n_neighbors"]}\n'
-                f'Weights:\t\t{knn_op_dict["model_parameters"]["weights"]}\n'
-                f'Algorithm:\t\t{knn_op_dict["model_parameters"]["algorithm"]}\n'
-                f'Leaf Size:\t\t{knn_op_dict["model_parameters"]["leaf_size"]}\n'
-            )
-        elif method == 'Multiple Linear Regression':
-            print_parameters_info = (
-                f'Fit Intercept:\t\t{mlr_op_dict["model_parameters"]["fit_intercept"]}\n'
-                f'Copy X:\t\t{mlr_op_dict["model_parameters"]["copy_X"]}\n'
-            )
-        elif method == 'Random Forest':
-            print_parameters_info = (
-                f'N Trees:\t\t{rf_op_dict["model_parameters"]["n_estimators"]}\n'
-                f'Criterion:\t\t{rf_op_dict["model_parameters"]["criterion"]}\n'
-                f'Bootstrap:\t\t{rf_op_dict["model_parameters"]["bootstrap"]}\n'
-            )
 
         return results
 
@@ -1672,14 +1654,6 @@ def default_values():
         }
     }
 
-    default_dict = {
-        'processing': proc_op_dict,
-        'method_names': method_names,
-        'knn_op_dict': knn_op_dict,
-        'mlr_op_dict': mlr_op_dict,
-        'rf_op_dict': rf_op_dict
-    }
-
     return default_dict
 
 
@@ -1698,9 +1672,10 @@ def resource_path(relative_path):
 option_pool = default_values()
 
 proc_op_dict = option_pool['processing']
-knn_op_dict = option_pool['knn_op_dict']
-mlr_op_dict = option_pool['mlr_op_dict']
-rf_op_dict = option_pool['rf_op_dict']
+knn_op_dict = option_pool['method']['K-Nearest Neighbors']
+mlr_op_dict = option_pool['method']['Multiple Linear Regression']
+rf_op_dict = option_pool['method']['Random Forest']
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
