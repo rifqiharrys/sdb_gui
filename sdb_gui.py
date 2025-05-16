@@ -1603,12 +1603,6 @@ def default_values():
         }
     }
 
-    method_names = [
-    'K-Nearest Neighbors',
-    'Multiple Linear Regression',
-    'Random Forest'
-    ]
-
     knn_op_dict = {
         'name': 'K-Nearest Neighbors',
         'model_parameters': {
