@@ -1695,12 +1695,12 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 
-default = default_values()
+option_pool = default_values()
 
-proc_op_dict = default['processing']
-knn_op_dict = default['knn_op_dict']
-mlr_op_dict = default['mlr_op_dict']
-rf_op_dict = default['rf_op_dict']
+proc_op_dict = option_pool['processing']
+knn_op_dict = option_pool['knn_op_dict']
+mlr_op_dict = option_pool['mlr_op_dict']
+rf_op_dict = option_pool['rf_op_dict']
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
