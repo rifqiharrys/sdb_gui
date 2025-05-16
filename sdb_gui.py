@@ -1621,7 +1621,14 @@ def default_values():
         }
     }
 
+    method_names = [
+    'K-Nearest Neighbors',
+    'Multiple Linear Regression',
+    'Random Forest'
+    ]
+
     knn_op_dict = {
+        'name': 'K-Nearest Neighbors',
         'model_parameters': {
             'n_neighbors': 5,
             'weights': 'distance',
@@ -1637,6 +1644,7 @@ def default_values():
     }
 
     mlr_op_dict = {
+        'name': 'Multiple Linear Regression',
         'model_parameters': {
             'fit_intercept': True,
             'copy_X': True
@@ -1644,6 +1652,7 @@ def default_values():
     }
 
     rf_op_dict = {
+        'name': 'Random Forest',
         'model_parameters': {
             'n_estimators': 300,
             'criterion': 'squared_error',
@@ -1655,7 +1664,17 @@ def default_values():
     }
 
     default_dict = {
-        'proc_op_dict': proc_op_dict,
+        'processing': proc_op_dict,
+        'method': {
+            knn_op_dict['name']: knn_op_dict,
+            mlr_op_dict['name']: mlr_op_dict,
+            rf_op_dict['name']: rf_op_dict
+        }
+    }
+
+    default_dict = {
+        'processing': proc_op_dict,
+        'method_names': method_names,
         'knn_op_dict': knn_op_dict,
         'mlr_op_dict': mlr_op_dict,
         'rf_op_dict': rf_op_dict
@@ -1678,7 +1697,7 @@ def resource_path(relative_path):
 
 default = default_values()
 
-proc_op_dict = default['proc_op_dict']
+proc_op_dict = default['processing']
 knn_op_dict = default['knn_op_dict']
 mlr_op_dict = default['mlr_op_dict']
 rf_op_dict = default['rf_op_dict']
