@@ -42,6 +42,15 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDialog,
 import sdb
 import logging
 
+## CONSTANTS ##
+SDB_GUI_VERSION = '4.1.0'
+LOG_NAME = 'sdb_gui.log'
+PROGRESS_STEP = 6
+DEPTH_DIR_DICT = {
+    'Positive Up': ('up', False),
+    'Positive Down': ('down', True),
+}
+
 def get_log_level():
     """
     Get logging level from command line argument.
@@ -58,20 +67,14 @@ logging.basicConfig(
     level=get_log_level(),
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('sdb_gui.log', mode='w'),
+        logging.FileHandler(LOG_NAME, mode='w'),
         logging.StreamHandler()
     ]
 )
 logger = logging.getLogger(__name__)
-logger.info(f'logging level set to: {logging.getLevelName(logger.getEffectiveLevel())}')
-
-## CONSTANTS ##
-SDB_GUI_VERSION = '4.1.0'
-PROGRESS_STEP = 6
-DEPTH_DIR_DICT = {
-    'Positive Up': ('up', False),
-    'Positive Down': ('down', True),
-}
+logger.info(
+    f'logging level set to: {logging.getLevelName(logger.getEffectiveLevel())}'
+)
 
 
 class SDBWidget(QWidget):
@@ -441,7 +444,9 @@ class SDBWidget(QWidget):
                 logger.critical('no sample filepath')
                 raise ValueError('empty file path')
 
-            logger.debug(f'loading sample data from: {self.samplelocList.toPlainText()}')
+            logger.debug(
+                f'loading sample data from: {self.samplelocList.toPlainText()}'
+            )
 
             global sample_size
             sample_size = os.path.getsize(self.samplelocList.toPlainText())
@@ -1015,9 +1020,11 @@ class SDBWidget(QWidget):
 
         if hasattr(self, 'savelocList') and self.savelocList.toPlainText():
             try:
-                save_path = f"{os.path.splitext(self.savelocList.toPlainText())[0]}.log"
+                save_path = f'{
+                    os.path.splitext(self.savelocList.toPlainText())[0]
+                }.log'
 
-                with open('sdb_gui.log', 'r') as source, open(save_path, 'w') as target:
+                with open(LOG_NAME, 'r') as source, open(save_path, 'w') as target:
                     target.write(source.read())
                 logger.info(f'log file copied to: {save_path}')
             except Exception as e:
