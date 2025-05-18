@@ -353,7 +353,10 @@ class SDBWidget(QWidget):
         try:
             if not self.imglocList.toPlainText():
                 logger.critical('no image filepath')
+                logger.critical('no image filepath')
                 raise ValueError('empty file path')
+
+            logger.debug(f'loading image from: {self.imglocList.toPlainText()}')
 
             logger.debug(f'loading image from: {self.imglocList.toPlainText()}')
 
@@ -368,6 +371,9 @@ class SDBWidget(QWidget):
             self.loadImageLabel.setText(
                 os.path.split(self.imglocList.toPlainText())[1]
             )
+
+            logger.info(f'load image successfully of size: {self.img_size} B')
+            logger.info(f'image CRS: {image_raw.rio.crs}')
 
             logger.info(f'load image successfully of size: {self.img_size} B')
             logger.info(f'image CRS: {image_raw.rio.crs}')
@@ -438,7 +444,10 @@ class SDBWidget(QWidget):
         try:
             if not self.samplelocList.toPlainText():
                 logger.critical('no sample filepath')
+                logger.critical('no sample filepath')
                 raise ValueError('empty file path')
+
+            logger.debug(f'loading sample data from: {self.samplelocList.toPlainText()}')
 
             logger.debug(f'loading sample data from: {self.samplelocList.toPlainText()}')
 
@@ -453,6 +462,7 @@ class SDBWidget(QWidget):
             )
 
             if (sample_raw.geom_type != 'Point').any():
+                logger.critical('sample is not point type')
                 logger.critical('sample is not point type')
                 del sample_raw
                 self.loadSampleLabel.setText('Sample Retracted')
@@ -859,6 +869,8 @@ class SDBWidget(QWidget):
 
         logging.debug('Sending user inputs to process class')
 
+        logging.debug('Sending user inputs to process class')
+
         self.resultText.clear()
         self.progressBar.setValue(0)
 
@@ -958,7 +970,9 @@ class SDBWidget(QWidget):
             f'Software Version:\t{SDB_GUI_VERSION}\n\n'
             f'Image Input:\t\t{self.imglocList.toPlainText()} '
             f'({round(self.img_size / 2**20, 2)} MiB)\n'
+            f'({round(self.img_size / 2**20, 2)} MiB)\n'
             f'Sample Data:\t\t{self.samplelocList.toPlainText()} '
+            f'({round(sample_size / 2**20, 2)} MiB)\n'
             f'({round(sample_size / 2**20, 2)} MiB)\n'
             f'Selected Header:\t{self.depthHeaderCB.currentText()}\n'
             f'Depth Direction:\t\t{self.depthDirectionCB.currentText()}\n\n'
@@ -1005,6 +1019,36 @@ class SDBWidget(QWidget):
             self.resultText.clear()
             self.progressBar.setValue(0)
             self.resultText.setText('Processing has been stopped!')
+
+
+    def copyLogFile(self):
+        """
+        Copy the original log file to the save location
+        """
+
+        if hasattr(self, 'savelocList') and self.savelocList.toPlainText():
+            try:
+                save_path = f"{os.path.splitext(self.savelocList.toPlainText())[0]}.log"
+
+                with open('sdb_gui.log', 'r') as source, open(save_path, 'w') as target:
+                    target.write(source.read())
+                logger.info(f'log file copied to: {save_path}')
+            except Exception as e:
+                logger.error(f'failed to copy log file: {e}')
+
+
+    def closeEvent(self, event):
+        """
+        Called when the widget is closed
+        """
+        logger.info('SDB GUI is closing')
+        if hasattr(self, 'sdbProcess') and self.sdbProcess.isRunning():
+            logger.info('stopping running process')
+            self.sdbProcess.stop()
+            self.sdbProcess.wait()
+
+        self.copyLogFile()
+        event.accept()
 
 
     def copyLogFile(self):
@@ -1247,6 +1291,7 @@ class SDBWidget(QWidget):
                     f'{print_filter_info}\n\n'
                     f'DEM Output:\t\t{self.savelocList.toPlainText()} '
                     f'({round(new_img_size / 2**10 / 2**10, 2)} MiB)\n'
+                    f'({round(new_img_size / 2**10 / 2**10, 2)} MiB)\n'
                 )
             elif self.saveDEMCheckBox.isChecked() == False:
                 os.remove(self.savelocList.toPlainText())
@@ -1289,7 +1334,9 @@ class SDBWidget(QWidget):
                 print_train_test_info = (
                     f'Train Data Output:\t{train_save_loc} '
                     f'({round(train_data_size / 2**10 / 2**10, 2)} MiB)\n'
+                    f'({round(train_data_size / 2**10 / 2**10, 2)} MiB)\n'
                     f'Test Data output:\t{test_save_loc} '
+                    f'({round(test_data_size / 2**10 / 2**10, 2)} MiB)\n'
                     f'({round(test_data_size / 2**10 / 2**10, 2)} MiB)\n'
                 )
             elif self.trainTestDataCheckBox.isChecked() == False:
@@ -1314,6 +1361,7 @@ class SDBWidget(QWidget):
 
                 print_scatter_plot_info = (
                     f'Scatter Plot:\t{scatter_plot_loc} '
+                    f'({round(scatter_plot_size / 2**10, 2)} KiB)\n'
                     f'({round(scatter_plot_size / 2**10, 2)} KiB)\n'
                 )
             elif self.scatterPlotCheckBox.isChecked() == False:
@@ -1454,9 +1502,11 @@ class Process(QThread):
         """
 
 
+
         if not self._is_running:
             return None
 
+        logger.debug('preprocess started by clip and/or reproject sample data')
         logger.debug('preprocess started by clip and/or reproject sample data')
         time_start = datetime.datetime.now()
         start_list = [time_start, 'Clipping and Reprojecting...\n']
@@ -1466,6 +1516,7 @@ class Process(QThread):
         if not self._is_running:
             return None
 
+        logger.debug('filter depth sample input')
         logger.debug('filter depth sample input')
         time_clip = datetime.datetime.now()
         clip_list = [time_clip, 'Depth Filtering...\n']
@@ -1513,6 +1564,7 @@ class Process(QThread):
         }
 
         logging.debug('preprocess ended')
+        logging.debug('preprocess ended')
         return results
 
 
@@ -1528,6 +1580,7 @@ class Process(QThread):
         results = self.preprocess()
 
         logger.info(f'prediction started using {method}')
+        logger.info(f'prediction started using {method}')
         if results is None or not self._is_running:
             return None
 
@@ -1536,6 +1589,7 @@ class Process(QThread):
         self.time_signal.emit(split_list)
 
         model_parameters = option_pool['method'][method]['model_parameters']
+        logger.info(f'model parameters: {model_parameters}')
         logger.info(f'model parameters: {model_parameters}')
 
         global print_parameters_info
@@ -1561,6 +1615,7 @@ class Process(QThread):
         results.update({'z_predict': z_predict})
 
         logger.debug('prediction ended')
+        logger.debug('prediction ended')
         return results
 
 
@@ -1577,17 +1632,20 @@ class Process(QThread):
 
             if results is None or not self._is_running:
                 return None
+            logger.debug('run started')
 
             time_model = datetime.datetime.now()
             model_list = [time_model, 'Evaluating...\n']
             self.time_signal.emit(model_list)
 
             logger.debug('reshape prediction array to raster shape')
+            logger.debug('reshape prediction array to raster shape')
             az_predict = sdb.reshape_prediction(
                 array=results['z_predict'],
                 raster=image_raw
             )
 
+            logger.debug('convert prediction array to dataarray')
             logger.debug('convert prediction array to dataarray')
             daz_predict = sdb.array_to_dataarray(
                 array=az_predict,
@@ -1599,6 +1657,7 @@ class Process(QThread):
             )
 
             logger.debug('sampling predictin based on test data coordinates')
+            logger.debug('sampling predictin based on test data coordinates')
             dfz_predict = sdb.point_sampling(
                 daz_predict,
                 x=results['f_test'].x,
@@ -1607,10 +1666,12 @@ class Process(QThread):
             )
 
             logger.info('evaluating prediction')
+            logger.info('evaluating prediction')
             rmse, mae, r2 = sdb.evaluate(
                 true_val=results['z_test'],
                 pred_val=dfz_predict['band_1']
             )
+            logger.info(f'RMSE: {rmse}, MAE: {mae}, R2: {r2}')
             logger.info(f'RMSE: {rmse}, MAE: {mae}, R2: {r2}')
 
             time_test = datetime.datetime.now()
@@ -1633,6 +1694,7 @@ class Process(QThread):
                 'test': test_df
             })
 
+            logger.debug('run ended and sending results')
             logger.debug('run ended and sending results')
             self.thread_signal.emit(results)
         except NameError:
@@ -1754,7 +1816,11 @@ rf_op_dict = option_pool['method']['Random Forest']
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     logger.info('SDB GUI started')
+    logger.info('SDB GUI started')
     main()
+    exit_code = app.exec_()
+    logger.info(f'SDB GUI exited with code {exit_code}')
+    sys.exit(exit_code)
     exit_code = app.exec_()
     logger.info(f'SDB GUI exited with code {exit_code}')
     sys.exit(exit_code)
