@@ -66,7 +66,7 @@ logger = logging.getLogger(__name__)
 logger.info(f'logging level set to: {logging.getLevelName(logger.getEffectiveLevel())}')
 
 ## CONSTANTS ##
-SDB_GUI_VERSION = '4.0.0'
+SDB_GUI_VERSION = '4.1.0'
 PROGRESS_STEP = 6
 DEPTH_DIR_DICT = {
     'Positive Up': ('up', False),
