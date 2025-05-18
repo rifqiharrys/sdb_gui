@@ -47,6 +47,7 @@ def get_log_level():
     Get logging level from command line argument.
     Default to INFO if no argument provided.
     """
+
     if len(sys.argv) > 1:
         level = sys.argv[1].upper()
         if hasattr(logging, level):
@@ -1027,6 +1028,7 @@ class SDBWidget(QWidget):
         """
         Called when the widget is closed
         """
+
         logger.info('SDB GUI is closing')
         if hasattr(self, 'sdbProcess') and self.sdbProcess.isRunning():
             logger.info('stopping running process')
@@ -1735,6 +1737,7 @@ def resource_path(relative_path):
     """
     Get the absolute path to the resource, works for dev and for PyInstaller
     """
+
     try:
         # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS # type: ignore
