@@ -24,10 +24,12 @@ SOFTWARE.
 """
 
 import datetime
+import logging
 import os
 import sys
 import webbrowser
 from pathlib import Path
+from typing import Any, Callable, Dict, List, Tuple, Union
 
 import numpy as np
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
@@ -40,18 +42,17 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDialog,
                              QWidget)
 
 import sdb
-import logging
 
 ## CONSTANTS ##
-SDB_GUI_VERSION = '4.1.0'
-LOG_NAME = 'sdb_gui.log'
-PROGRESS_STEP = 6
-DEPTH_DIR_DICT = {
+SDB_GUI_VERSION: str = '4.1.0'
+LOG_NAME: str = 'sdb_gui.log'
+PROGRESS_STEP: int = 6
+DEPTH_DIR_DICT: Dict[str, Tuple[str, bool]] = {
     'Positive Up': ('up', False),
     'Positive Down': ('down', True),
 }
 
-def get_log_level():
+def get_log_level() -> int:
     """
     Get logging level from command line argument.
     Default to INFO if no argument provided.
@@ -271,7 +272,7 @@ class SDBWidget(QWidget):
         self.setLayout(mainLayout)
 
 
-    def str2bool(self, v):
+    def str2bool(self, v: str) -> bool:
         """
         Transform string True or False to boolean type
         """
@@ -279,9 +280,31 @@ class SDBWidget(QWidget):
         return v in ('True')
 
 
-    def fileDialog(self, command, window_text, file_type, text_browser):
+    def fileDialog(
+        self, 
+        command: Callable[..., tuple[str, str]],
+        window_text: str,
+        file_type: str,
+        text_browser: QTextBrowser
+    ) -> None:
         """
         Showing file dialog, whether opening file or saving.
+
+        Parameters
+        ----------
+        command : Callable[..., tuple[str, str]]
+            QFileDialog method (either getOpenFileName or getSaveFileName)
+            that returns a tuple of (selected_path: str, selected_filter: str)
+        window_text : str
+            Title of the dialog window
+        file_type : str
+            File type filter (e.g., 'GeoTIFF (*.tif)')
+        text_browser : QTextBrowser
+            Text browser widget to display selected path
+
+        Returns
+        -------
+        None
         """
 
         fileFilter = f'All Files (*.*) ;; {file_type}'
@@ -907,7 +930,7 @@ class SDBWidget(QWidget):
             )
 
 
-    def timeCounting(self, time_text):
+    def timeCounting(self, time_text: List[Union[datetime.datetime, str]]) -> None:
         """
         Receive time value on every step and its corresponding processing
         text to show in result text browser and increase progress bar.
@@ -921,7 +944,7 @@ class SDBWidget(QWidget):
             self.completeDialog()
 
 
-    def results(self, result_dict):
+    def results(self, result_dict: Dict[str, Any]) -> None:
         """
         Recieve processing results and filter the predicted value to depth
         limit window (if enabled).
@@ -1436,7 +1459,7 @@ class Process(QThread):
 
         QThread.__init__(self)
 
-        self._is_running = True
+        self._is_running: bool = True
 
 
     def inputs(self, input_dict):
@@ -1618,7 +1641,7 @@ class Process(QThread):
             logger.info('evaluating prediction')
             rmse, mae, r2 = sdb.evaluate(
                 true_val=results['z_test'],
-                pred_val=dfz_predict['band_1']
+                pred_val=dfz_predict['band_1'].to_numpy()
             )
             logger.info(f'RMSE: {rmse}, MAE: {mae}, R2: {r2}')
 
@@ -1662,7 +1685,7 @@ class Process(QThread):
         """
         Stop the processing thread.
         """
-        self._is_running = False
+        self._is_running: bool = False
         self.quit()
         self.wait()
 
