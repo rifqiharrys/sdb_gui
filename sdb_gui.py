@@ -93,9 +93,9 @@ class SDBWidget(QWidget):
         super(SDBWidget, self).__init__()
 
         self.method_dict = {
-            'K-Nearest Neighbors': self.knnOptionWindow,
-            'Multiple Linear Regression': self.mlrOptionWindow,
-            'Random Forest': self.rfOptionWindow
+            knn_op_dict['name']: self.knnOptionWindow,
+            mlr_op_dict['name']: self.mlrOptionWindow,
+            rf_op_dict['name']: self.rfOptionWindow
         }
 
         self.dir_path = os.path.abspath(Path.home())
@@ -143,20 +143,20 @@ class SDBWidget(QWidget):
         self.limitADSB = QDoubleSpinBox()
         self.limitADSB.setRange(-100, 100)
         self.limitADSB.setDecimals(1)
-        self.limitADSB.setValue(0)
+        self.limitADSB.setValue(proc_op_dict['depth_limit']['upper'])
         self.limitADSB.setSuffix(' m')
         self.limitADSB.setAlignment(Qt.AlignRight)
 
-        limitBLabel = QLabel('Bottom Limit:')
+        limitBLabel = QLabel('Lower Limit:')
         self.limitBDSB = QDoubleSpinBox()
         self.limitBDSB.setRange(-100, 100)
         self.limitBDSB.setDecimals(1)
-        self.limitBDSB.setValue(-15)
+        self.limitBDSB.setValue(proc_op_dict['depth_limit']['lower'])
         self.limitBDSB.setSuffix(' m')
         self.limitBDSB.setAlignment(Qt.AlignRight)
 
         self.limitCheckBox = QCheckBox('Disable Depth Limitation')
-        self.limitCheckBox.setChecked(False)
+        self.limitCheckBox.setChecked(proc_op_dict['depth_limit']['disable'])
 
         method_list = list(self.method_dict)
 
@@ -1507,8 +1507,8 @@ class Process(QThread):
             header=self.depth_label,
             depth_direction=DEPTH_DIR_DICT[self.depth_direction][0],
             disable_depth_filter=self.limit_state,
-            top_limit=self.limit_a_value,
-            bottom_limit=self.limit_b_value
+            upper_limit=self.limit_a_value,
+            lower_limit=self.limit_b_value
         )
 
         if not self._is_running:
@@ -1704,6 +1704,11 @@ def default_values():
     """
 
     proc_op_dict = {
+        'depth_limit': {
+            'disable': False,
+            'upper': 0.0,
+            'lower': -15.0
+        },
         'backend': 'threading',
         'n_jobs': -2,
         'selection' : {
