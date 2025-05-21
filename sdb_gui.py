@@ -540,7 +540,7 @@ class SDBWidget(QWidget):
         """
 
         optionDialog = QDialog()
-        optionDialog.setWindowTitle('Options (K Neighbors)')
+        optionDialog.setWindowTitle('Options (KNN)')
         optionDialog.setWindowIcon(
             QIcon(resource_path('icons/setting-tool-pngrepo-com.png'))
         )
