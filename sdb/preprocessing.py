@@ -129,8 +129,8 @@ def in_depth_filter(
         header: str,
         depth_direction: str = 'up',
         disable_depth_filter: bool = False,
-        top_limit: float = 0.0,
-        bottom_limit: float = -12.0
+        upper_limit: float = 0.0,
+        lower_limit: float = -12.0
 ) -> gpd.GeoDataFrame:
     """
     Change depth data in vector data to positive up and then filter it
@@ -145,9 +145,9 @@ def in_depth_filter(
     depth_direction : {'up', 'down'}
         Depth data direction either positive up ('up') or positive down ('down').
         Default value is 'up'.
-    top_limit : float
+    upper_limit : float
         Top depth limit in positive up. Default value is 0.
-    bottom_limit : float
+    lower_limit : float
         Bottom depth limit in positive up. Default value is 12.0.
 
     Returns
@@ -156,9 +156,9 @@ def in_depth_filter(
         Filtered depth data.
     """
 
-    # Exchange value of top_limit and bottom_limit if top < bottom
-    if top_limit < bottom_limit:
-        top_limit, bottom_limit = bottom_limit, top_limit
+    # Exchange value of upper_limit and lower_limit if top < bottom
+    if upper_limit < lower_limit:
+        upper_limit, lower_limit = lower_limit, upper_limit
 
     depth_direction_dict = {
         'up': False,
@@ -178,7 +178,7 @@ def in_depth_filter(
 
     if not disable_depth_filter:
         new_vector = vector[
-            (vector[header] <= top_limit) & (vector[header] >= bottom_limit)
+            (vector[header] <= upper_limit) & (vector[header] >= lower_limit)
         ].reset_index(drop=True)
 
     return new_vector
