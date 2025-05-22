@@ -32,12 +32,12 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Tuple, Union
 
 import numpy as np
-from PyQt5.QtCore import Qt, QThread, pyqtSignal
+from PyQt5.QtCore import QSettings, Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDialog,
                              QDoubleSpinBox, QErrorMessage, QFileDialog,
-                             QGridLayout, QLabel, QProgressBar, QPushButton,
-                             QScrollArea, QSpinBox, QTableWidget,
+                             QGridLayout, QLabel, QMessageBox, QProgressBar,
+                             QPushButton, QScrollArea, QSpinBox, QTableWidget,
                              QTableWidgetItem, QTextBrowser, QVBoxLayout,
                              QWidget)
 
@@ -91,6 +91,17 @@ class SDBWidget(QWidget):
         """
 
         super(SDBWidget, self).__init__()
+
+        self.settings = QSettings('SDB', 'SDB GUI')
+
+        global option_pool
+        option_pool = self.load_settings()
+
+        global proc_op_dict, knn_op_dict, mlr_op_dict, rf_op_dict
+        proc_op_dict = option_pool['processing']
+        knn_op_dict = option_pool['method']['K-Nearest Neighbors']
+        mlr_op_dict = option_pool['method']['Multiple Linear Regression']
+        rf_op_dict = option_pool['method']['Random Forest']
 
         self.method_dict = {
             knn_op_dict['name']: self.knnOptionWindow,
@@ -179,8 +190,10 @@ class SDBWidget(QWidget):
         self.trainSelectCB.addItems(selection_list)
         self.trainSelectCB.activated.connect(self.updateTrainSelection)
 
-        self.processingOptionsButton = QPushButton('Processing Options')
-        self.processingOptionsButton.clicked.connect(self.processingOptionWindow)
+        processingOptionsButton = QPushButton('Processing Options')
+        processingOptionsButton.clicked.connect(self.processingOptionWindow)
+        resetSettingsButton = QPushButton('Reset to Default')
+        resetSettingsButton.clicked.connect(self.resetToDefault)
 
         makePredictionButton = QPushButton('Generate Prediction')
         makePredictionButton.clicked.connect(self.predict)
@@ -249,7 +262,9 @@ class SDBWidget(QWidget):
         grid3.addWidget(trainSelectLabel, 2, 1, 1, 1)
         grid3.addWidget(self.trainSelectCB, 2, 2, 1, 2)
 
-        grid3.addWidget(self.processingOptionsButton, 2, 4, 1, 2)
+        # grid3.addWidget(processingOptionsButton, 2, 4, 1, 2)
+        grid3.addWidget(resetSettingsButton, 2, 4, 1, 1)
+        grid3.addWidget(processingOptionsButton, 2, 5, 1, 1)
 
         mainLayout.addLayout(grid3)
 
@@ -270,6 +285,56 @@ class SDBWidget(QWidget):
         mainLayout.addLayout(grid4)
 
         self.setLayout(mainLayout)
+
+
+    def load_settings(self) -> dict:
+        """
+        Load settings or return defaults if none exist
+        """
+
+        if self.settings.value('options'):
+            return self.settings.value('options')
+        return default_values()
+
+
+    def save_settings(self) -> None:
+        """
+        Save all current settings
+        """
+
+        self.settings.setValue('options', option_pool)
+        self.settings.setValue('last_directory', self.dir_path)
+
+
+    def resetToDefault(self) -> None:
+        """Reset all settings to default values"""
+        reply = QMessageBox.question(
+            self, 
+            'Reset Settings',
+            'Are you sure you want to reset all settings to default values?',
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
+        )
+
+        if reply == QMessageBox.Yes:
+            self.settings.clear()
+            
+            global option_pool, proc_op_dict, knn_op_dict, mlr_op_dict, rf_op_dict
+            option_pool = default_values()
+            proc_op_dict = option_pool['processing']
+            knn_op_dict = option_pool['method']['K-Nearest Neighbors']
+            mlr_op_dict = option_pool['method']['Multiple Linear Regression']
+            rf_op_dict = option_pool['method']['Random Forest']
+            
+            self.loadImageLabel.setText('No Image Loaded')
+            self.loadSampleLabel.setText('No Sample Loaded')
+            self.dir_path = os.path.abspath(Path.home())
+            
+            QMessageBox.information(
+                self,
+                'Settings Reset',
+                'All settings have been reset to default values.'
+            )
 
 
     def str2bool(self, v: str) -> bool:
@@ -574,7 +639,9 @@ class SDBWidget(QWidget):
         cancelButton = QPushButton('Cancel')
         cancelButton.clicked.connect(optionDialog.close)
         loadButton = QPushButton('Load')
-        loadButton.clicked.connect(self.loadKNNOptionAction)
+        loadButton.clicked.connect(
+            lambda: self.loadMethodOptionAction(self.methodCB.currentText())
+        )
         loadButton.clicked.connect(optionDialog.close)
 
         grid = QGridLayout()
@@ -597,17 +664,6 @@ class SDBWidget(QWidget):
         optionDialog.setLayout(grid)
 
         optionDialog.exec_()
-
-
-    def loadKNNOptionAction(self):
-        """
-        Loading defined KNN option input
-        """
-
-        knn_op_dict['model_parameters']['n_neighbors'] = self.nneighborSB.value()
-        knn_op_dict['model_parameters']['weights'] = self.weightsCB.currentText()
-        knn_op_dict['model_parameters']['algorithm'] = self.algorithmCB.currentText()
-        knn_op_dict['model_parameters']['leaf_size'] = self.leafSizeSB.value()
 
 
     def mlrOptionWindow(self):
@@ -638,7 +694,9 @@ class SDBWidget(QWidget):
         cancelButton = QPushButton('Cancel')
         cancelButton.clicked.connect(optionDialog.close)
         loadButton = QPushButton('Load')
-        loadButton.clicked.connect(self.loadMLROptionAction)
+        loadButton.clicked.connect(
+            lambda: self.loadMethodOptionAction(self.methodCB.currentText())
+        )
         loadButton.clicked.connect(optionDialog.close)
 
         grid = QGridLayout()
@@ -653,21 +711,6 @@ class SDBWidget(QWidget):
         grid.addWidget(cancelButton, 3, 4, 1, 1)
 
         optionDialog.setLayout(grid)
-
-        optionDialog.exec_()
-
-
-    def loadMLROptionAction(self):
-        """
-        Loading defined MLR option input
-        """
-
-        mlr_op_dict['model_parameters']['fit_intercept'] = self.str2bool(
-            self.fitInterceptCB.currentText()
-        )
-        mlr_op_dict['model_parameters']['copy_X'] = self.str2bool(
-            self.copyXCB.currentText()
-        )
 
 
     def rfOptionWindow(self):
@@ -704,7 +747,9 @@ class SDBWidget(QWidget):
         cancelButton = QPushButton('Cancel')
         cancelButton.clicked.connect(optionDialog.close)
         loadButton = QPushButton('Load')
-        loadButton.clicked.connect(self.loadRFOptionAction)
+        loadButton.clicked.connect(
+            lambda: self.loadMethodOptionAction(self.methodCB.currentText())
+        )
         loadButton.clicked.connect(optionDialog.close)
 
         grid = QGridLayout()
@@ -726,17 +771,31 @@ class SDBWidget(QWidget):
         optionDialog.exec_()
 
 
-    def loadRFOptionAction(self):
+    def loadMethodOptionAction(self, method_name: str) -> None:
         """
-        Loading defined RF option input
+        Update settings for any method and save them
         """
 
-        rf_op_dict['model_parameters']['n_estimators'] = self.ntreeSB.value()
-        rf_op_dict['model_parameters']['criterion'] = self.criterionCB.currentText()
-        rf_op_dict['model_parameters']['bootstrap'] = self.str2bool(
-            self.bootstrapCB.currentText()
-        )
-
+        if method_name == 'K-Nearest Neighbors':
+            option_pool['method'][method_name]['model_parameters'].update({
+                'n_neighbors': self.nneighborSB.value(),
+                'weights': self.weightsCB.currentText(),
+                'algorithm': self.algorithmCB.currentText(),
+                'leaf_size': self.leafSizeSB.value()
+            })
+        elif method_name == 'Multiple Linear Regression':
+            option_pool['method'][method_name]['model_parameters'].update({
+                'fit_intercept': self.str2bool(self.fitInterceptCB.currentText()),
+                'copy_X': self.str2bool(self.copyXCB.currentText())
+            })
+        elif method_name == 'Random Forest':
+            option_pool['method'][method_name]['model_parameters'].update({
+                'n_estimators': self.ntreeSB.value(),
+                'criterion': self.criterionCB.currentText(),
+                'bootstrap': self.str2bool(self.bootstrapCB.currentText())
+            })
+        
+        self.save_settings()
 
     def processingOptionWindow(self):
         """
@@ -856,6 +915,8 @@ class SDBWidget(QWidget):
                     'group': self.groupSelectCB.currentText()
                 }
 
+            self.save_settings()
+
 
     def updateTrainSelection(self):
         """
@@ -887,6 +948,7 @@ class SDBWidget(QWidget):
         """
 
         logging.debug('Sending user inputs to process class')
+        self.save_settings()
 
         self.resultText.clear()
         self.progressBar.setValue(0)
@@ -1058,6 +1120,8 @@ class SDBWidget(QWidget):
         """
         Called when the widget is closed
         """
+
+        self.save_settings()
 
         logger.info('SDB GUI is closing')
         if hasattr(self, 'sdbProcess') and self.sdbProcess.isRunning():
@@ -1781,12 +1845,12 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 
-option_pool = default_values()
+# option_pool = default_values()
 
-proc_op_dict = option_pool['processing']
-knn_op_dict = option_pool['method']['K-Nearest Neighbors']
-mlr_op_dict = option_pool['method']['Multiple Linear Regression']
-rf_op_dict = option_pool['method']['Random Forest']
+# proc_op_dict = option_pool['processing']
+# knn_op_dict = option_pool['method']['K-Nearest Neighbors']
+# mlr_op_dict = option_pool['method']['Multiple Linear Regression']
+# rf_op_dict = option_pool['method']['Random Forest']
 
 
 if __name__ == '__main__':
