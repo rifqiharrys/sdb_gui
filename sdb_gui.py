@@ -192,7 +192,7 @@ class SDBWidget(QWidget):
 
         processingOptionsButton = QPushButton('Processing Options')
         processingOptionsButton.clicked.connect(self.processingOptionWindow)
-        resetSettingsButton = QPushButton('Reset to Default')
+        resetSettingsButton = QPushButton('Reset Settings')
         resetSettingsButton.clicked.connect(self.resetToDefault)
 
         makePredictionButton = QPushButton('Generate Prediction')
@@ -255,16 +255,13 @@ class SDBWidget(QWidget):
 
         grid3 = QGridLayout()
         grid3.addWidget(methodLabel, 1, 1, 1, 1)
-        grid3.addWidget(self.methodCB, 1, 2, 1, 2)
+        grid3.addWidget(self.methodCB, 1, 2, 1, 1)
 
-        grid3.addWidget(self.optionsButton, 1, 4, 1, 2)
+        grid3.addWidget(self.optionsButton, 1, 3, 1, 1)
+        grid3.addWidget(processingOptionsButton, 1, 4, 1, 1)
 
         grid3.addWidget(trainSelectLabel, 2, 1, 1, 1)
-        grid3.addWidget(self.trainSelectCB, 2, 2, 1, 2)
-
-        # grid3.addWidget(processingOptionsButton, 2, 4, 1, 2)
-        grid3.addWidget(resetSettingsButton, 2, 4, 1, 1)
-        grid3.addWidget(processingOptionsButton, 2, 5, 1, 1)
+        grid3.addWidget(self.trainSelectCB, 2, 2, 1, 1)
 
         mainLayout.addLayout(grid3)
 
@@ -794,7 +791,7 @@ class SDBWidget(QWidget):
                 'criterion': self.criterionCB.currentText(),
                 'bootstrap': self.str2bool(self.bootstrapCB.currentText())
             })
-        
+
         self.save_settings()
 
     def processingOptionWindow(self):
