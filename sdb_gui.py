@@ -1842,14 +1842,6 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 
-# option_pool = default_values()
-
-# proc_op_dict = option_pool['processing']
-# knn_op_dict = option_pool['method']['K-Nearest Neighbors']
-# mlr_op_dict = option_pool['method']['Multiple Linear Regression']
-# rf_op_dict = option_pool['method']['Random Forest']
-
-
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     logger.info('SDB GUI started')
