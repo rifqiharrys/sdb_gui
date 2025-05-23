@@ -262,6 +262,7 @@ class SDBWidget(QWidget):
 
         grid3.addWidget(trainSelectLabel, 2, 1, 1, 1)
         grid3.addWidget(self.trainSelectCB, 2, 2, 1, 1)
+        grid3.addWidget(resetSettingsButton, 2, 3, 1, 2)
 
         mainLayout.addLayout(grid3)
 
@@ -793,6 +794,7 @@ class SDBWidget(QWidget):
             })
 
         self.save_settings()
+
 
     def processingOptionWindow(self):
         """
