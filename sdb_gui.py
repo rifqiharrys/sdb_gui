@@ -26,6 +26,7 @@ SOFTWARE.
 import datetime
 import logging
 import os
+import re
 import sys
 import webbrowser
 from pathlib import Path
@@ -603,7 +604,9 @@ class SDBWidget(QWidget):
         """
 
         optionDialog = QDialog()
-        optionDialog.setWindowTitle('Options (KNN)')
+        optionDialog.setWindowTitle(
+            f'Options ({acronym(self.methodCB.currentText())})'
+        )
         optionDialog.setWindowIcon(
             QIcon(resource_path('icons/setting-tool-pngrepo-com.png'))
         )
@@ -670,7 +673,9 @@ class SDBWidget(QWidget):
         """
 
         optionDialog = QDialog()
-        optionDialog.setWindowTitle('Options (MLR)')
+        optionDialog.setWindowTitle(
+            f'Options ({acronym(self.methodCB.currentText())})'
+        )
         optionDialog.setWindowIcon(
             QIcon(resource_path('icons/setting-tool-pngrepo-com.png'))
         )
@@ -719,7 +724,9 @@ class SDBWidget(QWidget):
         """
 
         optionDialog = QDialog()
-        optionDialog.setWindowTitle('Options (Random Forest)')
+        optionDialog.setWindowTitle(
+            f'Options ({acronym(self.methodCB.currentText())})'
+        )
         optionDialog.setWindowIcon(
             QIcon(resource_path('icons/setting-tool-pngrepo-com.png'))
         )
@@ -1844,6 +1851,16 @@ def resource_path(relative_path):
     except Exception:
         base_path = os.path.abspath('.')
     return os.path.join(base_path, relative_path)
+
+
+def acronym(phrase):
+    """
+    Generate an acronym from a phrase by taking the first letter of each word
+    and converting it to uppercase.
+    """
+
+    words = re.split(r'[\s\-]+', phrase)
+    return ''.join(word[0].upper() for word in words if word and word[0].isalpha())
 
 
 if __name__ == '__main__':
