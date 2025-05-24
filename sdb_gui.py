@@ -1853,7 +1853,7 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 
-def acronym(phrase):
+def acronym(phrase: str) -> str:
     """
     Generate an acronym from a phrase by taking the first letter of each word
     and converting it to uppercase.
