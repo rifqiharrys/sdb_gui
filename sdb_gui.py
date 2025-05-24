@@ -710,6 +710,8 @@ class SDBWidget(QWidget):
 
         optionDialog.setLayout(grid)
 
+        optionDialog.exec_()
+
 
     def rfOptionWindow(self):
         """
