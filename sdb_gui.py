@@ -306,14 +306,18 @@ class SDBWidget(QWidget):
 
 
     def resetToDefault(self) -> None:
-        """Reset all settings to default values"""
-        reply = QMessageBox.question(
-            self, 
-            'Reset Settings',
-            'Are you sure you want to reset all settings to default values?',
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No
-        )
+        """
+        Reset all settings to default values
+        """
+
+        resetWindow = QMessageBox()
+        resetWindow.setWindowTitle('Reset Settings')
+        resetWindow.setText('Are you sure you want to reset all settings to default values?')
+        resetWindow.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        resetWindow.setDefaultButton(QMessageBox.No)
+        resetWindow.setWindowIcon(QIcon(resource_path('icons/warning-pngrepo-com.png')))
+
+        reply = resetWindow.exec_()
 
         if reply == QMessageBox.Yes:
             self.settings.clear()
@@ -328,12 +332,12 @@ class SDBWidget(QWidget):
             self.loadImageLabel.setText('No Image Loaded')
             self.loadSampleLabel.setText('No Sample Loaded')
             self.dir_path = os.path.abspath(Path.home())
-            
-            QMessageBox.information(
-                self,
-                'Settings Reset',
-                'All settings have been reset to default values.'
-            )
+
+            complete = QMessageBox()
+            complete.setWindowTitle('Settings Reset')
+            complete.setText('All settings have been reset to default values.')
+            complete.setWindowIcon(QIcon(resource_path('icons/complete-pngrepo-com.png')))
+            complete.exec_()
 
 
     def str2bool(self, v: str) -> bool:
