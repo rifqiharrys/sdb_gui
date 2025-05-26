@@ -29,6 +29,7 @@ import os
 import re
 import sys
 import webbrowser
+from collections import OrderedDict
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Tuple, Union
 
@@ -95,23 +96,16 @@ class SDBWidget(QWidget):
 
         self.settings = QSettings('SDB', 'SDB GUI')
 
-        global option_pool
+        global option_pool, proc_op_dict
         option_pool = self.load_settings()
-
-        global proc_op_dict, knn_op_dict, mlr_op_dict, rf_op_dict
         proc_op_dict = option_pool['processing']
-        knn_op_dict = option_pool['method']['K-Nearest Neighbors']
-        mlr_op_dict = option_pool['method']['Multiple Linear Regression']
-        rf_op_dict = option_pool['method']['Random Forest']
 
         self.method_dict = {
-            knn_op_dict['name']: self.knnOptionWindow,
-            mlr_op_dict['name']: self.mlrOptionWindow,
-            rf_op_dict['name']: self.rfOptionWindow
+            method: self.methodOptionWindow 
+            for method in option_pool['method'].keys()
         }
 
         self.dir_path = os.path.abspath(Path.home())
-
         self.initUI()
 
 
@@ -175,14 +169,11 @@ class SDBWidget(QWidget):
         methodLabel = QLabel('Regression Method:')
         self.methodCB = QComboBox()
         self.methodCB.addItems(method_list)
-        self.methodCB.activated.connect(
-            lambda: self.methodSelection(
-                option=self.method_dict[self.methodCB.currentText()]
-            )
-        )
 
         self.optionsButton = QPushButton('Method Options')
-        self.optionsButton.clicked.connect(self.knnOptionWindow)
+        self.optionsButton.clicked.connect(
+            lambda: self.methodOptionWindow()
+        )
 
         selection_list = ['Random Selection', 'Attribute Selection']
 
@@ -321,14 +312,12 @@ class SDBWidget(QWidget):
 
         if reply == QMessageBox.Yes:
             self.settings.clear()
-            
-            global option_pool, proc_op_dict, knn_op_dict, mlr_op_dict, rf_op_dict
+
+            global option_pool, proc_op_dict
             option_pool = default_values()
             proc_op_dict = option_pool['processing']
-            knn_op_dict = option_pool['method']['K-Nearest Neighbors']
-            mlr_op_dict = option_pool['method']['Multiple Linear Regression']
-            rf_op_dict = option_pool['method']['Random Forest']
-            
+
+            # NOTE - is this needed?
             self.loadImageLabel.setText('No Image Loaded')
             self.loadSampleLabel.setText('No Sample Loaded')
             self.dir_path = os.path.abspath(Path.home())
@@ -381,16 +370,6 @@ class SDBWidget(QWidget):
 
         text_browser.setText(fname[0])
         self.dir_path = os.path.splitext(fname[0])[0]
-
-
-    def methodSelection(self, option):
-        """
-        Method selection connection from option button
-        to each methods' option window
-        """
-
-        self.optionsButton.clicked.disconnect()
-        self.optionsButton.clicked.connect(option)
 
 
     def loadImageWindow(self):
@@ -602,209 +581,79 @@ class SDBWidget(QWidget):
                 self.loadSampleWindow()
 
 
-    def knnOptionWindow(self):
+    def methodOptionWindow(self):
         """
-        K-Nearest Neighbor option User Interface
+        Generic method option window
         """
 
+        method = self.methodCB.currentText()
+        method_options = option_pool['method'][method]
+        
         optionDialog = QDialog()
-        optionDialog.setWindowTitle(
-            f'Options ({acronym(self.methodCB.currentText())})'
-        )
+        optionDialog.setWindowTitle(f'Options ({acronym(method)})')
         optionDialog.setWindowIcon(
             QIcon(resource_path('icons/setting-tool-pngrepo-com.png'))
         )
 
-        nneighborLabel = QLabel('Number of Neighbors:')
-        self.nneighborSB = QSpinBox()
-        self.nneighborSB.setRange(1, 1000)
-        self.nneighborSB.setValue(knn_op_dict['model_parameters']['n_neighbors'])
-        self.nneighborSB.setAlignment(Qt.AlignRight)
+        grid = QGridLayout()
+        row = 1
+        self.option_widgets = {}
 
-        weightsLabel = QLabel('Weights:')
-        self.weightsCB = QComboBox()
-        self.weightsCB.addItems(knn_op_dict['weights_set'])
-        self.weightsCB.setCurrentText(
-            knn_op_dict['model_parameters']['weights']
-        )
+        for param, value in method_options['model_parameters'].items():
+            label = QLabel(param.replace('_', ' ').title() + ':')
+            grid.addWidget(label, row, 1, 1, 2)
 
-        algorithmLabel = QLabel('Algorithm:')
-        self.algorithmCB = QComboBox()
-        self.algorithmCB.addItems(knn_op_dict['algorithm_set'])
-        self.algorithmCB.setCurrentText(
-            knn_op_dict['model_parameters']['algorithm']
-        )
+            if isinstance(value, bool):
+                widget = QComboBox()
+                widget.addItems(['True', 'False'])
+                widget.setCurrentText(str(value))
+            elif isinstance(value, int):
+                widget = QSpinBox()
+                widget.setRange(1, 10000)
+                widget.setValue(value)
+                widget.setAlignment(Qt.AlignRight)
+            elif isinstance(value, str):
+                widget = QComboBox()
+                set_name = f"{param}_set"
+                if set_name in method_options:
+                    widget.addItems(method_options[set_name])
+                else:
+                    widget.addItems([value])
+                widget.setCurrentText(value)
 
-        leafSizeLabel = QLabel('Leaf Size:')
-        self.leafSizeSB = QSpinBox()
-        self.leafSizeSB.setRange(1, 1000)
-        self.leafSizeSB.setValue(knn_op_dict['model_parameters']['leaf_size'])
-        self.leafSizeSB.setAlignment(Qt.AlignRight)
+            self.option_widgets[param] = widget
+            grid.addWidget(widget, row, 3, 1, 2)
+            row += 1
 
         cancelButton = QPushButton('Cancel')
         cancelButton.clicked.connect(optionDialog.close)
         loadButton = QPushButton('Load')
-        loadButton.clicked.connect(
-            lambda: self.loadMethodOptionAction(self.methodCB.currentText())
-        )
+        loadButton.clicked.connect(self.loadMethodOptionAction)
         loadButton.clicked.connect(optionDialog.close)
 
-        grid = QGridLayout()
-
-        grid.addWidget(nneighborLabel, 1, 1, 1, 2)
-        grid.addWidget(self.nneighborSB, 1, 3, 1, 2)
-
-        grid.addWidget(weightsLabel, 2, 1, 1, 2)
-        grid.addWidget(self.weightsCB, 2, 3, 1, 2)
-
-        grid.addWidget(algorithmLabel, 3, 1, 1, 2)
-        grid.addWidget(self.algorithmCB, 3, 3, 1, 2)
-
-        grid.addWidget(leafSizeLabel, 4, 1, 1, 2)
-        grid.addWidget(self.leafSizeSB, 4, 3, 1, 2)
-
-        grid.addWidget(loadButton, 5, 3, 1, 1)
-        grid.addWidget(cancelButton, 5, 4, 1, 1)
+        grid.addWidget(loadButton, row, 3, 1, 1)
+        grid.addWidget(cancelButton, row, 4, 1, 1)
 
         optionDialog.setLayout(grid)
-
         optionDialog.exec_()
 
 
-    def mlrOptionWindow(self):
-        """
-        Multi Linear Regression option User Interface
-        """
-
-        optionDialog = QDialog()
-        optionDialog.setWindowTitle(
-            f'Options ({acronym(self.methodCB.currentText())})'
-        )
-        optionDialog.setWindowIcon(
-            QIcon(resource_path('icons/setting-tool-pngrepo-com.png'))
-        )
-
-        fitInterceptLabel = QLabel('Fit Intercept:')
-        self.fitInterceptCB = QComboBox()
-        self.fitInterceptCB.addItems(['True', 'False'])
-        self.fitInterceptCB.setCurrentText(
-            str(mlr_op_dict['model_parameters']['fit_intercept'])
-        )
-
-        copyXLabel = QLabel('Copy X:')
-        self.copyXCB = QComboBox()
-        self.copyXCB.addItems(['True', 'False'])
-        self.copyXCB.setCurrentText(
-            str(mlr_op_dict['model_parameters']['copy_X'])
-        )
-
-        cancelButton = QPushButton('Cancel')
-        cancelButton.clicked.connect(optionDialog.close)
-        loadButton = QPushButton('Load')
-        loadButton.clicked.connect(
-            lambda: self.loadMethodOptionAction(self.methodCB.currentText())
-        )
-        loadButton.clicked.connect(optionDialog.close)
-
-        grid = QGridLayout()
-
-        grid.addWidget(fitInterceptLabel, 1, 1, 1, 2)
-        grid.addWidget(self.fitInterceptCB, 1, 3, 1, 2)
-
-        grid.addWidget(copyXLabel, 2, 1, 1, 2)
-        grid.addWidget(self.copyXCB, 2, 3, 1, 2)
-
-        grid.addWidget(loadButton, 3, 3, 1, 1)
-        grid.addWidget(cancelButton, 3, 4, 1, 1)
-
-        optionDialog.setLayout(grid)
-
-        optionDialog.exec_()
-
-
-    def rfOptionWindow(self):
-        """
-        Random Forest option User Interface
-        """
-
-        optionDialog = QDialog()
-        optionDialog.setWindowTitle(
-            f'Options ({acronym(self.methodCB.currentText())})'
-        )
-        optionDialog.setWindowIcon(
-            QIcon(resource_path('icons/setting-tool-pngrepo-com.png'))
-        )
-
-        ntreeLabel = QLabel('Number of Trees:')
-        self.ntreeSB = QSpinBox()
-        self.ntreeSB.setRange(1, 10000)
-        self.ntreeSB.setValue(rf_op_dict['model_parameters']['n_estimators'])
-        self.ntreeSB.setAlignment(Qt.AlignRight)
-
-        criterionLabel = QLabel('Criterion:')
-        self.criterionCB = QComboBox()
-        self.criterionCB.addItems(rf_op_dict['criterion_set'])
-        self.criterionCB.setCurrentText(
-            rf_op_dict['model_parameters']['criterion']
-        )
-
-        bootstrapLabel = QLabel('Bootstrap:')
-        self.bootstrapCB = QComboBox()
-        self.bootstrapCB.addItems(['True', 'False'])
-        self.bootstrapCB.setCurrentText(
-            str(rf_op_dict['model_parameters']['bootstrap'])
-        )
-
-        cancelButton = QPushButton('Cancel')
-        cancelButton.clicked.connect(optionDialog.close)
-        loadButton = QPushButton('Load')
-        loadButton.clicked.connect(
-            lambda: self.loadMethodOptionAction(self.methodCB.currentText())
-        )
-        loadButton.clicked.connect(optionDialog.close)
-
-        grid = QGridLayout()
-
-        grid.addWidget(ntreeLabel, 1, 1, 1, 2)
-        grid.addWidget(self.ntreeSB, 1, 3, 1, 2)
-
-        grid.addWidget(criterionLabel, 2, 1, 1, 2)
-        grid.addWidget(self.criterionCB, 2, 3, 1, 2)
-
-        grid.addWidget(bootstrapLabel, 3, 1, 1, 2)
-        grid.addWidget(self.bootstrapCB, 3, 3, 1, 2)
-
-        grid.addWidget(loadButton, 4, 3, 1, 1)
-        grid.addWidget(cancelButton, 4, 4, 1, 1)
-
-        optionDialog.setLayout(grid)
-
-        optionDialog.exec_()
-
-
-    def loadMethodOptionAction(self, method_name: str) -> None:
+    def loadMethodOptionAction(self) -> None:
         """
         Update settings for any method and save them
         """
 
-        if method_name == 'K-Nearest Neighbors':
-            option_pool['method'][method_name]['model_parameters'].update({
-                'n_neighbors': self.nneighborSB.value(),
-                'weights': self.weightsCB.currentText(),
-                'algorithm': self.algorithmCB.currentText(),
-                'leaf_size': self.leafSizeSB.value()
-            })
-        elif method_name == 'Multiple Linear Regression':
-            option_pool['method'][method_name]['model_parameters'].update({
-                'fit_intercept': self.str2bool(self.fitInterceptCB.currentText()),
-                'copy_X': self.str2bool(self.copyXCB.currentText())
-            })
-        elif method_name == 'Random Forest':
-            option_pool['method'][method_name]['model_parameters'].update({
-                'n_estimators': self.ntreeSB.value(),
-                'criterion': self.criterionCB.currentText(),
-                'bootstrap': self.str2bool(self.bootstrapCB.currentText())
-            })
+        method = self.methodCB.currentText()
+
+        for param, widget in self.option_widgets.items():
+            if isinstance(widget, QComboBox):
+                value = (self.str2bool(widget.currentText()) 
+                        if widget.currentText() in ('True', 'False')
+                        else widget.currentText())
+            else:
+                value = widget.value()
+                
+            option_pool['method'][method]['model_parameters'][param] = value
 
         self.save_settings()
 
@@ -820,6 +669,19 @@ class SDBWidget(QWidget):
             self.processingOptionDialog.setWindowIcon(
                 QIcon(resource_path('icons/setting-tool-pngrepo-com.png'))
             )
+
+            if self.trainSelectCB.currentText() == 'Random Selection':
+                if 'train_size' not in proc_op_dict['selection']:
+                    proc_op_dict['selection'] = {
+                        'train_size': 0.75,
+                        'random_state': 0
+                    }
+            elif self.trainSelectCB.currentText() == 'Attribute Selection':
+                if 'header' not in proc_op_dict['selection']:
+                    proc_op_dict['selection'] = {
+                        'header': '',
+                        'group': ''
+                    }
 
             backendLabel = QLabel('Parallel Backend:')
             self.backendCB = QComboBox()
@@ -1798,12 +1660,12 @@ def default_values():
 
     knn_op_dict = {
         'name': 'K-Nearest Neighbors',
-        'model_parameters': {
-            'n_neighbors': 5,
-            'weights': 'distance',
-            'algorithm': 'auto',
-            'leaf_size': 30
-        },
+        'model_parameters': OrderedDict([
+            ('n_neighbors', 5),
+            ('weights', 'distance'),
+            ('algorithm', 'auto'),
+            ('leaf_size', 30)
+        ]),
         'weights_set': (
             'uniform', 'distance'
         ),
@@ -1814,19 +1676,19 @@ def default_values():
 
     mlr_op_dict = {
         'name': 'Multiple Linear Regression',
-        'model_parameters': {
-            'fit_intercept': True,
-            'copy_X': True
-        }
+        'model_parameters': OrderedDict([
+            ('fit_intercept', True),
+            ('copy_X', True)
+        ])
     }
 
     rf_op_dict = {
         'name': 'Random Forest',
-        'model_parameters': {
-            'n_estimators': 300,
-            'criterion': 'squared_error',
-            'bootstrap': True,
-        },
+        'model_parameters': OrderedDict([
+            ('n_estimators', 300),
+            ('criterion', 'squared_error'),
+            ('bootstrap', True)
+        ]),
         'criterion_set': (
             'squared_error', 'absolute_error', 'poisson', 'friedman_mse'
         )
