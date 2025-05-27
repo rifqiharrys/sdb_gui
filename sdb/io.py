@@ -21,7 +21,7 @@ def read_geotiff(raster_loc: str) -> xr.DataArray:
     xr.DataArray
     """
 
-    return rxr.open_rasterio(raster_loc, masked=True)
+    return rxr.open_rasterio(raster_loc, masked=True) # type: ignore
 
 
 def read_shapefile(vector_loc: str) -> gpd.GeoDataFrame:
