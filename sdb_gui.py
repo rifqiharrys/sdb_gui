@@ -97,7 +97,7 @@ class SDBWidget(QWidget):
         self.settings = QSettings('SDB', 'SDB GUI')
 
         global option_pool, proc_op_dict
-        option_pool = self.load_settings()
+        option_pool = self.loadSettings()
         proc_op_dict = option_pool['processing']
 
         self.method_dict = {
@@ -105,7 +105,7 @@ class SDBWidget(QWidget):
             for method in option_pool['method'].keys()
         }
 
-        self.dir_path = os.path.abspath(Path.home())
+        self.dir_path = self.settings.value('last_directory', os.path.abspath(Path.home()))
         self.initUI()
 
 
@@ -277,7 +277,7 @@ class SDBWidget(QWidget):
         self.setLayout(mainLayout)
 
 
-    def load_settings(self) -> dict:
+    def loadSettings(self) -> dict:
         """
         Load settings or return defaults if none exist
         """
@@ -287,7 +287,7 @@ class SDBWidget(QWidget):
         return default_values()
 
 
-    def save_settings(self) -> None:
+    def saveSettings(self) -> None:
         """
         Save all current settings
         """
@@ -317,10 +317,10 @@ class SDBWidget(QWidget):
             option_pool = default_values()
             proc_op_dict = option_pool['processing']
 
-            # NOTE - is this needed?
-            self.loadImageLabel.setText('No Image Loaded')
-            self.loadSampleLabel.setText('No Sample Loaded')
-            self.dir_path = os.path.abspath(Path.home())
+            home_dir = os.path.abspath(Path.home())
+            self.dir_path = home_dir
+            self.settings.setValue('last_directory', home_dir)
+            logger.info('last directory and options reset to default')
 
             complete = QMessageBox()
             complete.setWindowTitle('Settings Reset')
@@ -368,8 +368,10 @@ class SDBWidget(QWidget):
         selectedFilter = file_type
         fname = command(self, window_text, self.dir_path, fileFilter, selectedFilter)
 
-        text_browser.setText(fname[0])
-        self.dir_path = os.path.splitext(fname[0])[0]
+        if fname[0]:
+            text_browser.setText(fname[0])
+            self.dir_path = os.path.dirname(fname[0])
+            self.settings.setValue('last_directory', self.dir_path)
 
 
     def loadImageWindow(self):
@@ -654,8 +656,9 @@ class SDBWidget(QWidget):
                 value = widget.value()
                 
             option_pool['method'][method]['model_parameters'][param] = value
+        logger.info(f'{method} parameters updated')
 
-        self.save_settings()
+        self.saveSettings()
 
 
     def processingOptionWindow(self):
@@ -788,8 +791,9 @@ class SDBWidget(QWidget):
                     'header': self.headerSelectCB.currentText(),
                     'group': self.groupSelectCB.currentText()
                 }
+            logger.info('processing options updated')
 
-            self.save_settings()
+            self.saveSettings()
 
 
     def updateTrainSelection(self):
@@ -822,7 +826,7 @@ class SDBWidget(QWidget):
         """
 
         logging.debug('Sending user inputs to process class')
-        self.save_settings()
+        self.saveSettings()
 
         self.resultText.clear()
         self.progressBar.setValue(0)
@@ -995,7 +999,7 @@ class SDBWidget(QWidget):
         Called when the widget is closed
         """
 
-        self.save_settings()
+        self.saveSettings()
 
         logger.info('SDB GUI is closing')
         if hasattr(self, 'sdbProcess') and self.sdbProcess.isRunning():
