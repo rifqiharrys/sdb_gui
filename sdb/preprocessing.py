@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import geopandas as gpd
 import numpy as np
 import pandas as pd
@@ -7,7 +9,7 @@ from sklearn.model_selection import train_test_split
 from .utils import point_sampling
 
 
-def unravel(raster: xr.DataArray):
+def unravel(raster: xr.DataArray) -> pd.DataFrame:
     """
     Unravel every band from rioxarray raster input to become a 1D array
     and stack it over every band in the form of columns.
@@ -127,8 +129,8 @@ def in_depth_filter(
         header: str,
         depth_direction: str = 'up',
         disable_depth_filter: bool = False,
-        top_limit: float = 0.0,
-        bottom_limit: float = -12.0
+        upper_limit: float = 0.0,
+        lower_limit: float = -12.0
 ) -> gpd.GeoDataFrame:
     """
     Change depth data in vector data to positive up and then filter it
@@ -143,9 +145,9 @@ def in_depth_filter(
     depth_direction : {'up', 'down'}
         Depth data direction either positive up ('up') or positive down ('down').
         Default value is 'up'.
-    top_limit : float
+    upper_limit : float
         Top depth limit in positive up. Default value is 0.
-    bottom_limit : float
+    lower_limit : float
         Bottom depth limit in positive up. Default value is 12.0.
 
     Returns
@@ -154,9 +156,9 @@ def in_depth_filter(
         Filtered depth data.
     """
 
-    # Exchange value of top_limit and bottom_limit if top < bottom
-    if top_limit < bottom_limit:
-        top_limit, bottom_limit = bottom_limit, top_limit
+    # Exchange value of upper_limit and lower_limit if top < bottom
+    if upper_limit < lower_limit:
+        upper_limit, lower_limit = lower_limit, upper_limit
 
     depth_direction_dict = {
         'up': False,
@@ -176,7 +178,7 @@ def in_depth_filter(
 
     if not disable_depth_filter:
         new_vector = vector[
-            (vector[header] <= top_limit) & (vector[header] >= bottom_limit)
+            (vector[header] <= upper_limit) & (vector[header] >= lower_limit)
         ].reset_index(drop=True)
 
     return new_vector
@@ -185,8 +187,8 @@ def in_depth_filter(
 def features_label(
         raster: xr.DataArray,
         vector: gpd.GeoDataFrame,
-        header: str,
-):
+        header: str
+) -> pd.DataFrame:
     """
     Extract raster values which are considered as features based on
     depth (label) points' xy position and combine it into one dataframe
@@ -231,7 +233,7 @@ def split_random(
         header: str,
         train_size: float = 0.75,
         random_state: int = 0
-):
+) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
     """
     Split train and test data randomly based on percentage.
     This process begins by point sampling every depth point, then separating
@@ -254,8 +256,8 @@ def split_random(
 
     Returns
     -------
-    Tuple
-        A tuple containing train and test data.
+    Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]
+        A tuple containing (features_train, features_test, z_train, z_test).
     """
 
     df = features_label(raster, vector, header)
@@ -283,7 +285,7 @@ def split_attribute(
         depth_header: str,
         split_header: str,
         group_name: str
-):
+) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
     """
     Split train and test data based on assigned attribute.
     This process begins by separating train and test data based on attribute
@@ -306,8 +308,8 @@ def split_attribute(
 
     Returns
     -------
-    Tuple
-        A tuple containing train and test data.
+    Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]
+        A tuple containing (features_train, features_test, z_train, z_test).
     """
 
     train = vector[vector[split_header] == group_name].reset_index(drop=True)

@@ -1,7 +1,10 @@
+from typing import Any
+
 import geopandas as gpd
 import pandas as pd
 import rioxarray as rxr
 import xarray as xr
+from pyproj.crs.crs import CRS
 
 
 def read_geotiff(raster_loc: str) -> xr.DataArray:
@@ -18,7 +21,7 @@ def read_geotiff(raster_loc: str) -> xr.DataArray:
     xr.DataArray
     """
 
-    return rxr.open_rasterio(raster_loc, masked=True)
+    return rxr.open_rasterio(raster_loc, masked=True) # type: ignore
 
 
 def read_shapefile(vector_loc: str) -> gpd.GeoDataFrame:
@@ -41,7 +44,7 @@ def read_shapefile(vector_loc: str) -> gpd.GeoDataFrame:
 def write_geotiff(
         raster: xr.DataArray,
         raster_loc: str
-):
+) -> None:
     """
     Write dataarray to Geotiff.
 
@@ -65,9 +68,9 @@ def write_shapefile(
         vector_loc: str,
         x_col_name: str,
         y_col_name: str,
-        crs,
+        crs: CRS | str | dict[str, Any],
         z_col_name: str | None = None
-):
+) -> None:
     """
     Write dataframe to ESRI Shapefile.
 
@@ -81,8 +84,8 @@ def write_shapefile(
         X coordinates column name.
     y_col_name : str
         Y coordinates column name.
-    crs : Any
-        Coordinate Reference System.
+    crs : CRS | str | dict[str, Any]
+        Coordinate Reference System as CRS object, string, or dictionary.
     z_col_name : str, optional
         Z coordinates column name, by default None.
 

@@ -4,7 +4,12 @@ import xarray as xr
 from scipy import ndimage
 
 
-def point_sampling(raster: xr.DataArray, x, y, include_xy: bool = True):
+def point_sampling(
+        raster: xr.DataArray,
+        x: pd.Series,
+        y: pd.Series,
+        include_xy: bool = True
+) -> pd.DataFrame:
     """
     Extract raster values from a dataarray based on xy coordinates.
     XY coordinates have to be in the same CRS as raster.
@@ -13,9 +18,9 @@ def point_sampling(raster: xr.DataArray, x, y, include_xy: bool = True):
     ----------
     raster : xr.DataArray
         DataArray from rioxarray.
-    x : array-like
+    x : pd.Series
         X coordinates.
-    y : array-like
+    y : pd.Series
         Y coordinates.
     include_xy : bool, optional
         Whether to include the x and y coordinates in the output DataFrame. Default is True.
@@ -56,9 +61,8 @@ def median_filter(
     ----------
     array : np.ndarray
         2D array data.
-    raster : xr.DataArray
-        Raster data that read using rioxarray.
-
+    filter_size : int, optional
+        Size of the median filter window. Must be >= 3 and odd. Default is 3.
     Returns
     -------
     np.ndarray
@@ -76,9 +80,9 @@ def median_filter(
 def array_to_dataarray(
         array: np.ndarray,
         data_array: xr.DataArray,
-        band_name: str | int =1,
+        band_name:  str | int = 1,
         attrs: bool = False
-):
+) -> xr.DataArray:
     """
     Create a new DataArray from a 2D Numpy array based on 
     rioxarray image specification but only contain 1 band.

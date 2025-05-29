@@ -1,6 +1,10 @@
+from typing import Tuple
+
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 from sklearn import metrics
 
 
@@ -8,7 +12,7 @@ def out_depth_filter(
         array: np.ndarray,
         top_limit: float = 0.0,
         bottom_limit: float = -12.0
-):
+) -> np.ndarray:
     """
     Filter depth prediction output in 1D array based on allowed depth
     in positive up direction by changing it to NaN.
@@ -44,7 +48,7 @@ def out_depth_filter(
 def reshape_prediction(
         array: np.ndarray,
         raster: xr.DataArray
-):
+) -> np.ndarray:
     """
     Reshape depth prediction in 1D array to a 2D array shape
     that is similar to its source raster.
@@ -67,16 +71,19 @@ def reshape_prediction(
     return reshaped
 
 
-def evaluate(true_val, pred_val):
+def evaluate(
+        true_val: np.ndarray,
+        pred_val: np.ndarray
+) -> Tuple[float, float, float]:
     """
     Evaluate predicted values from true values by calculating
     RMSE, MAE, and R Squared values.
 
     Parameters
     ----------
-    true_val : array-like
+    true_val : np.ndarray
         True values.
-    pred_val : array-like
+    pred_val : np.ndarray
         Predicted values.
 
     Returns
@@ -85,41 +92,41 @@ def evaluate(true_val, pred_val):
         Tuple of RMSE, MAE, and R Squared.
     """
 
-    rmse = metrics.root_mean_squared_error(true_val, pred_val)
-    mae = metrics.mean_absolute_error(true_val, pred_val)
-    r2 = metrics.r2_score(true_val, pred_val)
+    rmse = float(metrics.root_mean_squared_error(true_val, pred_val))
+    mae = float(metrics.mean_absolute_error(true_val, pred_val))
+    r2 = float(metrics.r2_score(true_val, pred_val))
 
     return rmse, mae, r2
 
 
 def scatter_plotter(
-        true_val,
-        pred_val,
+        true_val: np.ndarray,
+        pred_val: np.ndarray,
         plot_color: str = 'royalblue',
         line_color: str = 'r',
         title: str = 'Scatter Plot'
-):
+) -> Tuple[Figure, Axes]:
     """
     Create a scatter plot of in situ depth against predicted depth
     and plot a pred_val=true_val line.
 
     Parameters
     ----------
-    true_val : array-like
+    true_val : np.ndarray
         X coordinates. True values.
-    pred_val : array-like
+    pred_val : np.ndarray
         Y coordinates. Predicted values.
-    plot_color : str, optional
+    plot_color : str
         Point color. Default is 'royalblue'.
-    line_color : str, optional
+    line_color : str
         Line color. Default is 'r'.
-    title : str, optional
+    title : str
         Graph title. Default is 'Scatter Plot'.
 
     Returns
     -------
-    tuple
-        A tuple of figure and axes.
+    Tuple[Figure, Axes]
+        A tuple containing (matplotlib figure, matplotlib axes).
     """
 
     fig, ax = plt.subplots(figsize=(5, 5))
