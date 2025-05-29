@@ -126,7 +126,7 @@ To have a better understanding about the new SDB processing workflow in SDB GUI 
 
 ## Help and Support
 
-If you have any questions, issues, or suggestions, please open an issue or a discussion in this repository or contact me via email at [@rifqiharrys](mailto:rifqi.m.h@gmai.com) or what is displayed in my [GitHub profile](https://github.com/rifqiharrys/).
+If you have any questions, issues, or suggestions, please open an issue or a discussion in this repository or contact me via email at [@rifqiharrys](mailto:rifqi.m.h@gmail.com) or what is displayed in my [GitHub profile](https://github.com/rifqiharrys/).
 
 If you find this project useful, please consider giving a star to this repository. It will help me to keep this project alive and improve it in the future.
 
