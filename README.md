@@ -6,9 +6,13 @@
 
 ## Preface
 
-Mainly, there are two methods to create a bathymetric prediction using satellite imagery. Two of which are analytical method and empirical method. The former predict depth using water body properties and calculate depth using some formula and those properties as variable input. The latter predict depth using depth training samples and fit the sample into some model and predict the depth using the model based on the depth sample training.
+Mainly, there are two types of methods to create a bathymetric prediction using satellite imagery. Two of which are analytical methods and empirical methods. The former predicts depth using water body properties and then calculates depth using a formula and those properties as variable inputs. The latter predicts depth using depth training samples and fits the sample into a model and then predicts the depth using the model based on the depth sample training.
 
-This SDB project is using python and its packages listed below:
+There are not many GUI (Graphical User Interface) based software to predict bathymetric depth using satellite imagery. Most of the software available are either commercial software or requires programming skills to use. In the age of automation, programming knowledge is a valuable skill to possess. However, not everyone has the time or the will to learn programming. This project aims to provide a GUI-based software that is easy to use and does not require programming skills to predict bathymetric depth using satellite imagery and depth samples.
+
+Starting from version 4, the data processing and depth prediction processes are now moved from sdb_gui.py to a separate sdb package. This decision was made for two main reasons. The first is to simplify the code and make it easier to maintain. The second is to allow users to fully utilise the sdb package however they want, without the need to use the GUI.
+
+This SDB project is using python and would not work without packages listed below:
 
 |Packages|Description|
 |---------|---------|
@@ -44,6 +48,7 @@ Image below is the workflow of predicting bathymetric depth using SDB GUI if you
     - [c. Generate depth prediction](#c-generate-depth-prediction)
     - [d. Save depth prediction into file](#d-save-depth-prediction-into-file)
   - [3. Notebook](#3-notebook)
+  - [Help and Support](#help-and-support)
   - [Releases](#releases)
   - [License](#license)
   - [Citation](#citation)
@@ -118,6 +123,12 @@ After depth prediction was generated, you can save it into a Geotiff or XYZ file
 ## 3. Notebook
 
 To have a better understanding about the new SDB processing workflow in SDB GUI project, you could read a [Jupyter Notebook](./notebooks/) in this repository. There are two notebooks in this repository, which are `sdb-how-to-xarray-workflow.ipynb` and `sdb-module-how-to.ipynb`. Both notebooks contain a simple SDB processing workflow without GUI using Random Forest Regression.  The workflow of the first notebook might be a bit different from the recent SDB GUI, the basic idea is the same and this notebook is a prototype to the recent update (v4) of SDB GUI. The second notebook contain SDB processing using SDB module.
+
+## Help and Support
+
+If you have any questions, issues, or suggestions, please open an issue or a discussion in this repository or contact me via email at [@rifqiharrys](mailto:rifqi.m.h@gmai.com) or what is displayed in my [GitHub profile](https://github.com/rifqiharrys/).
+
+If you find this project useful, please consider giving a star to this repository. It will help me to keep this project alive and improve it in the future.
 
 ## Releases
 
