@@ -1001,7 +1001,7 @@ class SDBWidget(QWidget):
 
         self.saveSettings()
 
-        logger.info('SDB GUI is closing')
+        logger.info(f'SDB GUI {SDB_GUI_VERSION} is closing')
         if hasattr(self, 'sdbProcess') and self.sdbProcess.isRunning():
             logger.info('stopping running process')
             self.sdbProcess.stop()
@@ -1735,8 +1735,8 @@ def acronym(phrase: str) -> str:
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    logger.info('SDB GUI started')
+    logger.info(f'SDB GUI {SDB_GUI_VERSION} started')
     main()
     exit_code = app.exec_()
-    logger.info(f'SDB GUI exited with code {exit_code}')
+    logger.info(f'SDB GUI {SDB_GUI_VERSION} exited with code {exit_code}')
     sys.exit(exit_code)
