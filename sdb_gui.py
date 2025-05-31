@@ -175,12 +175,11 @@ class SDBWidget(QWidget):
             lambda: self.methodOptionWindow()
         )
 
-        selection_list = ['Random Selection', 'Attribute Selection']
+        selection_list = list(proc_op_dict['selection'].keys())
 
         trainSelectLabel = QLabel('Train Data Selection:')
         self.trainSelectCB = QComboBox()
         self.trainSelectCB.addItems(selection_list)
-        self.trainSelectCB.activated.connect(self.updateTrainSelection)
 
         processingOptionsButton = QPushButton('Processing Options')
         processingOptionsButton.clicked.connect(self.processingOptionWindow)
@@ -526,6 +525,13 @@ class SDBWidget(QWidget):
             global sample_raw
             sample_raw = sdb.read_shapefile(self.samplelocList.toPlainText())
 
+            proc_op_dict['selection']['Attribute Selection']['parameters'].update({
+                'header': '',
+                'group': ''
+            })
+
+            logger.debug('reset attribute selection parameters for new dataset')
+
             self.loadSampleLabel.setText(os.path.split(
                 self.samplelocList.toPlainText())[1]
             )
@@ -673,60 +679,73 @@ class SDBWidget(QWidget):
                 QIcon(resource_path('icons/setting-tool-pngrepo-com.png'))
             )
 
-            if self.trainSelectCB.currentText() == 'Random Selection':
-                if 'train_size' not in proc_op_dict['selection']:
-                    proc_op_dict['selection'] = {
-                        'train_size': 0.75,
-                        'random_state': 0
-                    }
-            elif self.trainSelectCB.currentText() == 'Attribute Selection':
-                if 'header' not in proc_op_dict['selection']:
-                    proc_op_dict['selection'] = {
-                        'header': '',
-                        'group': ''
-                    }
+            grid = QGridLayout()
+            row = 1
 
             backendLabel = QLabel('Parallel Backend:')
             self.backendCB = QComboBox()
             self.backendCB.addItems(proc_op_dict['backend_set'])
             self.backendCB.setCurrentText(proc_op_dict['backend'])
+            grid.addWidget(backendLabel, row, 1, 1, 2)
+            grid.addWidget(self.backendCB, row, 3, 1, 2)
 
+            row += 1
             njobsLabel = QLabel('Processing Cores:')
             self.njobsSB = QSpinBox()
             self.njobsSB.setRange(-100, 100)
             self.njobsSB.setValue(proc_op_dict['n_jobs'])
             self.njobsSB.setAlignment(Qt.AlignRight)
+            grid.addWidget(njobsLabel, row, 1, 1, 2)
+            grid.addWidget(self.njobsSB, row, 3, 1, 2)
 
-            if self.trainSelectCB.currentText() == 'Random Selection':
-                trainPercentLabel = QLabel('Train Data (Percent):')
-                self.trainPercentDSB = QDoubleSpinBox()
-                self.trainPercentDSB.setRange(10.0, 90.0)
-                self.trainPercentDSB.setDecimals(2)
-                self.trainPercentDSB.setValue(
-                    proc_op_dict['selection']['train_size'] * 100
-                )
-                self.trainPercentDSB.setSuffix(' %')
-                self.trainPercentDSB.setAlignment(Qt.AlignRight)
+            row += 1
+            self.currentSelection = proc_op_dict['selection'][
+                self.trainSelectCB.currentText()
+            ]
+            self.selection_widgets = {}
 
-                randomStateLabel = QLabel('Random State:')
-                self.randomStateProcSB = QSpinBox()
-                self.randomStateProcSB.setRange(0, 1000)
-                self.randomStateProcSB.setValue(
-                    proc_op_dict['selection']['random_state']
-                )
-                self.randomStateProcSB.setAlignment(Qt.AlignRight)
-            elif self.trainSelectCB.currentText() == 'Attribute Selection':
-                headerSelectLabel = QLabel('Select header:')
-                self.headerSelectCB = QComboBox()
-                object_only = sample_raw.copy().select_dtypes(include=['object'])
-                self.headerSelectCB.addItems(object_only.columns)
-                self.headerSelectCB.activated.connect(self.updateGroupSelection)
-                selected_header = self.headerSelectCB.currentText()
+            for param, value in self.currentSelection['parameters'].items():
+                label = QLabel(param.replace('_', ' ').title() + ':')
+                grid.addWidget(label, row, 1, 1, 2)
 
-                groupSelectLabel = QLabel('Train group name:')
-                self.groupSelectCB = QComboBox()
-                group_list = list(object_only.groupby(selected_header).groups)
-                self.groupSelectCB.addItems(group_list)
+                if param == 'train_size':
+                    widget = QDoubleSpinBox()
+                    widget.setRange(0.1, 0.9)
+                    widget.setSingleStep(0.05)
+                    widget.setDecimals(2)
+                    widget.setValue(value)
+                    widget.setSuffix('')
+                    widget.setAlignment(Qt.AlignRight)
+                elif param == 'random_state':
+                    widget = QSpinBox()
+                    widget.setRange(0, 1000)
+                    widget.setValue(value)
+                    widget.setAlignment(Qt.AlignRight)
+                elif param in ('header', 'group'):
+                    widget = QComboBox()
+                    if param == 'header':
+                        object_only = sample_raw.select_dtypes(include=['object'])
+                        widget.addItems(object_only.columns)
+                        widget.activated.connect(self.updateGroupSelection)
+                        if value:
+                            widget.setCurrentText(value)
+                        else:
+                            widget.setCurrentText(widget.itemText(0))
+                    elif param == 'group':
+                        header = self.currentSelection[
+                            'parameters'
+                        ].get('header', '')
+                        if header:
+                            groups = list(sample_raw.groupby(header).groups.keys())
+                            widget.addItems(groups)
+                            if value:
+                                widget.setCurrentText(value)
+                            elif groups:
+                                widget.setCurrentText(groups[0])
+
+                self.selection_widgets[param] = widget
+                grid.addWidget(widget, row, 3, 1, 2)
+                row += 1
 
             cancelButton = QPushButton('Cancel')
             cancelButton.clicked.connect(self.processingOptionDialog.close)
@@ -734,29 +753,8 @@ class SDBWidget(QWidget):
             loadButton.clicked.connect(self.loadProcessingOptionAction)
             loadButton.clicked.connect(self.processingOptionDialog.close)
 
-            grid = QGridLayout()
-
-            grid.addWidget(backendLabel, 1, 1, 1, 2)
-            grid.addWidget(self.backendCB, 1, 3, 1, 2)
-
-            grid.addWidget(njobsLabel, 2, 1, 1, 2)
-            grid.addWidget(self.njobsSB, 2, 3, 1, 2)
-
-            if self.trainSelectCB.currentText() == 'Random Selection':
-                grid.addWidget(trainPercentLabel, 3, 1, 1, 2)
-                grid.addWidget(self.trainPercentDSB, 3, 3, 1, 2)
-
-                grid.addWidget(randomStateLabel, 4, 1, 1, 2)
-                grid.addWidget(self.randomStateProcSB, 4, 3, 1, 2)
-            elif self.trainSelectCB.currentText() == 'Attribute Selection':
-                grid.addWidget(headerSelectLabel, 3, 1, 1, 2)
-                grid.addWidget(self.headerSelectCB, 3, 3, 1, 2)
-
-                grid.addWidget(groupSelectLabel, 4, 1, 1, 2)
-                grid.addWidget(self.groupSelectCB, 4, 3, 1, 2)
-
-            grid.addWidget(loadButton, 5, 3, 1, 1)
-            grid.addWidget(cancelButton, 5, 4, 1, 1)
+            grid.addWidget(loadButton, row, 3, 1, 1)
+            grid.addWidget(cancelButton, row, 4, 1, 1)
 
             self.processingOptionDialog.setLayout(grid)
 
@@ -778,46 +776,55 @@ class SDBWidget(QWidget):
                 'Do not insert zero on Processing Cores!'
             )
             self.processingOptionWindow()
-        else:
-            proc_op_dict['backend'] = self.backendCB.currentText()
-            proc_op_dict['n_jobs'] = self.njobsSB.value()
-            if self.trainSelectCB.currentText() == 'Random Selection':
-                proc_op_dict['selection'] = {
-                    'train_size': self.trainPercentDSB.value() / 100,
-                    'random_state': self.randomStateProcSB.value()
-                }
-            elif self.trainSelectCB.currentText() == 'Attribute Selection':
-                proc_op_dict['selection'] = {
-                    'header': self.headerSelectCB.currentText(),
-                    'group': self.groupSelectCB.currentText()
-                }
+            return
+
+        proc_op_dict['backend'] = self.backendCB.currentText()
+        proc_op_dict['n_jobs'] = self.njobsSB.value()
+
+        current_selection_name = self.trainSelectCB.currentText()
+        if current_selection_name in proc_op_dict['selection']:
+            selection_params = proc_op_dict['selection'][
+                current_selection_name
+            ]['parameters']
+            for param, widget in self.selection_widgets.items():
+                if isinstance(widget, QDoubleSpinBox):
+                    selection_params[param] = widget.value()
+                elif isinstance(widget, QSpinBox):
+                    selection_params[param] = widget.value()
+                elif isinstance(widget, QComboBox):
+                    selection_params[param] = widget.currentText()
             logger.info('processing options updated')
+            logger.debug(f'updated parameters: {selection_params}')
+        else:
+            logger.error(f'selection "{current_selection_name}" not found.')
 
-            self.saveSettings()
-
-
-    def updateTrainSelection(self):
-        """
-        Update list in train selection
-        """
-
-        if self.trainSelectCB.currentText() == 'Random Selection':
-            proc_op_dict['selection'] = {
-                'train_size': 0.75,
-                'random_state': 0
-            }
+        self.saveSettings()
 
 
     def updateGroupSelection(self):
         """
-        Update list in group selection
+        Update list in group selection when header selection changes
         """
 
-        object_only = sample_raw.copy().select_dtypes(include=['object'])
-        selected_header = self.headerSelectCB.currentText()
-        group_list = list(object_only.groupby(selected_header).groups)
-        self.groupSelectCB.clear()
-        self.groupSelectCB.addItems(group_list)
+        try:
+            selected_header = self.selection_widgets['header'].currentText()
+
+            if selected_header:
+                object_only = sample_raw.select_dtypes(include=['object'])
+                group_list = list(object_only.groupby(selected_header).groups.keys())
+
+                group_widget = self.selection_widgets['group']
+                group_widget.clear()
+                group_widget.addItems(group_list)
+
+                if group_list:
+                    group_widget.setCurrentText(group_list[0])
+                logger.debug(
+                    f'group widget updated "{selected_header}": {group_list}'
+                )
+
+        except Exception as e:
+            logger.error(f'failed to update groups: {e}')
 
 
     def predict(self):
@@ -842,13 +849,15 @@ class SDBWidget(QWidget):
         time_list = []
         init_input = {
             'depth_label': self.depthHeaderCB.currentText(),
-            'depth_direction': self.depthDirectionCB.currentText(),
+            'depth_direction': self.depthDirectionCB.currentText(), 
             'limit_state': self.limitCheckBox.isChecked(),
             'limit_a': self.limitADSB.value(),
             'limit_b': self.limitBDSB.value(),
             'method': self.methodCB.currentText(),
             'train_select': self.trainSelectCB.currentText(),
-            'selection': proc_op_dict['selection']
+            'selection': proc_op_dict['selection'][
+                self.trainSelectCB.currentText()
+            ]['parameters']
         }
 
         try:
@@ -1645,6 +1654,22 @@ def default_values():
     Default values container
     """
 
+    random_selection = {
+        'name': 'Random Selection',
+        'parameters': OrderedDict([
+            ('train_size', 0.75),
+            ('random_state', 0)
+        ])
+    }
+
+    attribute_selection = {
+        'name': 'Attribute Selection',
+        'parameters': OrderedDict([
+            ('header', ''),
+            ('group', '')
+        ])
+    }
+
     proc_op_dict = {
         'depth_limit': {
             'disable': False,
@@ -1653,10 +1678,10 @@ def default_values():
         },
         'backend': 'threading',
         'n_jobs': -2,
-        'selection' : {
-            'train_size': 0.75,
-            'random_state': 0
-        },
+        'selection' : OrderedDict([
+            (random_selection['name'], random_selection),
+            (attribute_selection['name'], attribute_selection)
+        ]),
         'backend_set': (
             'loky', 'threading', 'multiprocessing'
         )
