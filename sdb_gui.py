@@ -729,19 +729,17 @@ class SDBWidget(QWidget):
                         widget.activated.connect(self.updateGroupSelection)
                         if value:
                             widget.setCurrentText(value)
+                            header = self.currentSelection['parameters']['header']
                         else:
                             widget.setCurrentText(widget.itemText(0))
+                            header = widget.currentText()
                     elif param == 'group':
-                        header = self.currentSelection[
-                            'parameters'
-                        ].get('header', '')
-                        if header:
-                            groups = list(sample_raw.groupby(header).groups.keys())
-                            widget.addItems(groups)
-                            if value:
-                                widget.setCurrentText(value)
-                            elif groups:
-                                widget.setCurrentText(groups[0])
+                        groups = list(sample_raw.groupby(header).groups.keys())
+                        widget.addItems(groups)
+                        if value:
+                            widget.setCurrentText(value)
+                        elif groups:
+                            widget.setCurrentText(groups[0])
 
                 self.selection_widgets[param] = widget
                 grid.addWidget(widget, row, 3, 1, 2)
