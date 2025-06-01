@@ -622,7 +622,7 @@ class SDBWidget(QWidget):
                 widget.setAlignment(Qt.AlignRight)
             elif isinstance(value, str):
                 widget = QComboBox()
-                set_name = f"{param}_set"
+                set_name = f'{param}_set'
                 if set_name in method_options:
                     widget.addItems(method_options[set_name])
                 else:
