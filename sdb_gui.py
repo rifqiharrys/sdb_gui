@@ -49,9 +49,13 @@ import sdb
 SDB_GUI_VERSION: str = '4.1.0'
 LOG_NAME: str = 'sdb_gui.log'
 PROGRESS_STEP: int = 6
-DEPTH_DIR_DICT: Dict[str, Tuple[str, bool]] = {
+DEPTH_DIRECTION: Dict[str, Tuple[str, bool]] = {
     'Positive Up': ('up', False),
     'Positive Down': ('down', True),
+}
+SELECTION_TYPES: Dict[str, str] = {
+    'RANDOM': 'Random Selection',
+    'ATTRIBUTE': 'Attribute Selection'
 }
 
 
@@ -125,7 +129,7 @@ class SDBWidget(QWidget):
         grid1.addWidget(depthDirectionLabel, row_grid1, 3, 1, 1)
 
         self.depthDirectionCB = QComboBox()
-        direction_list = list(DEPTH_DIR_DICT.keys())
+        direction_list = list(DEPTH_DIRECTION.keys())
         self.depthDirectionCB.addItems(direction_list)
         grid1.addWidget(self.depthDirectionCB, row_grid1, 4, 1, 1)
 
@@ -1104,7 +1108,7 @@ class SDBWidget(QWidget):
         grid.addWidget(depthDirectionSaveLabel, row, 1, 1, 1)
 
         self.depthDirectionSaveCB = QComboBox()
-        direction_list = list(DEPTH_DIR_DICT.keys())
+        direction_list = list(DEPTH_DIRECTION.keys())
         self.depthDirectionSaveCB.addItems(direction_list)
         grid.addWidget(self.depthDirectionSaveCB, row, 2, 1, 3)
 
@@ -1208,7 +1212,7 @@ class SDBWidget(QWidget):
             train_df_copy = end_results['train'].copy()
             test_df_copy = end_results['test'].copy()
 
-            if DEPTH_DIR_DICT[self.depthDirectionSaveCB.currentText()][1]:
+            if DEPTH_DIRECTION[self.depthDirectionSaveCB.currentText()][1]:
                 daz_filtered.values[0] *=-1
                 test_df_copy['z'] *=-1
                 test_df_copy['z_predict'] *=-1
@@ -1454,7 +1458,7 @@ class Process(QThread):
         depth_filtered_sample = sdb.in_depth_filter(
             vector=clipped_sample,
             header=self.depth_label,
-            depth_direction=DEPTH_DIR_DICT[self.depth_direction][0],
+            depth_direction=DEPTH_DIRECTION[self.depth_direction][0],
             disable_depth_filter=self.limit_state,
             upper_limit=self.limit_a_value,
             lower_limit=self.limit_b_value
@@ -1466,7 +1470,7 @@ class Process(QThread):
         time_depth_filter = datetime.datetime.now()
         depth_filter_list = [time_depth_filter, 'Split Train and Test...\n']
         self.time_signal.emit(depth_filter_list)
-        if self.train_select == 'Random Selection':
+        if self.train_select == SELECTION_TYPES['RANDOM']:
             logger.info('split depth sample randomly')
             f_train, f_test, z_train, z_test = sdb.split_random(
                 raster=image_raw,
@@ -1475,7 +1479,7 @@ class Process(QThread):
                 train_size=self.selection['train_size'],
                 random_state=self.selection['random_state']
             )
-        elif self.train_select == 'Attribute Selection':
+        elif self.train_select == SELECTION_TYPES['ATTRIBUTE']:
             logger.info('split depth sample by selected attribute')
             f_train, f_test, z_train, z_test = sdb.split_attribute(
                 raster=image_raw,
@@ -1653,7 +1657,7 @@ def default_values():
     """
 
     random_selection = {
-        'name': 'Random Selection',
+        'name': SELECTION_TYPES['RANDOM'],
         'parameters': OrderedDict([
             ('train_size', 0.75),
             ('random_state', 0)
@@ -1661,7 +1665,7 @@ def default_values():
     }
 
     attribute_selection = {
-        'name': 'Attribute Selection',
+        'name': SELECTION_TYPES['ATTRIBUTE'],
         'parameters': OrderedDict([
             ('header', ''),
             ('group', '')
