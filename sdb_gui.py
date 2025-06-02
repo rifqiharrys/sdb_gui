@@ -631,13 +631,13 @@ class SDBWidget(QWidget):
             grid.addWidget(widget, row, 3, 1, 2)
             row += 1
 
-        cancelButton = QPushButton('Cancel')
-        cancelButton.clicked.connect(optionDialog.close)
         loadButton = QPushButton('Load')
         loadButton.clicked.connect(self.loadMethodOptionAction)
         loadButton.clicked.connect(optionDialog.close)
-
         grid.addWidget(loadButton, row, 3, 1, 1)
+
+        cancelButton = QPushButton('Cancel')
+        cancelButton.clicked.connect(optionDialog.close)
         grid.addWidget(cancelButton, row, 4, 1, 1)
 
         optionDialog.setLayout(grid)
@@ -679,21 +679,22 @@ class SDBWidget(QWidget):
 
             grid = QGridLayout()
             row = 1
-
             backendLabel = QLabel('Parallel Backend:')
+            grid.addWidget(backendLabel, row, 1, 1, 2)
+
             self.backendCB = QComboBox()
             self.backendCB.addItems(proc_op_dict['backend_set'])
             self.backendCB.setCurrentText(proc_op_dict['backend'])
-            grid.addWidget(backendLabel, row, 1, 1, 2)
             grid.addWidget(self.backendCB, row, 3, 1, 2)
 
             row += 1
             njobsLabel = QLabel('Processing Cores:')
+            grid.addWidget(njobsLabel, row, 1, 1, 2)
+
             self.njobsSB = QSpinBox()
             self.njobsSB.setRange(-100, 100)
             self.njobsSB.setValue(proc_op_dict['n_jobs'])
             self.njobsSB.setAlignment(Qt.AlignRight)
-            grid.addWidget(njobsLabel, row, 1, 1, 2)
             grid.addWidget(self.njobsSB, row, 3, 1, 2)
 
             row += 1
@@ -743,13 +744,13 @@ class SDBWidget(QWidget):
                 grid.addWidget(widget, row, 3, 1, 2)
                 row += 1
 
-            cancelButton = QPushButton('Cancel')
-            cancelButton.clicked.connect(self.processingOptionDialog.close)
             loadButton = QPushButton('Load')
             loadButton.clicked.connect(self.loadProcessingOptionAction)
             loadButton.clicked.connect(self.processingOptionDialog.close)
-
             grid.addWidget(loadButton, row, 3, 1, 1)
+
+            cancelButton = QPushButton('Cancel')
+            cancelButton.clicked.connect(self.processingOptionDialog.close)
             grid.addWidget(cancelButton, row, 4, 1, 1)
 
             self.processingOptionDialog.setLayout(grid)
