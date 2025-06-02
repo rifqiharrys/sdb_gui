@@ -759,7 +759,7 @@ class SDBWidget(QWidget):
                 selection_params[param] = widget.value()
             elif isinstance(widget, QComboBox):
                 selection_params[param] = widget.currentText()
-        
+
         logger.info('processing options updated')
         self.saveSettings()
 
@@ -927,6 +927,17 @@ class SDBWidget(QWidget):
         Counting runtimes using saved time values and printing result info.
         """
 
+        print_selection_info = (
+            f'Parallel Backend:\t{proc_op_dict["backend"]}\n'
+            f'Processing Cores:\t{proc_op_dict["n_jobs"]}\n'
+            f'Train Data Selection:\t{proc_op_dict["current_selection"]}\n'
+        )
+        parameters = proc_op_dict['selection'][proc_op_dict['current_selection']]
+        for param, value in parameters['parameters'].items():
+            print_selection_info += (
+                f'{to_title(param)}:\t\t{value}\n'
+            )
+
         global end_results
         end_results = result_dict
 
@@ -980,9 +991,7 @@ class SDBWidget(QWidget):
             f'RMSE:\t\t{round(rmse, 3)}\n'
             f'MAE:\t\t{round(mae, 3)}\n'
             f'R\u00B2:\t\t{round(r2, 3)}\n\n'
-            f'Train Test Selection:\t{proc_op_dict["current_selection"]}\n'
-            f'Parallel Backend:\t{proc_op_dict["backend"]}\n'
-            f'Processing Cores:\t{proc_op_dict["n_jobs"]}\n'
+            f'{print_selection_info}\n'
             f'Clipping Runtime:\t{runtime[0]}\n'
             f'Filtering Runtime:\t{runtime[1]}\n'
             f'Splitting Runtime:\t{runtime[2]}\n'
@@ -1440,6 +1449,7 @@ class Process(QThread):
     warning_with_clear = pyqtSignal(str)
     warning_without_clear = pyqtSignal(str)
 
+
     def __init__(self):
 
         QThread.__init__(self)
@@ -1469,7 +1479,6 @@ class Process(QThread):
         depth sample CRS, sampling raster value and depth value, 
         and then limiting or not limiting depth value.
         """
-
 
         if not self._is_running:
             return None
@@ -1502,8 +1511,8 @@ class Process(QThread):
         time_depth_filter = datetime.datetime.now()
         depth_filter_list = [time_depth_filter, 'Split Train and Test...\n']
         self.time_signal.emit(depth_filter_list)
+        logger.info(f'split depth sample by {self.train_select}: {self.selection}')
         if self.train_select == SELECTION_TYPES['RANDOM']:
-            logger.info('split depth sample randomly')
             f_train, f_test, z_train, z_test = sdb.split_random(
                 raster=image_raw,
                 vector=depth_filtered_sample,
@@ -1512,7 +1521,6 @@ class Process(QThread):
                 random_state=self.selection['random_state']
             )
         elif self.train_select == SELECTION_TYPES['ATTRIBUTE']:
-            logger.info('split depth sample by selected attribute')
             f_train, f_test, z_train, z_test = sdb.split_attribute(
                 raster=image_raw,
                 vector=depth_filtered_sample,
