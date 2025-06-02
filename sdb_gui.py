@@ -195,19 +195,6 @@ class SDBWidget(QWidget):
         processingOptionsButton.clicked.connect(self.processingOptionWindow)
         grid3.addWidget(processingOptionsButton, row_grid3, 4, 1, 1)
 
-        row_grid3 += 1
-        trainSelectLabel = QLabel('Train Data Selection:')
-        grid3.addWidget(trainSelectLabel, row_grid3, 1, 1, 1)
-
-        self.trainSelectCB = QComboBox()
-        selection_list = list(proc_op_dict['selection'].keys())
-        self.trainSelectCB.addItems(selection_list)
-        grid3.addWidget(self.trainSelectCB, row_grid3, 2, 1, 1)
-
-        resetSettingsButton = QPushButton('Reset Settings')
-        resetSettingsButton.clicked.connect(self.resetToDefault)
-        grid3.addWidget(resetSettingsButton, row_grid3, 3, 1, 2)
-
         mainLayout.addLayout(grid3)
 
         grid4 = QGridLayout()
@@ -216,17 +203,22 @@ class SDBWidget(QWidget):
         makePredictionButton.clicked.connect(self.predict)
         grid4.addWidget(makePredictionButton, row_grid4, 1, 1, 2)
 
-        stopProcessingButton = QPushButton('Stop Processing')
-        stopProcessingButton.clicked.connect(self.stopProcess)
-        grid4.addWidget(stopProcessingButton, row_grid4, 3, 1, 2)
+        resetSettingsButton = QPushButton('Reset Settings')
+        resetSettingsButton.clicked.connect(self.resetToDefault)
+        grid4.addWidget(resetSettingsButton, row_grid4, 3, 1, 2)
 
         row_grid4 += 1
-        resultInfo = QLabel('Result Information')
-        grid4.addWidget(resultInfo, row_grid4, 1, 1, 2)
+        stopProcessingButton = QPushButton('Stop Processing')
+        stopProcessingButton.clicked.connect(self.stopProcess)
+        grid4.addWidget(stopProcessingButton, row_grid4, 1, 1, 2)
 
         saveFileButton = QPushButton('Save Into File')
         saveFileButton.clicked.connect(self.saveOptionWindow)
         grid4.addWidget(saveFileButton, row_grid4, 3, 1, 2)
+
+        row_grid4 += 1
+        resultInfo = QLabel('Result Information')
+        grid4.addWidget(resultInfo, row_grid4, 1, 1, 2)
 
         row_grid4 += 1
         self.resultText = QTextBrowser()
@@ -317,6 +309,7 @@ class SDBWidget(QWidget):
             complete.setWindowIcon(
                 QIcon(resource_path('icons/complete-pngrepo-com.png'))
             )
+            complete.setWindowModality(Qt.ApplicationModal)
             complete.exec_()
 
 
@@ -523,7 +516,16 @@ class SDBWidget(QWidget):
             global sample_raw
             sample_raw = sdb.read_shapefile(self.samplelocList.toPlainText())
 
-            proc_op_dict['selection']['Attribute Selection']['parameters'].update({
+            proc_op_dict.update({
+                'current_selection': SELECTION_TYPES['RANDOM']
+            })
+            proc_op_dict[
+                'selection'
+            ][
+                SELECTION_TYPES['ATTRIBUTE']
+            ][
+                'parameters'
+            ].update({
                 'header': '',
                 'group': ''
             })
@@ -670,42 +672,116 @@ class SDBWidget(QWidget):
         Processing option User Interface
         """
 
-        try:
-            self.processingOptionDialog = QDialog()
-            self.processingOptionDialog.setWindowTitle('Processing Options')
-            self.processingOptionDialog.setWindowIcon(
-                QIcon(resource_path('icons/setting-tool-pngrepo-com.png'))
+        self.processingOptionDialog = QDialog()
+        self.processingOptionDialog.setWindowTitle('Processing Options')
+        self.processingOptionDialog.setWindowIcon(
+            QIcon(resource_path('icons/setting-tool-pngrepo-com.png'))
+        )
+
+        grid = QGridLayout()
+        row = 1
+        backendLabel = QLabel('Parallel Backend:')
+        grid.addWidget(backendLabel, row, 1, 1, 2)
+
+        self.backendCB = QComboBox()
+        self.backendCB.addItems(proc_op_dict['backend_set'])
+        self.backendCB.setCurrentText(proc_op_dict['backend'])
+        grid.addWidget(self.backendCB, row, 3, 1, 2)
+
+        row += 1
+        njobsLabel = QLabel('Processing Cores:')
+        grid.addWidget(njobsLabel, row, 1, 1, 2)
+
+        self.njobsSB = QSpinBox()
+        self.njobsSB.setRange(-100, 100)
+        self.njobsSB.setValue(proc_op_dict['n_jobs'])
+        self.njobsSB.setAlignment(Qt.AlignRight)
+        grid.addWidget(self.njobsSB, row, 3, 1, 2)
+
+        row += 1
+        trainSelectLabel = QLabel('Train Data Selection:')
+        grid.addWidget(trainSelectLabel, row, 1, 1, 2)
+
+        self.trainSelectCB = QComboBox()
+        selection_list = list(proc_op_dict['selection'].keys())
+        self.trainSelectCB.addItems(selection_list)
+        self.trainSelectCB.setCurrentText(proc_op_dict['current_selection'])
+        self.trainSelectCB.currentTextChanged.connect(self.updateTrainSelection)
+        grid.addWidget(self.trainSelectCB, row, 3, 1, 2)
+
+        row += 1
+        self.dynamicContainer = QWidget()
+        self.dynamicLayout = QGridLayout()
+        self.dynamicContainer.setLayout(self.dynamicLayout)
+        self.updateTrainSelection(self.trainSelectCB.currentText())
+        grid.addWidget(self.dynamicContainer, row, 1, 1, 4)
+
+        row += 1
+        loadButton = QPushButton('Load')
+        loadButton.clicked.connect(self.loadProcessingOptionAction)
+        loadButton.clicked.connect(self.processingOptionDialog.close)
+        grid.addWidget(loadButton, row, 3, 1, 1)
+
+        cancelButton = QPushButton('Cancel')
+        cancelButton.clicked.connect(self.processingOptionDialog.close)
+        grid.addWidget(cancelButton, row, 4, 1, 1)
+
+        self.processingOptionDialog.setLayout(grid)
+
+        self.processingOptionDialog.exec_()
+
+
+    def loadProcessingOptionAction(self):
+        """
+        Loading defined processing option input
+        """
+
+        if self.njobsSB.value() == 0:
+            self.processingOptionDialog.close()
+            self.warningWithoutClear(
+                'Do not insert zero on Processing Cores!'
             )
+            self.processingOptionWindow()
+            return
 
-            grid = QGridLayout()
-            row = 1
-            backendLabel = QLabel('Parallel Backend:')
-            grid.addWidget(backendLabel, row, 1, 1, 2)
+        proc_op_dict['backend'] = self.backendCB.currentText()
+        proc_op_dict['n_jobs'] = self.njobsSB.value()
+        proc_op_dict['current_selection'] = self.trainSelectCB.currentText()
 
-            self.backendCB = QComboBox()
-            self.backendCB.addItems(proc_op_dict['backend_set'])
-            self.backendCB.setCurrentText(proc_op_dict['backend'])
-            grid.addWidget(self.backendCB, row, 3, 1, 2)
+        selection_params = proc_op_dict['selection'][
+            self.trainSelectCB.currentText()
+        ]['parameters']
+        
+        for param, widget in self.selection_widgets.items():
+            if isinstance(widget, QDoubleSpinBox):
+                selection_params[param] = widget.value()
+            elif isinstance(widget, QSpinBox):
+                selection_params[param] = widget.value()
+            elif isinstance(widget, QComboBox):
+                selection_params[param] = widget.currentText()
+        
+        logger.info('processing options updated')
+        self.saveSettings()
 
-            row += 1
-            njobsLabel = QLabel('Processing Cores:')
-            grid.addWidget(njobsLabel, row, 1, 1, 2)
 
-            self.njobsSB = QSpinBox()
-            self.njobsSB.setRange(-100, 100)
-            self.njobsSB.setValue(proc_op_dict['n_jobs'])
-            self.njobsSB.setAlignment(Qt.AlignRight)
-            grid.addWidget(self.njobsSB, row, 3, 1, 2)
+    def updateTrainSelection(self, selection: str) -> None:
+        """
+        Update dynamic UI based on train selection type
+        """
 
-            row += 1
-            self.currentSelection = proc_op_dict['selection'][
-                self.trainSelectCB.currentText()
-            ]
+        try:
+            for i in reversed(range(self.dynamicLayout.count())):
+                widget = self.dynamicLayout.itemAt(i).widget()
+                if widget:
+                    widget.setParent(None)
+
+            self.currentSelection = proc_op_dict['selection'][selection]
             self.selection_widgets = {}
-
+            
+            row = 0
             for param, value in self.currentSelection['parameters'].items():
                 label = QLabel(to_title(param) + ':')
-                grid.addWidget(label, row, 1, 1, 2)
+                self.dynamicLayout.addWidget(label, row, 1, 1, 2)
 
                 if param == 'train_size':
                     widget = QDoubleSpinBox()
@@ -741,61 +817,13 @@ class SDBWidget(QWidget):
                             widget.setCurrentText(groups[0])
 
                 self.selection_widgets[param] = widget
-                grid.addWidget(widget, row, 3, 1, 2)
+                self.dynamicLayout.addWidget(widget, row, 3, 1, 2)
                 row += 1
-
-            loadButton = QPushButton('Load')
-            loadButton.clicked.connect(self.loadProcessingOptionAction)
-            loadButton.clicked.connect(self.processingOptionDialog.close)
-            grid.addWidget(loadButton, row, 3, 1, 1)
-
-            cancelButton = QPushButton('Cancel')
-            cancelButton.clicked.connect(self.processingOptionDialog.close)
-            grid.addWidget(cancelButton, row, 4, 1, 1)
-
-            self.processingOptionDialog.setLayout(grid)
-
-            self.processingOptionDialog.exec_()
         except NameError:
+            self.trainSelectCB.setCurrentText(SELECTION_TYPES['RANDOM'])
             self.warningWithClear(
                 'No depth sample loaded. Please load your depth sample!'
             )
-
-
-    def loadProcessingOptionAction(self):
-        """
-        Loading defined processing option input
-        """
-
-        if self.njobsSB.value() == 0:
-            self.processingOptionDialog.close()
-            self.warningWithoutClear(
-                'Do not insert zero on Processing Cores!'
-            )
-            self.processingOptionWindow()
-            return
-
-        proc_op_dict['backend'] = self.backendCB.currentText()
-        proc_op_dict['n_jobs'] = self.njobsSB.value()
-
-        current_selection_name = self.trainSelectCB.currentText()
-        if current_selection_name in proc_op_dict['selection']:
-            selection_params = proc_op_dict['selection'][
-                current_selection_name
-            ]['parameters']
-            for param, widget in self.selection_widgets.items():
-                if isinstance(widget, QDoubleSpinBox):
-                    selection_params[param] = widget.value()
-                elif isinstance(widget, QSpinBox):
-                    selection_params[param] = widget.value()
-                elif isinstance(widget, QComboBox):
-                    selection_params[param] = widget.currentText()
-            logger.info('processing options updated')
-            logger.debug(f'updated parameters: {selection_params}')
-        else:
-            logger.error(f'selection "{current_selection_name}" not found.')
-
-        self.saveSettings()
 
 
     def updateGroupSelection(self):
@@ -853,9 +881,9 @@ class SDBWidget(QWidget):
             'limit_a': self.limitADSB.value(),
             'limit_b': self.limitBDSB.value(),
             'method': self.methodCB.currentText(),
-            'train_select': self.trainSelectCB.currentText(),
+            'train_select': proc_op_dict['current_selection'],
             'selection': proc_op_dict['selection'][
-                self.trainSelectCB.currentText()
+                proc_op_dict['current_selection']
             ]['parameters']
         }
 
@@ -952,7 +980,7 @@ class SDBWidget(QWidget):
             f'RMSE:\t\t{round(rmse, 3)}\n'
             f'MAE:\t\t{round(mae, 3)}\n'
             f'R\u00B2:\t\t{round(r2, 3)}\n\n'
-            f'Train Test Selection:\t{self.trainSelectCB.currentText()}\n'
+            f'Train Test Selection:\t{proc_op_dict["current_selection"]}\n'
             f'Parallel Backend:\t{proc_op_dict["backend"]}\n'
             f'Processing Cores:\t{proc_op_dict["n_jobs"]}\n'
             f'Clipping Runtime:\t{runtime[0]}\n'
@@ -1030,6 +1058,7 @@ class SDBWidget(QWidget):
         warning.setWindowIcon(
             QIcon(resource_path('icons/warning-pngrepo-com.png'))
         )
+        warning.setWindowModality(Qt.ApplicationModal)
         warning.showMessage(warning_text)
 
         warning.exec_()
@@ -1048,6 +1077,7 @@ class SDBWidget(QWidget):
         warning.setWindowIcon(
             QIcon(resource_path('icons/warning-pngrepo-com.png'))
         )
+        warning.setWindowModality(Qt.ApplicationModal)
         warning.showMessage(warning_text)
 
         warning.exec_()
@@ -1063,6 +1093,7 @@ class SDBWidget(QWidget):
         complete.setWindowIcon(
             QIcon(resource_path('icons/complete-pngrepo-com.png'))
         )
+        complete.setWindowModality(Qt.ApplicationModal)
         complete.resize(180,30)
 
         textLabel = QLabel('Tasks has been completed')
@@ -1685,6 +1716,7 @@ def default_values():
             (random_selection['name'], random_selection),
             (attribute_selection['name'], attribute_selection)
         ]),
+        'current_selection': random_selection['name'],
         'backend_set': (
             'loky', 'threading', 'multiprocessing'
         )
