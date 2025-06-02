@@ -100,7 +100,10 @@ class SDBWidget(QWidget):
         option_pool = self.loadSettings()
         proc_op_dict = option_pool['processing']
 
-        self.dir_path = self.settings.value('last_directory', os.path.abspath(Path.home()))
+        self.dir_path = self.settings.value(
+            'last_directory',
+            os.path.abspath(Path.home())
+        )
         self.initUI()
 
 
@@ -306,10 +309,14 @@ class SDBWidget(QWidget):
 
         resetWindow = QMessageBox()
         resetWindow.setWindowTitle('Reset Settings')
-        resetWindow.setText('Are you sure you want to reset all settings to default values?')
+        resetWindow.setText(
+            'Are you sure you want to reset all settings to default values?'
+        )
         resetWindow.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         resetWindow.setDefaultButton(QMessageBox.No)
-        resetWindow.setWindowIcon(QIcon(resource_path('icons/warning-pngrepo-com.png')))
+        resetWindow.setWindowIcon(
+            QIcon(resource_path('icons/warning-pngrepo-com.png'))
+        )
 
         reply = resetWindow.exec_()
 
@@ -328,7 +335,9 @@ class SDBWidget(QWidget):
             complete = QMessageBox()
             complete.setWindowTitle('Settings Reset')
             complete.setText('All settings have been reset to default values.')
-            complete.setWindowIcon(QIcon(resource_path('icons/complete-pngrepo-com.png')))
+            complete.setWindowIcon(
+                QIcon(resource_path('icons/complete-pngrepo-com.png'))
+            )
             complete.exec_()
 
 
@@ -369,7 +378,13 @@ class SDBWidget(QWidget):
 
         fileFilter = f'All Files (*.*) ;; {file_type}'
         selectedFilter = file_type
-        fname = command(self, window_text, self.dir_path, fileFilter, selectedFilter)
+        fname = command(
+            self,
+            window_text,
+            self.dir_path,
+            fileFilter,
+            selectedFilter
+        )
 
         if fname[0]:
             text_browser.setText(fname[0])
@@ -813,7 +828,9 @@ class SDBWidget(QWidget):
 
             if selected_header:
                 object_only = sample_raw.select_dtypes(include=['object'])
-                group_list = list(object_only.groupby(selected_header).groups.keys())
+                group_list = list(
+                    object_only.groupby(selected_header).groups.keys()
+                )
 
                 group_widget = self.selection_widgets['group']
                 group_widget.clear()
