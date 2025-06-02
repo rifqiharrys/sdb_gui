@@ -100,11 +100,6 @@ class SDBWidget(QWidget):
         option_pool = self.loadSettings()
         proc_op_dict = option_pool['processing']
 
-        self.method_dict = {
-            method: self.methodOptionWindow 
-            for method in option_pool['method'].keys()
-        }
-
         self.dir_path = self.settings.value('last_directory', os.path.abspath(Path.home()))
         self.initUI()
 
@@ -204,7 +199,7 @@ class SDBWidget(QWidget):
         grid3.addWidget(methodLabel, row_grid3, 1, 1, 1)
 
         self.methodCB = QComboBox()
-        method_list = list(self.method_dict)
+        method_list = list(option_pool['method'].keys())
         self.methodCB.addItems(method_list)
         grid3.addWidget(self.methodCB, row_grid3, 2, 1, 1)
 
