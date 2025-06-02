@@ -118,158 +118,167 @@ class SDBWidget(QWidget):
         self.setWindowTitle(f'Satellite Derived Bathymetry v{SDB_GUI_VERSION}')
         self.setWindowIcon(QIcon(resource_path('icons/satellite.png')))
 
+        mainLayout = QVBoxLayout()
+
+        grid1 = QGridLayout()
+        row_grid1 = 1
         loadImageButton = QPushButton('Load Image')
         loadImageButton.clicked.connect(self.loadImageWindow)
+        grid1.addWidget(loadImageButton, row_grid1, 1, 1, 1)
+
         self.loadImageLabel = QLabel()
         self.loadImageLabel.setText('No Image Loaded')
         self.loadImageLabel.setAlignment(Qt.AlignCenter)
+        grid1.addWidget(self.loadImageLabel, row_grid1, 2, 1, 3)
 
+        row_grid1 += 1
         loadSampleButton = QPushButton('Load Sample')
         loadSampleButton.clicked.connect(self.loadSampleWindow)
+        grid1.addWidget(loadSampleButton, row_grid1, 1, 1, 1)
+
         self.loadSampleLabel = QLabel()
         self.loadSampleLabel.setText('No Sample Loaded')
         self.loadSampleLabel.setAlignment(Qt.AlignCenter)
+        grid1.addWidget(self.loadSampleLabel, row_grid1, 2, 1, 3)
 
+        row_grid1 += 1
         depthHeaderLabel = QLabel('Depth Header:')
-        self.depthHeaderCB = QComboBox()
+        grid1.addWidget(depthHeaderLabel, row_grid1, 1, 1, 1)
 
-        direction_list = list(DEPTH_DIR_DICT.keys())
+        self.depthHeaderCB = QComboBox()
+        grid1.addWidget(self.depthHeaderCB, row_grid1, 2, 1, 1)
 
         depthDirectionLabel = QLabel('Depth Direction:')
-        self.depthDirectionCB =QComboBox()
-        self.depthDirectionCB.addItems(direction_list)
+        grid1.addWidget(depthDirectionLabel, row_grid1, 3, 1, 1)
 
+        self.depthDirectionCB = QComboBox()
+        direction_list = list(DEPTH_DIR_DICT.keys())
+        self.depthDirectionCB.addItems(direction_list)
+        grid1.addWidget(self.depthDirectionCB, row_grid1, 4, 1, 1)
+
+        row_grid1 += 1
         self.table = QTableWidget()
         scroll = QScrollArea()
         scroll.setWidget(self.table)
+        grid1.addWidget(self.table, row_grid1, 1, 5, 4)
 
+        mainLayout.addLayout(grid1)
+
+        grid2 = QGridLayout()
+        row_grid2 = 1
         limitLabel = QLabel('Depth Limit Window:')
+        grid2.addWidget(limitLabel, row_grid2, 1, 1, 2)
 
         limitALabel = QLabel('Upper Limit:')
+        grid2.addWidget(limitALabel, row_grid2, 3, 1, 1)
+
         self.limitADSB = QDoubleSpinBox()
         self.limitADSB.setRange(-100, 100)
         self.limitADSB.setDecimals(1)
         self.limitADSB.setValue(proc_op_dict['depth_limit']['upper'])
         self.limitADSB.setSuffix(' m')
         self.limitADSB.setAlignment(Qt.AlignRight)
+        grid2.addWidget(self.limitADSB, row_grid2, 4, 1, 1)
+
+        row_grid2 += 1
+        self.limitCheckBox = QCheckBox('Disable Depth Limitation')
+        self.limitCheckBox.setChecked(proc_op_dict['depth_limit']['disable'])
+        grid2.addWidget(self.limitCheckBox, row_grid2, 1, 1, 2)
 
         limitBLabel = QLabel('Lower Limit:')
+        grid2.addWidget(limitBLabel, row_grid2, 3, 1, 1)
+
         self.limitBDSB = QDoubleSpinBox()
         self.limitBDSB.setRange(-100, 100)
         self.limitBDSB.setDecimals(1)
         self.limitBDSB.setValue(proc_op_dict['depth_limit']['lower'])
         self.limitBDSB.setSuffix(' m')
         self.limitBDSB.setAlignment(Qt.AlignRight)
+        grid2.addWidget(self.limitBDSB, row_grid2, 4, 1, 1)
 
-        self.limitCheckBox = QCheckBox('Disable Depth Limitation')
-        self.limitCheckBox.setChecked(proc_op_dict['depth_limit']['disable'])
+        mainLayout.addLayout(grid2)
 
-        method_list = list(self.method_dict)
-
+        grid3 = QGridLayout()
+        row_grid3 = 1
         methodLabel = QLabel('Regression Method:')
+        grid3.addWidget(methodLabel, row_grid3, 1, 1, 1)
+
         self.methodCB = QComboBox()
+        method_list = list(self.method_dict)
         self.methodCB.addItems(method_list)
+        grid3.addWidget(self.methodCB, row_grid3, 2, 1, 1)
 
         self.optionsButton = QPushButton('Method Options')
         self.optionsButton.clicked.connect(
             lambda: self.methodOptionWindow()
         )
-
-        selection_list = list(proc_op_dict['selection'].keys())
-
-        trainSelectLabel = QLabel('Train Data Selection:')
-        self.trainSelectCB = QComboBox()
-        self.trainSelectCB.addItems(selection_list)
+        grid3.addWidget(self.optionsButton, row_grid3, 3, 1, 1)
 
         processingOptionsButton = QPushButton('Processing Options')
         processingOptionsButton.clicked.connect(self.processingOptionWindow)
+        grid3.addWidget(processingOptionsButton, row_grid3, 4, 1, 1)
+
+        row_grid3 += 1
+        trainSelectLabel = QLabel('Train Data Selection:')
+        grid3.addWidget(trainSelectLabel, row_grid3, 1, 1, 1)
+
+        self.trainSelectCB = QComboBox()
+        selection_list = list(proc_op_dict['selection'].keys())
+        self.trainSelectCB.addItems(selection_list)
+        grid3.addWidget(self.trainSelectCB, row_grid3, 2, 1, 1)
+
         resetSettingsButton = QPushButton('Reset Settings')
         resetSettingsButton.clicked.connect(self.resetToDefault)
+        grid3.addWidget(resetSettingsButton, row_grid3, 3, 1, 2)
 
+        mainLayout.addLayout(grid3)
+
+        grid4 = QGridLayout()
+        row_grid4 = 1
         makePredictionButton = QPushButton('Generate Prediction')
         makePredictionButton.clicked.connect(self.predict)
+        grid4.addWidget(makePredictionButton, row_grid4, 1, 1, 2)
+
         stopProcessingButton = QPushButton('Stop Processing')
         stopProcessingButton.clicked.connect(self.stopProcess)
+        grid4.addWidget(stopProcessingButton, row_grid4, 3, 1, 2)
 
+        row_grid4 += 1
         resultInfo = QLabel('Result Information')
+        grid4.addWidget(resultInfo, row_grid4, 1, 1, 2)
+
         saveFileButton = QPushButton('Save Into File')
         saveFileButton.clicked.connect(self.saveOptionWindow)
+        grid4.addWidget(saveFileButton, row_grid4, 3, 1, 2)
+
+        row_grid4 += 1
         self.resultText = QTextBrowser()
         self.resultText.setAlignment(Qt.AlignRight)
+        grid4.addWidget(self.resultText, row_grid4, 1, 1, 4)
 
+        row_grid4 += 4
         self.progressBar = QProgressBar()
         self.progressBar.setFormat('%p%')
         self.progressBar.setMinimum(0)
         self.progressBar.setMaximum(PROGRESS_STEP)
+        grid4.addWidget(self.progressBar, row_grid4, 1, 1, 4)
 
+        row_grid4 += 1
         releaseButton =  QPushButton('Releases')
         releaseButton.clicked.connect(lambda: webbrowser.open(
             'https://github.com/rifqiharrys/sdb_gui/releases'
         ))
+        grid4.addWidget(releaseButton, row_grid4, 1, 1, 1)
 
         licensesButton = QPushButton('Licenses')
         licensesButton.clicked.connect(self.licensesDialog)
+        grid4.addWidget(licensesButton, row_grid4, 2, 1, 2)
 
         readmeButton = QPushButton('Readme')
         readmeButton.clicked.connect(lambda: webbrowser.open(
             'https://github.com/rifqiharrys/sdb_gui/blob/main/README.md'
         ))
-
-        mainLayout = QVBoxLayout()
-
-        grid1 = QGridLayout()
-        grid1.addWidget(loadImageButton, 1, 1, 1, 1)
-        grid1.addWidget(self.loadImageLabel, 1, 2, 1, 3)
-
-        grid1.addWidget(loadSampleButton, 2, 1, 1, 1)
-        grid1.addWidget(self.loadSampleLabel, 2, 2, 1, 3)
-
-        grid1.addWidget(depthHeaderLabel, 3, 1, 1, 1)
-        grid1.addWidget(self.depthHeaderCB, 3, 2, 1, 1)
-        grid1.addWidget(depthDirectionLabel, 3, 3, 1, 1)
-        grid1.addWidget(self.depthDirectionCB, 3, 4, 1, 1)
-
-        grid1.addWidget(self.table, 4, 1, 5, 4)
-
-        mainLayout.addLayout(grid1)
-
-        grid2 = QGridLayout()
-        grid2.addWidget(limitLabel, 1, 1, 1, 2)
-        grid2.addWidget(self.limitCheckBox, 2, 1, 1, 2)
-
-        grid2.addWidget(limitALabel, 1, 3, 1, 1)
-        grid2.addWidget(self.limitADSB, 1, 4, 1, 1)
-        grid2.addWidget(limitBLabel, 2, 3, 1, 1)
-        grid2.addWidget(self.limitBDSB, 2, 4, 1, 1)
-
-        mainLayout.addLayout(grid2)
-
-        grid3 = QGridLayout()
-        grid3.addWidget(methodLabel, 1, 1, 1, 1)
-        grid3.addWidget(self.methodCB, 1, 2, 1, 1)
-
-        grid3.addWidget(self.optionsButton, 1, 3, 1, 1)
-        grid3.addWidget(processingOptionsButton, 1, 4, 1, 1)
-
-        grid3.addWidget(trainSelectLabel, 2, 1, 1, 1)
-        grid3.addWidget(self.trainSelectCB, 2, 2, 1, 1)
-        grid3.addWidget(resetSettingsButton, 2, 3, 1, 2)
-
-        mainLayout.addLayout(grid3)
-
-        grid4 = QGridLayout()
-        grid4.addWidget(makePredictionButton, 1, 1, 1, 2)
-        grid4.addWidget(stopProcessingButton, 1, 3, 1, 2)
-
-        grid4.addWidget(resultInfo, 2, 1, 1, 2)
-        grid4.addWidget(saveFileButton, 2, 3, 1, 2)
-        grid4.addWidget(self.resultText, 3, 1, 1, 4)
-
-        grid4.addWidget(self.progressBar, 7, 1, 1, 4)
-
-        grid4.addWidget(releaseButton, 8, 1, 1, 1)
-        grid4.addWidget(licensesButton, 8, 2, 1, 2)
-        grid4.addWidget(readmeButton, 8, 4, 1, 1)
+        grid4.addWidget(readmeButton, row_grid4, 4, 1, 1)
 
         mainLayout.addLayout(grid4)
 
