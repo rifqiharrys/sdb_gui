@@ -627,7 +627,7 @@ class SDBWidget(QWidget):
         self.option_widgets = {}
 
         for param, value in method_options['model_parameters'].items():
-            label = QLabel(param.replace('_', ' ').title() + ':')
+            label = QLabel(to_title(param) + ':')
             grid.addWidget(label, row, 1, 1, 2)
 
             if isinstance(value, bool):
@@ -724,7 +724,7 @@ class SDBWidget(QWidget):
             self.selection_widgets = {}
 
             for param, value in self.currentSelection['parameters'].items():
-                label = QLabel(param.replace('_', ' ').title() + ':')
+                label = QLabel(to_title(param) + ':')
                 grid.addWidget(label, row, 1, 1, 2)
 
                 if param == 'train_size':
@@ -1548,7 +1548,7 @@ class Process(QThread):
         print_parameters_info = ''
         for key, value in model_parameters.items():
             print_parameters_info += (
-                f'{key.replace('_', ' ').title()}:\t\t{value}\n'
+                f'{to_title(key)}:\t\t{value}\n'
             )
 
         z_predict = sdb.prediction(
@@ -1779,6 +1779,15 @@ def acronym(phrase: str) -> str:
 
     words = re.split(r'[\s\-]+', phrase)
     return ''.join(word[0].upper() for word in words if word and word[0].isalpha())
+
+
+def to_title(phrase: str) -> str:
+    """
+    Convert a variable like phrase to a title case string.
+    Change underscores to spaces and capitalize the first letter of each word.
+    """
+
+    return phrase.replace('_', ' ').title()
 
 
 if __name__ == '__main__':
