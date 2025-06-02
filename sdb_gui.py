@@ -54,31 +54,6 @@ DEPTH_DIR_DICT: Dict[str, Tuple[str, bool]] = {
     'Positive Down': ('down', True),
 }
 
-def get_log_level() -> int:
-    """
-    Get logging level from command line argument.
-    Default to INFO if no argument provided.
-    """
-
-    if len(sys.argv) > 1:
-        level = sys.argv[1].upper()
-        if hasattr(logging, level):
-            return getattr(logging, level)
-    return logging.INFO
-
-logging.basicConfig(
-    level=get_log_level(),
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(LOG_NAME, mode='w'),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
-logger.info(
-    f'logging level set to: {logging.getLevelName(logger.getEffectiveLevel())}'
-)
-
 
 class SDBWidget(QWidget):
     """
@@ -1788,6 +1763,33 @@ def to_title(phrase: str) -> str:
     """
 
     return phrase.replace('_', ' ').title()
+
+
+def get_log_level() -> int:
+    """
+    Get logging level from command line argument.
+    Default to INFO if no argument provided.
+    """
+
+    if len(sys.argv) > 1:
+        level = sys.argv[1].upper()
+        if hasattr(logging, level):
+            return getattr(logging, level)
+    return logging.INFO
+
+
+logging.basicConfig(
+    level=get_log_level(),
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(LOG_NAME, mode='w'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+logger.info(
+    f'logging level set to: {logging.getLevelName(logger.getEffectiveLevel())}'
+)
 
 
 if __name__ == '__main__':
