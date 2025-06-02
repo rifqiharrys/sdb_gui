@@ -1095,30 +1095,43 @@ class SDBWidget(QWidget):
             QIcon(resource_path('icons/load-pngrepo-com.png'))
         )
 
+        grid = QGridLayout()
+        row = 1
+        dataTypeLabel = QLabel('Data Type:')
+        grid.addWidget(dataTypeLabel, row, 1, 1, 1)
+
+        self.dataTypeCB = QComboBox()
         format_list = ['GeoTIFF (*.tif)','ASCII Gridded XYZ (*.xyz)']
         format_list.sort()
-
-        dataTypeLabel = QLabel('Data Type:')
-        self.dataTypeCB = QComboBox()
         self.dataTypeCB.addItems(format_list)
         self.dataTypeCB.setCurrentText('GeoTIFF (*.tif)')
+        grid.addWidget(self.dataTypeCB, row, 2, 1, 3)
 
-        direction_list = list(DEPTH_DIR_DICT.keys())
-
+        row += 1
         depthDirectionSaveLabel = QLabel('Depth Direction:')
-        self.depthDirectionSaveCB = QComboBox()
-        self.depthDirectionSaveCB.addItems(direction_list)
+        grid.addWidget(depthDirectionSaveLabel, row, 1, 1, 1)
 
+        self.depthDirectionSaveCB = QComboBox()
+        direction_list = list(DEPTH_DIR_DICT.keys())
+        self.depthDirectionSaveCB.addItems(direction_list)
+        grid.addWidget(self.depthDirectionSaveCB, row, 2, 1, 3)
+
+        row += 1
         medianFilterLabel = QLabel('Median Filter Size:')
+        grid.addWidget(medianFilterLabel, row, 1, 1, 1)
+
         self.medianFilterSB = QSpinBox()
         self.medianFilterSB.setRange(3, 33)
         self.medianFilterSB.setValue(3)
         self.medianFilterSB.setSingleStep(2)
         self.medianFilterSB.setAlignment(Qt.AlignRight)
+        grid.addWidget(self.medianFilterSB, row, 2, 1, 1)
 
         self.medianFilterCheckBox = QCheckBox('Disable Median Filter')
         self.medianFilterCheckBox.setChecked(False)
+        grid.addWidget(self.medianFilterCheckBox, row, 3, 1, 2)
 
+        row += 1
         saveFileButton = QPushButton('Save File Location')
         saveFileButton.clicked.connect(
             lambda:self.fileDialog(
@@ -1128,59 +1141,50 @@ class SDBWidget(QWidget):
                 text_browser=self.savelocList
             )
         )
+        grid.addWidget(saveFileButton, row, 1, 1, 4)
 
+        row += 1
         locLabel = QLabel('Location:')
-        self.savelocList = QTextBrowser()
+        grid.addWidget(locLabel, row, 1, 1, 4)
 
+        row += 1
+        self.savelocList = QTextBrowser()
+        grid.addWidget(self.savelocList, row, 1, 1, 4)
+
+        row += 1
         self.scatterPlotCheckBox = QCheckBox('Save Scatter Plot')
         self.scatterPlotCheckBox.setChecked(False)
+        grid.addWidget(self.scatterPlotCheckBox, row, 1, 1, 2)
 
+        row += 1
         self.trainTestDataCheckBox = QCheckBox('Save Training and Testing Data in')
         self.trainTestDataCheckBox.setChecked(False)
+        grid.addWidget(self.trainTestDataCheckBox, row, 1, 1, 2)
 
         self.trainTestFormatCB = QComboBox()
         self.trainTestFormatCB.addItems(['.csv', '.shp'])
+        grid.addWidget(self.trainTestFormatCB, row, 3, 1, 1)
 
         trainTestLabel = QLabel('format')
+        grid.addWidget(trainTestLabel, row, 4, 1, 1)
 
+        row += 1
         self.saveDEMCheckBox = QCheckBox('Save DEM')
         self.saveDEMCheckBox.setChecked(True)
+        grid.addWidget(self.saveDEMCheckBox, row, 1, 1, 1)
 
         self.reportCheckBox = QCheckBox('Save Report')
         self.reportCheckBox.setChecked(True)
+        grid.addWidget(self.reportCheckBox, row, 2, 1, 1)
 
-        cancelButton = QPushButton('Cancel')
-        cancelButton.clicked.connect(self.saveOptionDialog.close)
         saveButton = QPushButton('Save')
         saveButton.clicked.connect(self.saveAction)
         saveButton.clicked.connect(self.saveOptionDialog.close)
+        grid.addWidget(saveButton, row, 3, 1, 1)
 
-        grid = QGridLayout()
-        grid.addWidget(dataTypeLabel, 1, 1, 1, 1)
-        grid.addWidget(self.dataTypeCB, 1, 2, 1, 3)
-
-        grid.addWidget(depthDirectionSaveLabel, 2, 1, 1, 1)
-        grid.addWidget(self.depthDirectionSaveCB, 2, 2, 1, 3)
-
-        grid.addWidget(medianFilterLabel, 3, 1, 1, 1)
-        grid.addWidget(self.medianFilterSB, 3, 2, 1, 1)
-        grid.addWidget(self.medianFilterCheckBox, 3, 3, 1, 2)
-
-        grid.addWidget(saveFileButton, 4, 1, 1, 4)
-
-        grid.addWidget(locLabel, 5, 1, 1, 4)
-        grid.addWidget(self.savelocList, 6, 1, 1, 4)
-
-        grid.addWidget(self.scatterPlotCheckBox, 7, 1, 1, 2)
-
-        grid.addWidget(self.trainTestDataCheckBox, 8, 1, 1, 2)
-        grid.addWidget(self.trainTestFormatCB, 8, 3, 1, 1)
-        grid.addWidget(trainTestLabel, 8, 4, 1, 1)
-
-        grid.addWidget(self.saveDEMCheckBox, 9, 1, 1, 1)
-        grid.addWidget(self.reportCheckBox, 9, 2, 1, 1)
-        grid.addWidget(saveButton, 9, 3, 1, 1)
-        grid.addWidget(cancelButton, 9, 4, 1, 1)
+        cancelButton = QPushButton('Cancel')
+        cancelButton.clicked.connect(self.saveOptionDialog.close)
+        grid.addWidget(cancelButton, row, 4, 1, 1)
 
         self.saveOptionDialog.setLayout(grid)
 
