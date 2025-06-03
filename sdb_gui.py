@@ -391,6 +391,8 @@ class SDBWidget(QWidget):
             QIcon(resource_path('icons/load-pngrepo-com.png'))
         )
 
+        grid = QGridLayout()
+        row = 1
         openFilesButton = QPushButton('Open File')
         openFilesButton.clicked.connect(
             lambda: self.fileDialog(
@@ -400,24 +402,24 @@ class SDBWidget(QWidget):
                 text_browser=self.imglocList
             )
         )
+        grid.addWidget(openFilesButton, row, 1, 1, 4)
 
+        row += 1
         locLabel = QLabel('Location:')
-        self.imglocList = QTextBrowser()
+        grid.addWidget(locLabel, row, 1, 1, 1)
 
-        cancelButton = QPushButton('Cancel')
-        cancelButton.clicked.connect(self.loadImageDialog.close)
+        row += 1
+        self.imglocList = QTextBrowser()
+        grid.addWidget(self.imglocList, row, 1, 10, 4)
+
+        row += 10
         loadButton = QPushButton('Load')
         loadButton.clicked.connect(self.loadImageAction)
         loadButton.clicked.connect(self.loadImageDialog.close)
-
-        grid = QGridLayout()
-        grid.addWidget(openFilesButton, 1, 1, 1, 4)
-
-        grid.addWidget(locLabel, 4, 1, 1, 1)
-
-        grid.addWidget(self.imglocList, 5, 1, 10, 4)
-
         grid.addWidget(loadButton, 15, 3, 1, 1)
+
+        cancelButton = QPushButton('Cancel')
+        cancelButton.clicked.connect(self.loadImageDialog.close)
         grid.addWidget(cancelButton, 15, 4, 1, 1)
 
         self.loadImageDialog.setLayout(grid)
@@ -473,6 +475,8 @@ class SDBWidget(QWidget):
             QIcon(resource_path('icons/load-pngrepo-com.png'))
         )
 
+        grid = QGridLayout()
+        row = 1
         openFilesButton = QPushButton('Open File')
         openFilesButton.clicked.connect(
             lambda: self.fileDialog(
@@ -482,29 +486,29 @@ class SDBWidget(QWidget):
                 text_browser=self.samplelocList
             )
         )
+        grid.addWidget(openFilesButton, row, 1, 1, 4)
 
+        row += 1
         locLabel = QLabel('Location:')
-        self.samplelocList = QTextBrowser()
+        grid.addWidget(locLabel, row, 1, 1, 1)
 
+        row += 1
+        self.samplelocList = QTextBrowser()
+        grid.addWidget(self.samplelocList, row, 1, 10, 4)
+
+        row += 10
         self.showCheckBox = QCheckBox('Show All Data to Table')
         self.showCheckBox.setChecked(False)
+        grid.addWidget(self.showCheckBox, row, 1, 1, 2)
 
-        cancelButton = QPushButton('Cancel')
-        cancelButton.clicked.connect(self.loadSampleDialog.close)
         loadButton = QPushButton('Load')
         loadButton.clicked.connect(self.loadSampleAction)
         loadButton.clicked.connect(self.loadSampleDialog.close)
+        grid.addWidget(loadButton, row, 3, 1, 1)
 
-        grid = QGridLayout()
-        grid.addWidget(openFilesButton, 1, 1, 1, 4)
-
-        grid.addWidget(locLabel, 4, 1, 1, 1)
-
-        grid.addWidget(self.samplelocList, 5, 1, 10, 4)
-
-        grid.addWidget(self.showCheckBox, 15, 1, 1, 2)
-        grid.addWidget(loadButton, 15, 3, 1, 1)
-        grid.addWidget(cancelButton, 15, 4, 1, 1)
+        cancelButton = QPushButton('Cancel')
+        cancelButton.clicked.connect(self.loadSampleDialog.close)
+        grid.addWidget(cancelButton, row, 4, 1, 1)
 
         self.loadSampleDialog.setLayout(grid)
 
@@ -1114,15 +1118,13 @@ class SDBWidget(QWidget):
         complete.setWindowModality(Qt.ApplicationModal)
         complete.resize(180,30)
 
+        grid = QGridLayout()
         textLabel = QLabel('Tasks has been completed')
         textLabel.setAlignment(Qt.AlignCenter)
+        grid.addWidget(textLabel, 1, 1, 1, 4)
 
         okButton = QPushButton('OK')
         okButton.clicked.connect(complete.close)
-
-        grid = QGridLayout()
-
-        grid.addWidget(textLabel, 1, 1, 1, 4)
         grid.addWidget(okButton, 2, 2, 1, 2)
 
         complete.setLayout(grid)
@@ -1408,27 +1410,24 @@ class SDBWidget(QWidget):
             'GeoPandas': 'licenses/geopandas_license',
             'Scikit Learn': 'licenses/scikit-learn_license'
         }
-        license_list = list(license_dict)
 
+        grid = QGridLayout()
         licenseCB = QComboBox()
-        licenseCB.addItems(license_list)
+        licenseCB.addItems(list(license_dict))
         licenseCB.activated.connect(
             lambda: self.licenseSelection(
                 location=license_dict[licenseCB.currentText()]
             )
         )
+        grid.addWidget(licenseCB, 1, 1, 1, 4)
 
-        license_file = open(resource_path('LICENSE'), 'r')
         self.licenseText = QTextBrowser()
+        license_file = open(resource_path('LICENSE'), 'r')
         self.licenseText.setText(license_file.read())
+        grid.addWidget(self.licenseText, 2, 1, 1, 4)
 
         okButton = QPushButton('OK')
         okButton.clicked.connect(licenses.close)
-
-        grid = QGridLayout()
-
-        grid.addWidget(licenseCB, 1, 1, 1, 4)
-        grid.addWidget(self.licenseText, 2, 1, 1, 4)
         grid.addWidget(okButton, 3, 4, 1, 1)
 
         licenses.setLayout(grid)
