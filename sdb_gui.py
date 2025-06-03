@@ -269,6 +269,19 @@ class SDBWidget(QWidget):
         Save all current settings
         """
 
+        if self.limitADSB.value() < self.limitBDSB.value():
+            a = self.limitADSB.value()
+            b = self.limitBDSB.value()
+
+            self.limitADSB.setValue(b)
+            self.limitBDSB.setValue(a)
+
+        proc_op_dict['depth_limit'].update({
+            'disable': self.limitCheckBox.isChecked(),
+            'upper': self.limitADSB.value(),
+            'lower': self.limitBDSB.value()
+        })
+
         self.settings.setValue('options', option_pool)
         self.settings.setValue('last_directory', self.dir_path)
 
@@ -297,6 +310,9 @@ class SDBWidget(QWidget):
             global option_pool, proc_op_dict
             option_pool = default_values()
             proc_op_dict = option_pool['processing']
+            self.limitCheckBox.setChecked(proc_op_dict['depth_limit']['disable'])
+            self.limitADSB.setValue(proc_op_dict['depth_limit']['upper'])
+            self.limitBDSB.setValue(proc_op_dict['depth_limit']['lower'])
 
             home_dir = os.path.abspath(Path.home())
             self.dir_path = home_dir
@@ -864,13 +880,6 @@ class SDBWidget(QWidget):
 
         self.resultText.clear()
         self.progressBar.setValue(0)
-
-        if self.limitADSB.value() < self.limitBDSB.value():
-            a = self.limitADSB.value()
-            b = self.limitBDSB.value()
-
-            self.limitADSB.setValue(b)
-            self.limitBDSB.setValue(a)
 
         global time_list
         time_list = []
