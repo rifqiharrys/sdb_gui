@@ -1,0 +1,72 @@
+{
+    "processing": {
+        "depth_limit": {
+            "disable": false,
+            "upper": 0.0,
+            "lower": -15.0
+        },
+        "backend": "threading",
+        "n_jobs": -2,
+        "current_selection": "Random Selection",
+        "selection": {
+            "Random Selection": {
+                "name": "Random Selection",
+                "parameters": {
+                    "train_size": 0.75,
+                    "random_state": 0
+                }
+            },
+            "Attribute Selection": {
+                "name": "Attribute Selection",
+                "parameters": {
+                    "header": "",
+                    "group": ""
+                }
+            }
+        },
+        "backend_set": [
+            "loky",
+            "threading",
+            "multiprocessing"
+        ]
+    },
+    "methods": {
+        "K-Nearest Neighbors": {
+            "name": "K-Nearest Neighbors",
+            "model_parameters": {
+                "n_neighbors": 5,
+                "weights": "distance",
+                "algorithm": "auto",
+                "leaf_size": 30
+            },
+            "weights_set": ["uniform", "distance"],
+            "algorithm_set": ["auto", "ball_tree", "kd_tree", "brute"]
+        },
+        "Multiple Linear Regression": {
+            "name": "Multiple Linear Regression",
+            "model_parameters": {
+                "fit_intercept": true,
+                "normalize": false,
+                "n_jobs": -1
+            },
+            "fit_intercept_set": [true, false],
+            "normalize_set": [true, false]
+        },
+        "Random Forest": {
+            "name": "Random Forest",
+            "model_parameters": {
+                "n_estimators": 100,
+                "criterion": "mse",
+                "max_depth": null,
+                "min_samples_split": 2,
+                "min_samples_leaf": 1,
+                "max_features": "auto",
+                "bootstrap": true,
+                "n_jobs": -1
+            },
+            "criterion_set": ["mse", "mae"],
+            "max_features_set": ["auto", "sqrt", "log2"],
+            "bootstrap_set": [true, false]
+        }
+    }
+}

@@ -1,0 +1,25 @@
+version: 1
+disable_existing_loggers: false
+
+formatters:
+  standard:
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+
+handlers:
+  file:
+    class: logging.FileHandler
+    level: DEBUG
+    formatter: standard
+    filename: sdb_gui.log
+    mode: w
+    encoding: utf8
+  
+  console:
+    class: logging.StreamHandler
+    level: INFO
+    formatter: standard
+    stream: ext://sys.stdout
+
+root:
+  level: DEBUG
+  handlers: [file, console]
