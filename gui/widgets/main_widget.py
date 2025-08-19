@@ -3,20 +3,20 @@
 import logging
 import os
 from pathlib import Path
-from PyQt5.QtWidgets import (
-    QWidget, QPushButton, QLabel, QComboBox, QSpinBox,
-    QDoubleSpinBox, QCheckBox, QProgressBar, QTextBrowser,
-    QTableWidget, QGridLayout, QVBoxLayout, QScrollArea
-)
-from PyQt5.QtCore import Qt, QSettings, pyqtSignal
+
+from PyQt5.QtCore import QSettings, Qt, pyqtSignal
 from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import (QCheckBox, QComboBox, QDialog, QDoubleSpinBox,
+                             QGridLayout, QLabel, QProgressBar, QPushButton,
+                             QScrollArea, QSpinBox, QTableWidget, QTextBrowser,
+                             QVBoxLayout, QWidget)
 
 from ..config.constants import DEPTH_DIRECTION, SDB_GUI_VERSION
+from ..core.process import Process
 from ..core.settings import load_settings
 from ..core.utils import resource_path
-from ..core.process import Process
-from .dialogs import LoadImageDialog, LoadSampleDialog, MethodDialog
-from .dialogs import ProcessDialog, SaveDialog
+from .dialogs import (LoadImageDialog, LoadSampleDialog, MethodDialog,
+                      ProcessDialog, SaveDialog)
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +55,7 @@ class SDBWidget(QWidget):
 
         # Image loading
         loadImageButton = QPushButton('Load Image')
-        loadImageButton.clicked.connect(LoadImageDialog)
+        loadImageButton.clicked.connect(self.loadImageWindow)
         grid.addWidget(loadImageButton, row, 1, 1, 1)
 
         self.loadImageLabel = QLabel('No Image Loaded')
@@ -65,7 +65,7 @@ class SDBWidget(QWidget):
         # Sample loading
         row += 1
         loadSampleButton = QPushButton('Load Sample')
-        loadSampleButton.clicked.connect(LoadSampleDialog)
+        loadSampleButton.clicked.connect(self.loadSampleWindow)
         grid.addWidget(loadSampleButton, row, 1, 1, 1)
 
         self.loadSampleLabel = QLabel('No Sample Loaded')
@@ -124,6 +124,15 @@ class SDBWidget(QWidget):
         grid.addWidget(self.limitBDSB, row, 4, 1, 1)
 
         mainLayout.addLayout(grid)
+
+def loadImageWindow(self):
+    """Open load image dialog and handle the result"""
+    dialog = LoadImageDialog(parent=self, dir_path=self.dir_path)
+    if dialog.exec_() == QDialog.Accepted:
+        self.image_path = dialog.image_path
+        self.loadImageLabel.setText(os.path.basename(self.image_path))
+        self.dir_path = os.path.dirname(self.image_path)
+        logger.info(f'Image loaded: {self.image_path}')
 
     def setupMethodSection(self, mainLayout):
         """Setup method selection section"""
