@@ -26,6 +26,7 @@ SOFTWARE.
 import datetime
 import logging
 import os
+import pprint
 import re
 import sys
 import webbrowser
@@ -82,6 +83,10 @@ class SDBWidget(QWidget):
         global option_pool, proc_op_dict
         option_pool = self.loadSettings()
         proc_op_dict = option_pool['processing']
+
+        logger.debug(
+            f'initial options: \n{pprint.pformat(option_pool, width=200)}'
+        )
 
         self.dir_path = self.settings.value(
             'last_directory',
@@ -322,6 +327,9 @@ class SDBWidget(QWidget):
             self.dir_path = home_dir
             self.settings.setValue('last_directory', home_dir)
             logger.info('last directory and options reset to default')
+            logger.debug(
+                f'reset to default options: \n{pprint.pformat(option_pool, width=200)}'
+            )
 
             complete = QMessageBox()
             complete.setWindowTitle('Settings Reset')
