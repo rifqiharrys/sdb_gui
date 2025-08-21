@@ -14,7 +14,6 @@ def prediction(
         features_train: pd.DataFrame,
         label_train: pd.Series,
         features_test: pd.DataFrame | None = None,
-        validate: bool = False,
         backend: str = 'threading',
         n_jobs: int = -2,
         **params: Any
@@ -35,8 +34,6 @@ def prediction(
         Label from train data.
     features_test : pd.DataFrame | None, optional
         Features from test data.
-    validate : bool, optional
-        Whether to validate the model using the test set. Default is False.
     backend : str, optional
         Backend to use for parallel processing. Default is 'threading'.
     n_jobs : int, optional
@@ -89,11 +86,8 @@ def prediction(
         regressor.fit(features_train, label_train)
         z_predict = regressor.predict(unraveled_band)
 
-        if validate is True:
-            if features_test is not None:
-                z_validate = regressor.predict(features_test)
-            else:
-                raise ValueError('features_test cannot be None when validate is True.')
+        if features_test is not None:
+            z_validate = regressor.predict(features_test)
         else:
             z_validate = None
 
