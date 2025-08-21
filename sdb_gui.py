@@ -1281,7 +1281,7 @@ class SDBWidget(QWidget):
             if DEPTH_DIRECTION[self.depthDirectionSaveCB.currentText()][1]:
                 daz_filtered.values[0] *=-1
                 test_df_copy['z'] *=-1
-                test_df_copy['z_predict'] *=-1
+                test_df_copy['z_validate'] *=-1
                 train_df_copy['z'] *=-1
 
             if not self.savelocList.toPlainText():
@@ -1356,7 +1356,7 @@ class SDBWidget(QWidget):
                 )
                 scatter_plot = sdb.scatter_plotter(
                     true_val=test_df_copy['z'],
-                    pred_val=test_df_copy['z_predict'],
+                    pred_val=test_df_copy['z_validate'],
                     title=self.methodCB.currentText()
                 )
                 scatter_plot[0].savefig(scatter_plot_loc)
@@ -1603,7 +1603,6 @@ class Process(QThread):
             features_train=results['f_train'].drop(columns=['x', 'y']),
             label_train=results['z_train'],
             features_test=f_test,
-            validate=EVALUATION_TYPES[proc_op_dict['current_eval']],
             backend=proc_op_dict['backend'],
             n_jobs=proc_op_dict['n_jobs'],
             **model_parameters
@@ -1655,18 +1654,20 @@ class Process(QThread):
                 band_name=('band', ['original'])
             )
 
-            logger.debug('sampling prediction based on test data coordinates')
-            dfz_predict = sdb.point_sampling(
-                daz_predict,
-                x=results['f_test'].x,
-                y=results['f_test'].y,
-                include_xy=False
-            )
+            if EVALUATION_TYPES[proc_op_dict['current_eval']] == False:
+                logger.debug('sampling prediction based on test data coordinates')
+                dfz_predict = sdb.point_sampling(
+                    daz_predict,
+                    x=results['f_test'].x,
+                    y=results['f_test'].y,
+                    include_xy=False
+                )
+                results['z_validate'] = dfz_predict['band_1'].to_numpy()
 
             logger.info('evaluating prediction')
             rmse, mae, r2 = sdb.evaluate(
                 true_val=results['z_test'],
-                pred_val=dfz_predict['band_1'].to_numpy()
+                pred_val=results['z_validate']
             )
             logger.info(f'RMSE: {rmse}, MAE: {mae}, R2: {r2}')
 
@@ -1679,7 +1680,7 @@ class Process(QThread):
 
             test_df = results['f_test'].copy()
             test_df['z'] = results['z_test'].copy()
-            test_df['z_predict'] = dfz_predict['band_1'].copy()
+            test_df['z_validate'] = results['z_validate'].copy()
 
             results.update({
                 'daz_predict': daz_predict,
