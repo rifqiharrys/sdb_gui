@@ -57,9 +57,9 @@ SELECTION_TYPES: Dict[str, str] = {
     'RANDOM': 'Random Selection',
     'ATTRIBUTE': 'Attribute Selection'
 }
-EVALUATION_TYPES: Dict[str, str] = {
-    'RECALC': 'Recalculate from Test Data',
-    'USENOW': 'Use Current Prediction'
+EVALUATION_TYPES: Dict[str, bool] = {
+    'Recalculate from Test Data': True,
+    'Use Current Prediction': False
 }
 
 
@@ -727,7 +727,7 @@ class SDBWidget(QWidget):
         grid.addWidget(evalTypeLabel, row, 1, 1, 2)
 
         self.evalTypeCB = QComboBox()
-        self.evalTypeCB.addItems(list(EVALUATION_TYPES.values()))
+        self.evalTypeCB.addItems(list(EVALUATION_TYPES.keys()))
         self.evalTypeCB.setCurrentText(proc_op_dict['current_eval'])
         grid.addWidget(self.evalTypeCB, row, 3, 1, 2)
 
@@ -1592,11 +1592,18 @@ class Process(QThread):
                 f'{to_title(key)}:\t\t{value}\n'
             )
 
-        z_predict = sdb.prediction(
+        if EVALUATION_TYPES[proc_op_dict['current_eval']] == True:
+            f_test = results['f_test'].drop(columns=['x', 'y'])
+        else:
+            f_test = None
+
+        z_predict, z_validate = sdb.prediction(
             model=method,
             unraveled_band=bands_df,
             features_train=results['f_train'].drop(columns=['x', 'y']),
             label_train=results['z_train'],
+            features_test=f_test,
+            validate=EVALUATION_TYPES[proc_op_dict['current_eval']],
             backend=proc_op_dict['backend'],
             n_jobs=proc_op_dict['n_jobs'],
             **model_parameters
@@ -1605,7 +1612,10 @@ class Process(QThread):
         if not self._is_running:
             return None
 
-        results.update({'z_predict': z_predict})
+        results.update({
+            'z_predict': z_predict,
+            'z_validate': z_validate
+        })
 
         logger.debug('prediction ended')
         return results
@@ -1645,7 +1655,7 @@ class Process(QThread):
                 band_name=('band', ['original'])
             )
 
-            logger.debug('sampling predictin based on test data coordinates')
+            logger.debug('sampling prediction based on test data coordinates')
             dfz_predict = sdb.point_sampling(
                 daz_predict,
                 x=results['f_test'].x,
