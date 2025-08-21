@@ -1309,20 +1309,23 @@ class SDBWidget(QWidget):
             if not self.savelocList.toPlainText():
                 raise ValueError('empty save location')
 
-            sdb.write_geotiff(
-                daz_filtered,
-                self.savelocList.toPlainText()
-            )
-
             if self.saveDEMCheckBox.isChecked() == True:
+                sdb.write_geotiff(
+                    daz_filtered,
+                    self.savelocList.toPlainText()
+                )
                 new_img_size = os.path.getsize(self.savelocList.toPlainText())
                 print_dem_info = (
                     f'{print_filter_info}\n\n'
                     f'DEM Output:\t\t{self.savelocList.toPlainText()} '
                     f'({round(new_img_size / 2**10 / 2**10, 2)} MiB)\n'
                 )
+                logger.info(
+                    f'DEM with the size of {new_img_size} B has been saved'
+                )
+                logger.debug(f'DEM location: {self.savelocList.toPlainText()}')
             elif self.saveDEMCheckBox.isChecked() == False:
-                os.remove(self.savelocList.toPlainText())
+                # os.remove(self.savelocList.toPlainText())
                 print_dem_info = (
                     'DEM Output:\t\tNot Saved\n'
                 )
@@ -1365,6 +1368,13 @@ class SDBWidget(QWidget):
                     f'Test Data output:\t{test_save_loc} '
                     f'({round(test_data_size / 2**10 / 2**10, 2)} MiB)\n'
                 )
+                logger.info(
+                    f'splitted train and test data with {
+                        self.trainTestFormatCB.currentText()
+                    } format has been saved'
+                )
+                logger.debug(f'train data location: {train_save_loc}')
+                logger.debug(f'test data location: {test_save_loc}')
             elif self.trainTestDataCheckBox.isChecked() == False:
                 print_train_test_info = (
                     'Train Data Output:\tNot Saved\n'
@@ -1389,6 +1399,8 @@ class SDBWidget(QWidget):
                     f'Scatter Plot:\t{scatter_plot_loc} '
                     f'({round(scatter_plot_size / 2**10, 2)} KiB)\n'
                 )
+                logger.info(f'scatter plot has been saved')
+                logger.debug(f'scatter plot location: {scatter_plot_loc}')
             elif self.scatterPlotCheckBox.isChecked() == False:
                 print_scatter_plot_info = 'Scatter Plot:\tNotSaved\n'
 
@@ -1409,6 +1421,8 @@ class SDBWidget(QWidget):
                     print_train_test_info +
                     print_scatter_plot_info
                 )
+                logger.info('report has been saved')
+                logger.debug(f'report location: {report_save_loc}')
         except ValueError as e:
             if 'Allowed value: >= 3 or odd numbers' in str(e):
                 self.saveOptionDialog.close()
