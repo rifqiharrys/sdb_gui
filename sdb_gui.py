@@ -1607,8 +1607,6 @@ class Process(QThread):
                 f'{to_title(key)}:\t\t{value}\n'
             )
 
-        print(EVALUATION_TYPES[self.eval_type])
-
         if EVALUATION_TYPES[self.eval_type] == True:
             logger.debug('recalculate prediction using test data')
             f_test = results['f_test'].drop(columns=['x', 'y'])
@@ -1634,7 +1632,6 @@ class Process(QThread):
             'z_predict': z_predict,
             'z_validate': z_validate
         })
-        print(results['z_validate'])
 
         logger.debug('prediction ended')
         return results
