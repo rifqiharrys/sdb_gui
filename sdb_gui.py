@@ -57,6 +57,10 @@ SELECTION_TYPES: Dict[str, str] = {
     'RANDOM': 'Random Selection',
     'ATTRIBUTE': 'Attribute Selection'
 }
+EVALUATION_TYPES: Dict[str, str] = {
+    'RECALC': 'Recalculate from Test Data',
+    'USENOW': 'Use Current Prediction'
+}
 
 
 class SDBWidget(QWidget):
@@ -719,6 +723,15 @@ class SDBWidget(QWidget):
         grid.addWidget(self.njobsSB, row, 3, 1, 2)
 
         row += 1
+        evalTypeLabel = QLabel('Evaluation Type:')
+        grid.addWidget(evalTypeLabel, row, 1, 1, 2)
+
+        self.evalTypeCB = QComboBox()
+        self.evalTypeCB.addItems(list(EVALUATION_TYPES.values()))
+        self.evalTypeCB.setCurrentText(proc_op_dict['current_eval'])
+        grid.addWidget(self.evalTypeCB, row, 3, 1, 2)
+
+        row += 1
         trainSelectLabel = QLabel('Train Data Selection:')
         grid.addWidget(trainSelectLabel, row, 1, 1, 2)
 
@@ -766,6 +779,7 @@ class SDBWidget(QWidget):
 
         proc_op_dict['backend'] = self.backendCB.currentText()
         proc_op_dict['n_jobs'] = self.njobsSB.value()
+        proc_op_dict['current_eval'] = self.evalTypeCB.currentText()
         proc_op_dict['current_selection'] = self.trainSelectCB.currentText()
 
         selection_params = proc_op_dict['selection'][
@@ -1728,6 +1742,7 @@ def default_values():
         },
         'backend': 'threading',
         'n_jobs': -2,
+        'current_eval': 'Recalculate from Test Data',
         'selection' : OrderedDict([
             (random_selection['name'], random_selection),
             (attribute_selection['name'], attribute_selection)
