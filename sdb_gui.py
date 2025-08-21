@@ -58,8 +58,8 @@ SELECTION_TYPES: Dict[str, str] = {
     'ATTRIBUTE': 'Attribute Selection'
 }
 EVALUATION_TYPES: Dict[str, bool] = {
+    'Use Current Prediction': False,
     'Recalculate from Test Data': True,
-    'Use Current Prediction': False
 }
 
 
@@ -911,7 +911,8 @@ class SDBWidget(QWidget):
             'train_select': proc_op_dict['current_selection'],
             'selection': proc_op_dict['selection'][
                 proc_op_dict['current_selection']
-            ]['parameters']
+            ]['parameters'],
+            'eval_type': proc_op_dict['current_eval'],
         }
 
         try:
@@ -1492,6 +1493,7 @@ class Process(QThread):
         self.method = input_dict['method']
         self.train_select = input_dict['train_select']
         self.selection = input_dict['selection']
+        self.eval_type = input_dict['eval_type']
 
 
     def preprocess(self):
@@ -1592,9 +1594,13 @@ class Process(QThread):
                 f'{to_title(key)}:\t\t{value}\n'
             )
 
-        if EVALUATION_TYPES[proc_op_dict['current_eval']] == True:
+        print(EVALUATION_TYPES[self.eval_type])
+
+        if EVALUATION_TYPES[self.eval_type] == True:
+            logger.debug('recalculate prediction using test data')
             f_test = results['f_test'].drop(columns=['x', 'y'])
         else:
+            logger.debug('using prediction data to later use against z_test')
             f_test = None
 
         z_predict, z_validate = sdb.prediction(
@@ -1615,6 +1621,7 @@ class Process(QThread):
             'z_predict': z_predict,
             'z_validate': z_validate
         })
+        print(results['z_validate'])
 
         logger.debug('prediction ended')
         return results
@@ -1654,7 +1661,7 @@ class Process(QThread):
                 band_name=('band', ['original'])
             )
 
-            if EVALUATION_TYPES[proc_op_dict['current_eval']] == False:
+            if EVALUATION_TYPES[self.eval_type] == False:
                 logger.debug('sampling prediction based on test data coordinates')
                 dfz_predict = sdb.point_sampling(
                     daz_predict,
@@ -1753,7 +1760,7 @@ def default_values():
         },
         'backend': 'threading',
         'n_jobs': -2,
-        'current_eval': 'Recalculate from Test Data',
+        'current_eval': 'Use Current Prediction',
         'selection' : OrderedDict([
             (random_selection['name'], random_selection),
             (attribute_selection['name'], attribute_selection)
