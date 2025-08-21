@@ -955,6 +955,18 @@ class SDBWidget(QWidget):
         Counting runtimes using saved time values and printing result info.
         """
 
+        if EVALUATION_TYPES[proc_op_dict['current_eval']] == True:
+            print_eval_type = (
+                'Evaluated using predicted values that was generated from '
+                'recalculation of depth prediction using the existing model'
+                ' and test data'
+            )
+        elif EVALUATION_TYPES[proc_op_dict['current_eval']] == False:
+            print_eval_type = (
+                'Evaluated using predicted values that was generated from '
+                'point samples of the existing predicted values'
+            )
+
         print_selection_info = (
             f'Parallel Backend:\t{proc_op_dict["backend"]}\n'
             f'Processing Cores:\t{proc_op_dict["n_jobs"]}\n'
@@ -1016,6 +1028,7 @@ class SDBWidget(QWidget):
             f'({round((100 - train_size_percent), 2)} % of used sample)\n\n'
             f'Method:\t\t{self.methodCB.currentText()}\n'
             f'{print_parameters_info}\n'
+            f'{print_eval_type}\n'
             f'RMSE:\t\t{round(rmse, 3)}\n'
             f'MAE:\t\t{round(mae, 3)}\n'
             f'R\u00B2:\t\t{round(r2, 3)}\n\n'
