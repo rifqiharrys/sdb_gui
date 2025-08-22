@@ -129,7 +129,7 @@ def in_depth_filter(
         header: str,
         depth_direction: str = 'up',
         disable_depth_filter: bool = False,
-        upper_limit: float = 0.0,
+        upper_limit: float = 2.0,
         lower_limit: float = -15.0
 ) -> gpd.GeoDataFrame:
     """
