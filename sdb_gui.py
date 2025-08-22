@@ -1787,7 +1787,7 @@ def default_values():
     proc_op_dict = {
         'depth_limit': {
             'disable': False,
-            'upper': 0.0,
+            'upper': 2.0,
             'lower': -15.0
         },
         'backend': 'threading',
