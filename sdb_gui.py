@@ -26,6 +26,7 @@ SOFTWARE.
 import datetime
 import logging
 import os
+import pprint
 import re
 import sys
 import webbrowser
@@ -49,35 +50,18 @@ import sdb
 SDB_GUI_VERSION: str = '4.1.0'
 LOG_NAME: str = 'sdb_gui.log'
 PROGRESS_STEP: int = 6
-DEPTH_DIR_DICT: Dict[str, Tuple[str, bool]] = {
+DEPTH_DIRECTION: Dict[str, Tuple[str, bool]] = {
     'Positive Up': ('up', False),
     'Positive Down': ('down', True),
 }
-
-def get_log_level() -> int:
-    """
-    Get logging level from command line argument.
-    Default to INFO if no argument provided.
-    """
-
-    if len(sys.argv) > 1:
-        level = sys.argv[1].upper()
-        if hasattr(logging, level):
-            return getattr(logging, level)
-    return logging.INFO
-
-logging.basicConfig(
-    level=get_log_level(),
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(LOG_NAME, mode='w'),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
-logger.info(
-    f'logging level set to: {logging.getLevelName(logger.getEffectiveLevel())}'
-)
+SELECTION_TYPES: Dict[str, str] = {
+    'RANDOM': 'Random Selection',
+    'ATTRIBUTE': 'Attribute Selection'
+}
+EVALUATION_TYPES: Dict[str, bool] = {
+    'Use Current Prediction': False,
+    'Recalculate from Test Data': True,
+}
 
 
 class SDBWidget(QWidget):
@@ -100,12 +84,14 @@ class SDBWidget(QWidget):
         option_pool = self.loadSettings()
         proc_op_dict = option_pool['processing']
 
-        self.method_dict = {
-            method: self.methodOptionWindow 
-            for method in option_pool['method'].keys()
-        }
+        logger.debug(
+            f'initial options: \n{pprint.pformat(option_pool, width=200)}'
+        )
 
-        self.dir_path = self.settings.value('last_directory', os.path.abspath(Path.home()))
+        self.dir_path = self.settings.value(
+            'last_directory',
+            os.path.abspath(Path.home())
+        )
         self.initUI()
 
 
@@ -118,159 +104,159 @@ class SDBWidget(QWidget):
         self.setWindowTitle(f'Satellite Derived Bathymetry v{SDB_GUI_VERSION}')
         self.setWindowIcon(QIcon(resource_path('icons/satellite.png')))
 
+        mainLayout = QVBoxLayout()
+
+        grid1 = QGridLayout()
+        row_grid1 = 1
         loadImageButton = QPushButton('Load Image')
         loadImageButton.clicked.connect(self.loadImageWindow)
+        grid1.addWidget(loadImageButton, row_grid1, 1, 1, 1)
+
         self.loadImageLabel = QLabel()
         self.loadImageLabel.setText('No Image Loaded')
         self.loadImageLabel.setAlignment(Qt.AlignCenter)
+        grid1.addWidget(self.loadImageLabel, row_grid1, 2, 1, 3)
 
+        row_grid1 += 1
         loadSampleButton = QPushButton('Load Sample')
         loadSampleButton.clicked.connect(self.loadSampleWindow)
+        grid1.addWidget(loadSampleButton, row_grid1, 1, 1, 1)
+
         self.loadSampleLabel = QLabel()
         self.loadSampleLabel.setText('No Sample Loaded')
         self.loadSampleLabel.setAlignment(Qt.AlignCenter)
+        grid1.addWidget(self.loadSampleLabel, row_grid1, 2, 1, 3)
 
+        row_grid1 += 1
         depthHeaderLabel = QLabel('Depth Header:')
-        self.depthHeaderCB = QComboBox()
+        grid1.addWidget(depthHeaderLabel, row_grid1, 1, 1, 1)
 
-        direction_list = list(DEPTH_DIR_DICT.keys())
+        self.depthHeaderCB = QComboBox()
+        grid1.addWidget(self.depthHeaderCB, row_grid1, 2, 1, 1)
 
         depthDirectionLabel = QLabel('Depth Direction:')
-        self.depthDirectionCB =QComboBox()
-        self.depthDirectionCB.addItems(direction_list)
+        grid1.addWidget(depthDirectionLabel, row_grid1, 3, 1, 1)
 
+        self.depthDirectionCB = QComboBox()
+        direction_list = list(DEPTH_DIRECTION.keys())
+        self.depthDirectionCB.addItems(direction_list)
+        grid1.addWidget(self.depthDirectionCB, row_grid1, 4, 1, 1)
+
+        row_grid1 += 1
         self.table = QTableWidget()
         scroll = QScrollArea()
         scroll.setWidget(self.table)
+        grid1.addWidget(self.table, row_grid1, 1, 5, 4)
 
+        mainLayout.addLayout(grid1)
+
+        grid2 = QGridLayout()
+        row_grid2 = 1
         limitLabel = QLabel('Depth Limit Window:')
+        grid2.addWidget(limitLabel, row_grid2, 1, 1, 2)
 
         limitALabel = QLabel('Upper Limit:')
+        grid2.addWidget(limitALabel, row_grid2, 3, 1, 1)
+
         self.limitADSB = QDoubleSpinBox()
         self.limitADSB.setRange(-100, 100)
         self.limitADSB.setDecimals(1)
         self.limitADSB.setValue(proc_op_dict['depth_limit']['upper'])
         self.limitADSB.setSuffix(' m')
         self.limitADSB.setAlignment(Qt.AlignRight)
+        grid2.addWidget(self.limitADSB, row_grid2, 4, 1, 1)
+
+        row_grid2 += 1
+        self.limitCheckBox = QCheckBox('Disable Depth Limitation')
+        self.limitCheckBox.setChecked(proc_op_dict['depth_limit']['disable'])
+        grid2.addWidget(self.limitCheckBox, row_grid2, 1, 1, 2)
 
         limitBLabel = QLabel('Lower Limit:')
+        grid2.addWidget(limitBLabel, row_grid2, 3, 1, 1)
+
         self.limitBDSB = QDoubleSpinBox()
         self.limitBDSB.setRange(-100, 100)
         self.limitBDSB.setDecimals(1)
         self.limitBDSB.setValue(proc_op_dict['depth_limit']['lower'])
         self.limitBDSB.setSuffix(' m')
         self.limitBDSB.setAlignment(Qt.AlignRight)
+        grid2.addWidget(self.limitBDSB, row_grid2, 4, 1, 1)
 
-        self.limitCheckBox = QCheckBox('Disable Depth Limitation')
-        self.limitCheckBox.setChecked(proc_op_dict['depth_limit']['disable'])
+        mainLayout.addLayout(grid2)
 
-        method_list = list(self.method_dict)
-
+        grid3 = QGridLayout()
+        row_grid3 = 1
         methodLabel = QLabel('Regression Method:')
+        grid3.addWidget(methodLabel, row_grid3, 1, 1, 1)
+
         self.methodCB = QComboBox()
+        method_list = list(option_pool['method'].keys())
         self.methodCB.addItems(method_list)
+        grid3.addWidget(self.methodCB, row_grid3, 2, 1, 1)
 
         self.optionsButton = QPushButton('Method Options')
         self.optionsButton.clicked.connect(
             lambda: self.methodOptionWindow()
         )
-
-        selection_list = ['Random Selection', 'Attribute Selection']
-
-        trainSelectLabel = QLabel('Train Data Selection:')
-        self.trainSelectCB = QComboBox()
-        self.trainSelectCB.addItems(selection_list)
-        self.trainSelectCB.activated.connect(self.updateTrainSelection)
+        grid3.addWidget(self.optionsButton, row_grid3, 3, 1, 1)
 
         processingOptionsButton = QPushButton('Processing Options')
         processingOptionsButton.clicked.connect(self.processingOptionWindow)
-        resetSettingsButton = QPushButton('Reset Settings')
-        resetSettingsButton.clicked.connect(self.resetToDefault)
+        grid3.addWidget(processingOptionsButton, row_grid3, 4, 1, 1)
 
+        mainLayout.addLayout(grid3)
+
+        grid4 = QGridLayout()
+        row_grid4 = 1
         makePredictionButton = QPushButton('Generate Prediction')
         makePredictionButton.clicked.connect(self.predict)
+        grid4.addWidget(makePredictionButton, row_grid4, 1, 1, 2)
+
+        resetSettingsButton = QPushButton('Reset Settings')
+        resetSettingsButton.clicked.connect(self.resetToDefault)
+        grid4.addWidget(resetSettingsButton, row_grid4, 3, 1, 2)
+
+        row_grid4 += 1
         stopProcessingButton = QPushButton('Stop Processing')
         stopProcessingButton.clicked.connect(self.stopProcess)
+        grid4.addWidget(stopProcessingButton, row_grid4, 1, 1, 2)
 
-        resultInfo = QLabel('Result Information')
         saveFileButton = QPushButton('Save Into File')
         saveFileButton.clicked.connect(self.saveOptionWindow)
+        grid4.addWidget(saveFileButton, row_grid4, 3, 1, 2)
+
+        row_grid4 += 1
+        resultInfo = QLabel('Result Information')
+        grid4.addWidget(resultInfo, row_grid4, 1, 1, 2)
+
+        row_grid4 += 1
         self.resultText = QTextBrowser()
         self.resultText.setAlignment(Qt.AlignRight)
+        grid4.addWidget(self.resultText, row_grid4, 1, 1, 4)
 
+        row_grid4 += 4
         self.progressBar = QProgressBar()
         self.progressBar.setFormat('%p%')
         self.progressBar.setMinimum(0)
         self.progressBar.setMaximum(PROGRESS_STEP)
+        grid4.addWidget(self.progressBar, row_grid4, 1, 1, 4)
 
+        row_grid4 += 1
         releaseButton =  QPushButton('Releases')
         releaseButton.clicked.connect(lambda: webbrowser.open(
             'https://github.com/rifqiharrys/sdb_gui/releases'
         ))
+        grid4.addWidget(releaseButton, row_grid4, 1, 1, 1)
 
         licensesButton = QPushButton('Licenses')
         licensesButton.clicked.connect(self.licensesDialog)
+        grid4.addWidget(licensesButton, row_grid4, 2, 1, 2)
 
         readmeButton = QPushButton('Readme')
         readmeButton.clicked.connect(lambda: webbrowser.open(
             'https://github.com/rifqiharrys/sdb_gui/blob/main/README.md'
         ))
-
-        mainLayout = QVBoxLayout()
-
-        grid1 = QGridLayout()
-        grid1.addWidget(loadImageButton, 1, 1, 1, 1)
-        grid1.addWidget(self.loadImageLabel, 1, 2, 1, 3)
-
-        grid1.addWidget(loadSampleButton, 2, 1, 1, 1)
-        grid1.addWidget(self.loadSampleLabel, 2, 2, 1, 3)
-
-        grid1.addWidget(depthHeaderLabel, 3, 1, 1, 1)
-        grid1.addWidget(self.depthHeaderCB, 3, 2, 1, 1)
-        grid1.addWidget(depthDirectionLabel, 3, 3, 1, 1)
-        grid1.addWidget(self.depthDirectionCB, 3, 4, 1, 1)
-
-        grid1.addWidget(self.table, 4, 1, 5, 4)
-
-        mainLayout.addLayout(grid1)
-
-        grid2 = QGridLayout()
-        grid2.addWidget(limitLabel, 1, 1, 1, 2)
-        grid2.addWidget(self.limitCheckBox, 2, 1, 1, 2)
-
-        grid2.addWidget(limitALabel, 1, 3, 1, 1)
-        grid2.addWidget(self.limitADSB, 1, 4, 1, 1)
-        grid2.addWidget(limitBLabel, 2, 3, 1, 1)
-        grid2.addWidget(self.limitBDSB, 2, 4, 1, 1)
-
-        mainLayout.addLayout(grid2)
-
-        grid3 = QGridLayout()
-        grid3.addWidget(methodLabel, 1, 1, 1, 1)
-        grid3.addWidget(self.methodCB, 1, 2, 1, 1)
-
-        grid3.addWidget(self.optionsButton, 1, 3, 1, 1)
-        grid3.addWidget(processingOptionsButton, 1, 4, 1, 1)
-
-        grid3.addWidget(trainSelectLabel, 2, 1, 1, 1)
-        grid3.addWidget(self.trainSelectCB, 2, 2, 1, 1)
-        grid3.addWidget(resetSettingsButton, 2, 3, 1, 2)
-
-        mainLayout.addLayout(grid3)
-
-        grid4 = QGridLayout()
-        grid4.addWidget(makePredictionButton, 1, 1, 1, 2)
-        grid4.addWidget(stopProcessingButton, 1, 3, 1, 2)
-
-        grid4.addWidget(resultInfo, 2, 1, 1, 2)
-        grid4.addWidget(saveFileButton, 2, 3, 1, 2)
-        grid4.addWidget(self.resultText, 3, 1, 1, 4)
-
-        grid4.addWidget(self.progressBar, 7, 1, 1, 4)
-
-        grid4.addWidget(releaseButton, 8, 1, 1, 1)
-        grid4.addWidget(licensesButton, 8, 2, 1, 2)
-        grid4.addWidget(readmeButton, 8, 4, 1, 1)
+        grid4.addWidget(readmeButton, row_grid4, 4, 1, 1)
 
         mainLayout.addLayout(grid4)
 
@@ -292,6 +278,19 @@ class SDBWidget(QWidget):
         Save all current settings
         """
 
+        if self.limitADSB.value() < self.limitBDSB.value():
+            a = self.limitADSB.value()
+            b = self.limitBDSB.value()
+
+            self.limitADSB.setValue(b)
+            self.limitBDSB.setValue(a)
+
+        proc_op_dict['depth_limit'].update({
+            'disable': self.limitCheckBox.isChecked(),
+            'upper': self.limitADSB.value(),
+            'lower': self.limitBDSB.value()
+        })
+
         self.settings.setValue('options', option_pool)
         self.settings.setValue('last_directory', self.dir_path)
 
@@ -303,10 +302,14 @@ class SDBWidget(QWidget):
 
         resetWindow = QMessageBox()
         resetWindow.setWindowTitle('Reset Settings')
-        resetWindow.setText('Are you sure you want to reset all settings to default values?')
+        resetWindow.setText(
+            'Are you sure you want to reset all settings to default values?'
+        )
         resetWindow.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         resetWindow.setDefaultButton(QMessageBox.No)
-        resetWindow.setWindowIcon(QIcon(resource_path('icons/warning-pngrepo-com.png')))
+        resetWindow.setWindowIcon(
+            QIcon(resource_path('icons/warning-pngrepo-com.png'))
+        )
 
         reply = resetWindow.exec_()
 
@@ -316,16 +319,25 @@ class SDBWidget(QWidget):
             global option_pool, proc_op_dict
             option_pool = default_values()
             proc_op_dict = option_pool['processing']
+            self.limitCheckBox.setChecked(proc_op_dict['depth_limit']['disable'])
+            self.limitADSB.setValue(proc_op_dict['depth_limit']['upper'])
+            self.limitBDSB.setValue(proc_op_dict['depth_limit']['lower'])
 
             home_dir = os.path.abspath(Path.home())
             self.dir_path = home_dir
             self.settings.setValue('last_directory', home_dir)
             logger.info('last directory and options reset to default')
+            logger.debug(
+                f'reset to default options: \n{pprint.pformat(option_pool, width=200)}'
+            )
 
             complete = QMessageBox()
             complete.setWindowTitle('Settings Reset')
             complete.setText('All settings have been reset to default values.')
-            complete.setWindowIcon(QIcon(resource_path('icons/complete-pngrepo-com.png')))
+            complete.setWindowIcon(
+                QIcon(resource_path('icons/complete-pngrepo-com.png'))
+            )
+            complete.setWindowModality(Qt.ApplicationModal)
             complete.exec_()
 
 
@@ -366,7 +378,13 @@ class SDBWidget(QWidget):
 
         fileFilter = f'All Files (*.*) ;; {file_type}'
         selectedFilter = file_type
-        fname = command(self, window_text, self.dir_path, fileFilter, selectedFilter)
+        fname = command(
+            self,
+            window_text,
+            self.dir_path,
+            fileFilter,
+            selectedFilter
+        )
 
         if fname[0]:
             text_browser.setText(fname[0])
@@ -385,6 +403,8 @@ class SDBWidget(QWidget):
             QIcon(resource_path('icons/load-pngrepo-com.png'))
         )
 
+        grid = QGridLayout()
+        row = 1
         openFilesButton = QPushButton('Open File')
         openFilesButton.clicked.connect(
             lambda: self.fileDialog(
@@ -394,24 +414,24 @@ class SDBWidget(QWidget):
                 text_browser=self.imglocList
             )
         )
+        grid.addWidget(openFilesButton, row, 1, 1, 4)
 
+        row += 1
         locLabel = QLabel('Location:')
-        self.imglocList = QTextBrowser()
+        grid.addWidget(locLabel, row, 1, 1, 1)
 
-        cancelButton = QPushButton('Cancel')
-        cancelButton.clicked.connect(self.loadImageDialog.close)
+        row += 1
+        self.imglocList = QTextBrowser()
+        grid.addWidget(self.imglocList, row, 1, 10, 4)
+
+        row += 10
         loadButton = QPushButton('Load')
         loadButton.clicked.connect(self.loadImageAction)
         loadButton.clicked.connect(self.loadImageDialog.close)
-
-        grid = QGridLayout()
-        grid.addWidget(openFilesButton, 1, 1, 1, 4)
-
-        grid.addWidget(locLabel, 4, 1, 1, 1)
-
-        grid.addWidget(self.imglocList, 5, 1, 10, 4)
-
         grid.addWidget(loadButton, 15, 3, 1, 1)
+
+        cancelButton = QPushButton('Cancel')
+        cancelButton.clicked.connect(self.loadImageDialog.close)
         grid.addWidget(cancelButton, 15, 4, 1, 1)
 
         self.loadImageDialog.setLayout(grid)
@@ -467,6 +487,8 @@ class SDBWidget(QWidget):
             QIcon(resource_path('icons/load-pngrepo-com.png'))
         )
 
+        grid = QGridLayout()
+        row = 1
         openFilesButton = QPushButton('Open File')
         openFilesButton.clicked.connect(
             lambda: self.fileDialog(
@@ -476,29 +498,29 @@ class SDBWidget(QWidget):
                 text_browser=self.samplelocList
             )
         )
+        grid.addWidget(openFilesButton, row, 1, 1, 4)
 
+        row += 1
         locLabel = QLabel('Location:')
-        self.samplelocList = QTextBrowser()
+        grid.addWidget(locLabel, row, 1, 1, 1)
 
+        row += 1
+        self.samplelocList = QTextBrowser()
+        grid.addWidget(self.samplelocList, row, 1, 10, 4)
+
+        row += 10
         self.showCheckBox = QCheckBox('Show All Data to Table')
         self.showCheckBox.setChecked(False)
+        grid.addWidget(self.showCheckBox, row, 1, 1, 2)
 
-        cancelButton = QPushButton('Cancel')
-        cancelButton.clicked.connect(self.loadSampleDialog.close)
         loadButton = QPushButton('Load')
         loadButton.clicked.connect(self.loadSampleAction)
         loadButton.clicked.connect(self.loadSampleDialog.close)
+        grid.addWidget(loadButton, row, 3, 1, 1)
 
-        grid = QGridLayout()
-        grid.addWidget(openFilesButton, 1, 1, 1, 4)
-
-        grid.addWidget(locLabel, 4, 1, 1, 1)
-
-        grid.addWidget(self.samplelocList, 5, 1, 10, 4)
-
-        grid.addWidget(self.showCheckBox, 15, 1, 1, 2)
-        grid.addWidget(loadButton, 15, 3, 1, 1)
-        grid.addWidget(cancelButton, 15, 4, 1, 1)
+        cancelButton = QPushButton('Cancel')
+        cancelButton.clicked.connect(self.loadSampleDialog.close)
+        grid.addWidget(cancelButton, row, 4, 1, 1)
 
         self.loadSampleDialog.setLayout(grid)
 
@@ -525,6 +547,22 @@ class SDBWidget(QWidget):
 
             global sample_raw
             sample_raw = sdb.read_shapefile(self.samplelocList.toPlainText())
+
+            proc_op_dict.update({
+                'current_selection': SELECTION_TYPES['RANDOM']
+            })
+            proc_op_dict[
+                'selection'
+            ][
+                SELECTION_TYPES['ATTRIBUTE']
+            ][
+                'parameters'
+            ].update({
+                'header': '',
+                'group': ''
+            })
+
+            logger.debug('reset attribute selection parameters for new dataset')
 
             self.loadSampleLabel.setText(os.path.split(
                 self.samplelocList.toPlainText())[1]
@@ -602,7 +640,7 @@ class SDBWidget(QWidget):
         self.option_widgets = {}
 
         for param, value in method_options['model_parameters'].items():
-            label = QLabel(param.replace('_', ' ').title() + ':')
+            label = QLabel(to_title(param) + ':')
             grid.addWidget(label, row, 1, 1, 2)
 
             if isinstance(value, bool):
@@ -616,7 +654,7 @@ class SDBWidget(QWidget):
                 widget.setAlignment(Qt.AlignRight)
             elif isinstance(value, str):
                 widget = QComboBox()
-                set_name = f"{param}_set"
+                set_name = f'{param}_set'
                 if set_name in method_options:
                     widget.addItems(method_options[set_name])
                 else:
@@ -627,13 +665,13 @@ class SDBWidget(QWidget):
             grid.addWidget(widget, row, 3, 1, 2)
             row += 1
 
-        cancelButton = QPushButton('Cancel')
-        cancelButton.clicked.connect(optionDialog.close)
         loadButton = QPushButton('Load')
         loadButton.clicked.connect(self.loadMethodOptionAction)
         loadButton.clicked.connect(optionDialog.close)
-
         grid.addWidget(loadButton, row, 3, 1, 1)
+
+        cancelButton = QPushButton('Cancel')
+        cancelButton.clicked.connect(optionDialog.close)
         grid.addWidget(cancelButton, row, 4, 1, 1)
 
         optionDialog.setLayout(grid)
@@ -666,105 +704,72 @@ class SDBWidget(QWidget):
         Processing option User Interface
         """
 
-        try:
-            self.processingOptionDialog = QDialog()
-            self.processingOptionDialog.setWindowTitle('Processing Options')
-            self.processingOptionDialog.setWindowIcon(
-                QIcon(resource_path('icons/setting-tool-pngrepo-com.png'))
-            )
+        self.processingOptionDialog = QDialog()
+        self.processingOptionDialog.setWindowTitle('Processing Options')
+        self.processingOptionDialog.setWindowIcon(
+            QIcon(resource_path('icons/setting-tool-pngrepo-com.png'))
+        )
 
-            if self.trainSelectCB.currentText() == 'Random Selection':
-                if 'train_size' not in proc_op_dict['selection']:
-                    proc_op_dict['selection'] = {
-                        'train_size': 0.75,
-                        'random_state': 0
-                    }
-            elif self.trainSelectCB.currentText() == 'Attribute Selection':
-                if 'header' not in proc_op_dict['selection']:
-                    proc_op_dict['selection'] = {
-                        'header': '',
-                        'group': ''
-                    }
+        grid = QGridLayout()
+        row = 1
+        backendLabel = QLabel('Parallel Backend:')
+        grid.addWidget(backendLabel, row, 1, 1, 2)
 
-            backendLabel = QLabel('Parallel Backend:')
-            self.backendCB = QComboBox()
-            self.backendCB.addItems(proc_op_dict['backend_set'])
-            self.backendCB.setCurrentText(proc_op_dict['backend'])
+        self.backendCB = QComboBox()
+        self.backendCB.addItems(proc_op_dict['backend_set'])
+        self.backendCB.setCurrentText(proc_op_dict['backend'])
+        grid.addWidget(self.backendCB, row, 3, 1, 2)
 
-            njobsLabel = QLabel('Processing Cores:')
-            self.njobsSB = QSpinBox()
-            self.njobsSB.setRange(-100, 100)
-            self.njobsSB.setValue(proc_op_dict['n_jobs'])
-            self.njobsSB.setAlignment(Qt.AlignRight)
+        row += 1
+        njobsLabel = QLabel('Processing Cores:')
+        grid.addWidget(njobsLabel, row, 1, 1, 2)
 
-            if self.trainSelectCB.currentText() == 'Random Selection':
-                trainPercentLabel = QLabel('Train Data (Percent):')
-                self.trainPercentDSB = QDoubleSpinBox()
-                self.trainPercentDSB.setRange(10.0, 90.0)
-                self.trainPercentDSB.setDecimals(2)
-                self.trainPercentDSB.setValue(
-                    proc_op_dict['selection']['train_size'] * 100
-                )
-                self.trainPercentDSB.setSuffix(' %')
-                self.trainPercentDSB.setAlignment(Qt.AlignRight)
+        self.njobsSB = QSpinBox()
+        self.njobsSB.setRange(-100, 100)
+        self.njobsSB.setValue(proc_op_dict['n_jobs'])
+        self.njobsSB.setAlignment(Qt.AlignRight)
+        grid.addWidget(self.njobsSB, row, 3, 1, 2)
 
-                randomStateLabel = QLabel('Random State:')
-                self.randomStateProcSB = QSpinBox()
-                self.randomStateProcSB.setRange(0, 1000)
-                self.randomStateProcSB.setValue(
-                    proc_op_dict['selection']['random_state']
-                )
-                self.randomStateProcSB.setAlignment(Qt.AlignRight)
-            elif self.trainSelectCB.currentText() == 'Attribute Selection':
-                headerSelectLabel = QLabel('Select header:')
-                self.headerSelectCB = QComboBox()
-                object_only = sample_raw.copy().select_dtypes(include=['object'])
-                self.headerSelectCB.addItems(object_only.columns)
-                self.headerSelectCB.activated.connect(self.updateGroupSelection)
-                selected_header = self.headerSelectCB.currentText()
+        row += 1
+        evalTypeLabel = QLabel('Evaluation Type:')
+        grid.addWidget(evalTypeLabel, row, 1, 1, 2)
 
-                groupSelectLabel = QLabel('Train group name:')
-                self.groupSelectCB = QComboBox()
-                group_list = list(object_only.groupby(selected_header).groups)
-                self.groupSelectCB.addItems(group_list)
+        self.evalTypeCB = QComboBox()
+        self.evalTypeCB.addItems(list(EVALUATION_TYPES.keys()))
+        self.evalTypeCB.setCurrentText(proc_op_dict['current_eval'])
+        grid.addWidget(self.evalTypeCB, row, 3, 1, 2)
 
-            cancelButton = QPushButton('Cancel')
-            cancelButton.clicked.connect(self.processingOptionDialog.close)
-            loadButton = QPushButton('Load')
-            loadButton.clicked.connect(self.loadProcessingOptionAction)
-            loadButton.clicked.connect(self.processingOptionDialog.close)
+        row += 1
+        trainSelectLabel = QLabel('Train Data Selection:')
+        grid.addWidget(trainSelectLabel, row, 1, 1, 2)
 
-            grid = QGridLayout()
+        self.trainSelectCB = QComboBox()
+        selection_list = list(proc_op_dict['selection'].keys())
+        self.trainSelectCB.addItems(selection_list)
+        self.trainSelectCB.setCurrentText(proc_op_dict['current_selection'])
+        self.trainSelectCB.currentTextChanged.connect(self.updateTrainSelection)
+        grid.addWidget(self.trainSelectCB, row, 3, 1, 2)
 
-            grid.addWidget(backendLabel, 1, 1, 1, 2)
-            grid.addWidget(self.backendCB, 1, 3, 1, 2)
+        row += 1
+        self.dynamicContainer = QWidget()
+        self.dynamicLayout = QGridLayout()
+        self.dynamicContainer.setLayout(self.dynamicLayout)
+        self.updateTrainSelection(self.trainSelectCB.currentText())
+        grid.addWidget(self.dynamicContainer, row, 1, 1, 4)
 
-            grid.addWidget(njobsLabel, 2, 1, 1, 2)
-            grid.addWidget(self.njobsSB, 2, 3, 1, 2)
+        row += 1
+        loadButton = QPushButton('Load')
+        loadButton.clicked.connect(self.loadProcessingOptionAction)
+        loadButton.clicked.connect(self.processingOptionDialog.close)
+        grid.addWidget(loadButton, row, 3, 1, 1)
 
-            if self.trainSelectCB.currentText() == 'Random Selection':
-                grid.addWidget(trainPercentLabel, 3, 1, 1, 2)
-                grid.addWidget(self.trainPercentDSB, 3, 3, 1, 2)
+        cancelButton = QPushButton('Cancel')
+        cancelButton.clicked.connect(self.processingOptionDialog.close)
+        grid.addWidget(cancelButton, row, 4, 1, 1)
 
-                grid.addWidget(randomStateLabel, 4, 1, 1, 2)
-                grid.addWidget(self.randomStateProcSB, 4, 3, 1, 2)
-            elif self.trainSelectCB.currentText() == 'Attribute Selection':
-                grid.addWidget(headerSelectLabel, 3, 1, 1, 2)
-                grid.addWidget(self.headerSelectCB, 3, 3, 1, 2)
+        self.processingOptionDialog.setLayout(grid)
 
-                grid.addWidget(groupSelectLabel, 4, 1, 1, 2)
-                grid.addWidget(self.groupSelectCB, 4, 3, 1, 2)
-
-            grid.addWidget(loadButton, 5, 3, 1, 1)
-            grid.addWidget(cancelButton, 5, 4, 1, 1)
-
-            self.processingOptionDialog.setLayout(grid)
-
-            self.processingOptionDialog.exec_()
-        except NameError:
-            self.warningWithClear(
-                'No depth sample loaded. Please load your depth sample!'
-            )
+        self.processingOptionDialog.exec_()
 
 
     def loadProcessingOptionAction(self):
@@ -778,46 +783,117 @@ class SDBWidget(QWidget):
                 'Do not insert zero on Processing Cores!'
             )
             self.processingOptionWindow()
-        else:
-            proc_op_dict['backend'] = self.backendCB.currentText()
-            proc_op_dict['n_jobs'] = self.njobsSB.value()
-            if self.trainSelectCB.currentText() == 'Random Selection':
-                proc_op_dict['selection'] = {
-                    'train_size': self.trainPercentDSB.value() / 100,
-                    'random_state': self.randomStateProcSB.value()
-                }
-            elif self.trainSelectCB.currentText() == 'Attribute Selection':
-                proc_op_dict['selection'] = {
-                    'header': self.headerSelectCB.currentText(),
-                    'group': self.groupSelectCB.currentText()
-                }
-            logger.info('processing options updated')
+            return
 
-            self.saveSettings()
+        proc_op_dict['backend'] = self.backendCB.currentText()
+        proc_op_dict['n_jobs'] = self.njobsSB.value()
+        proc_op_dict['current_eval'] = self.evalTypeCB.currentText()
+        proc_op_dict['current_selection'] = self.trainSelectCB.currentText()
+
+        selection_params = proc_op_dict['selection'][
+            self.trainSelectCB.currentText()
+        ]['parameters']
+        
+        for param, widget in self.selection_widgets.items():
+            if isinstance(widget, QDoubleSpinBox):
+                selection_params[param] = widget.value()
+            elif isinstance(widget, QSpinBox):
+                selection_params[param] = widget.value()
+            elif isinstance(widget, QComboBox):
+                selection_params[param] = widget.currentText()
+
+        logger.info('processing options updated')
+        self.saveSettings()
 
 
-    def updateTrainSelection(self):
+    def updateTrainSelection(self, selection: str) -> None:
         """
-        Update list in train selection
+        Update dynamic UI based on train selection type
         """
 
-        if self.trainSelectCB.currentText() == 'Random Selection':
-            proc_op_dict['selection'] = {
-                'train_size': 0.75,
-                'random_state': 0
-            }
+        try:
+            for i in reversed(range(self.dynamicLayout.count())):
+                widget = self.dynamicLayout.itemAt(i).widget()
+                if widget:
+                    widget.setParent(None)
+
+            self.currentSelection = proc_op_dict['selection'][selection]
+            self.selection_widgets = {}
+            
+            row = 0
+            for param, value in self.currentSelection['parameters'].items():
+                label = QLabel(to_title(param) + ':')
+                self.dynamicLayout.addWidget(label, row, 1, 1, 2)
+
+                if param == 'train_size':
+                    widget = QDoubleSpinBox()
+                    widget.setRange(0.1, 0.9)
+                    widget.setSingleStep(0.05)
+                    widget.setDecimals(2)
+                    widget.setValue(value)
+                    widget.setSuffix('')
+                    widget.setAlignment(Qt.AlignRight)
+                elif param == 'random_state':
+                    widget = QSpinBox()
+                    widget.setRange(0, 1000)
+                    widget.setValue(value)
+                    widget.setAlignment(Qt.AlignRight)
+                elif param in ('header', 'group'):
+                    widget = QComboBox()
+                    if param == 'header':
+                        object_only = sample_raw.select_dtypes(include=['object'])
+                        widget.addItems(object_only.columns)
+                        widget.activated.connect(self.updateGroupSelection)
+                        if value:
+                            widget.setCurrentText(value)
+                            header = self.currentSelection['parameters']['header']
+                        else:
+                            widget.setCurrentText(widget.itemText(0))
+                            header = widget.currentText()
+                    elif param == 'group':
+                        groups = list(sample_raw.groupby(header).groups.keys())
+                        widget.addItems(groups)
+                        if value:
+                            widget.setCurrentText(value)
+                        elif groups:
+                            widget.setCurrentText(groups[0])
+
+                self.selection_widgets[param] = widget
+                self.dynamicLayout.addWidget(widget, row, 3, 1, 2)
+                row += 1
+        except NameError:
+            self.trainSelectCB.setCurrentText(SELECTION_TYPES['RANDOM'])
+            self.warningWithClear(
+                'No depth sample loaded. Please load your depth sample!'
+            )
 
 
     def updateGroupSelection(self):
         """
-        Update list in group selection
+        Update list in group selection when header selection changes
         """
 
-        object_only = sample_raw.copy().select_dtypes(include=['object'])
-        selected_header = self.headerSelectCB.currentText()
-        group_list = list(object_only.groupby(selected_header).groups)
-        self.groupSelectCB.clear()
-        self.groupSelectCB.addItems(group_list)
+        try:
+            selected_header = self.selection_widgets['header'].currentText()
+
+            if selected_header:
+                object_only = sample_raw.select_dtypes(include=['object'])
+                group_list = list(
+                    object_only.groupby(selected_header).groups.keys()
+                )
+
+                group_widget = self.selection_widgets['group']
+                group_widget.clear()
+                group_widget.addItems(group_list)
+
+                if group_list:
+                    group_widget.setCurrentText(group_list[0])
+                logger.debug(
+                    f'group widget updated "{selected_header}": {group_list}'
+                )
+
+        except Exception as e:
+            logger.error(f'failed to update groups: {e}')
 
 
     def predict(self):
@@ -831,24 +907,20 @@ class SDBWidget(QWidget):
         self.resultText.clear()
         self.progressBar.setValue(0)
 
-        if self.limitADSB.value() < self.limitBDSB.value():
-            a = self.limitADSB.value()
-            b = self.limitBDSB.value()
-
-            self.limitADSB.setValue(b)
-            self.limitBDSB.setValue(a)
-
         global time_list
         time_list = []
         init_input = {
             'depth_label': self.depthHeaderCB.currentText(),
-            'depth_direction': self.depthDirectionCB.currentText(),
+            'depth_direction': self.depthDirectionCB.currentText(), 
             'limit_state': self.limitCheckBox.isChecked(),
             'limit_a': self.limitADSB.value(),
             'limit_b': self.limitBDSB.value(),
             'method': self.methodCB.currentText(),
-            'train_select': self.trainSelectCB.currentText(),
-            'selection': proc_op_dict['selection']
+            'train_select': proc_op_dict['current_selection'],
+            'selection': proc_op_dict['selection'][
+                proc_op_dict['current_selection']
+            ]['parameters'],
+            'eval_type': proc_op_dict['current_eval'],
         }
 
         try:
@@ -890,6 +962,29 @@ class SDBWidget(QWidget):
         limit window (if enabled).
         Counting runtimes using saved time values and printing result info.
         """
+
+        if EVALUATION_TYPES[proc_op_dict['current_eval']] == True:
+            print_eval_type = (
+                'Evaluated using predicted values that was generated from '
+                'recalculation of depth prediction using the existing model'
+                ' and test data'
+            )
+        elif EVALUATION_TYPES[proc_op_dict['current_eval']] == False:
+            print_eval_type = (
+                'Evaluated using predicted values that was generated from '
+                'point samples of the existing predicted values'
+            )
+
+        print_selection_info = (
+            f'Parallel Backend:\t{proc_op_dict["backend"]}\n'
+            f'Processing Cores:\t{proc_op_dict["n_jobs"]}\n'
+            f'Train Data Selection:\t{proc_op_dict["current_selection"]}\n'
+        )
+        parameters = proc_op_dict['selection'][proc_op_dict['current_selection']]
+        for param, value in parameters['parameters'].items():
+            print_selection_info += (
+                f'{to_title(param)}:\t\t{value}\n'
+            )
 
         global end_results
         end_results = result_dict
@@ -941,12 +1036,11 @@ class SDBWidget(QWidget):
             f'({round((100 - train_size_percent), 2)} % of used sample)\n\n'
             f'Method:\t\t{self.methodCB.currentText()}\n'
             f'{print_parameters_info}\n'
+            f'{print_eval_type}\n'
             f'RMSE:\t\t{round(rmse, 3)}\n'
             f'MAE:\t\t{round(mae, 3)}\n'
             f'R\u00B2:\t\t{round(r2, 3)}\n\n'
-            f'Train Test Selection:\t{self.trainSelectCB.currentText()}\n'
-            f'Parallel Backend:\t{proc_op_dict["backend"]}\n'
-            f'Processing Cores:\t{proc_op_dict["n_jobs"]}\n'
+            f'{print_selection_info}\n'
             f'Clipping Runtime:\t{runtime[0]}\n'
             f'Filtering Runtime:\t{runtime[1]}\n'
             f'Splitting Runtime:\t{runtime[2]}\n'
@@ -1022,6 +1116,7 @@ class SDBWidget(QWidget):
         warning.setWindowIcon(
             QIcon(resource_path('icons/warning-pngrepo-com.png'))
         )
+        warning.setWindowModality(Qt.ApplicationModal)
         warning.showMessage(warning_text)
 
         warning.exec_()
@@ -1040,6 +1135,7 @@ class SDBWidget(QWidget):
         warning.setWindowIcon(
             QIcon(resource_path('icons/warning-pngrepo-com.png'))
         )
+        warning.setWindowModality(Qt.ApplicationModal)
         warning.showMessage(warning_text)
 
         warning.exec_()
@@ -1055,17 +1151,16 @@ class SDBWidget(QWidget):
         complete.setWindowIcon(
             QIcon(resource_path('icons/complete-pngrepo-com.png'))
         )
+        complete.setWindowModality(Qt.ApplicationModal)
         complete.resize(180,30)
 
+        grid = QGridLayout()
         textLabel = QLabel('Tasks has been completed')
         textLabel.setAlignment(Qt.AlignCenter)
+        grid.addWidget(textLabel, 1, 1, 1, 4)
 
         okButton = QPushButton('OK')
         okButton.clicked.connect(complete.close)
-
-        grid = QGridLayout()
-
-        grid.addWidget(textLabel, 1, 1, 1, 4)
         grid.addWidget(okButton, 2, 2, 1, 2)
 
         complete.setLayout(grid)
@@ -1084,30 +1179,43 @@ class SDBWidget(QWidget):
             QIcon(resource_path('icons/load-pngrepo-com.png'))
         )
 
+        grid = QGridLayout()
+        row = 1
+        dataTypeLabel = QLabel('Data Type:')
+        grid.addWidget(dataTypeLabel, row, 1, 1, 1)
+
+        self.dataTypeCB = QComboBox()
         format_list = ['GeoTIFF (*.tif)','ASCII Gridded XYZ (*.xyz)']
         format_list.sort()
-
-        dataTypeLabel = QLabel('Data Type:')
-        self.dataTypeCB = QComboBox()
         self.dataTypeCB.addItems(format_list)
         self.dataTypeCB.setCurrentText('GeoTIFF (*.tif)')
+        grid.addWidget(self.dataTypeCB, row, 2, 1, 3)
 
-        direction_list = list(DEPTH_DIR_DICT.keys())
-
+        row += 1
         depthDirectionSaveLabel = QLabel('Depth Direction:')
-        self.depthDirectionSaveCB = QComboBox()
-        self.depthDirectionSaveCB.addItems(direction_list)
+        grid.addWidget(depthDirectionSaveLabel, row, 1, 1, 1)
 
+        self.depthDirectionSaveCB = QComboBox()
+        direction_list = list(DEPTH_DIRECTION.keys())
+        self.depthDirectionSaveCB.addItems(direction_list)
+        grid.addWidget(self.depthDirectionSaveCB, row, 2, 1, 3)
+
+        row += 1
         medianFilterLabel = QLabel('Median Filter Size:')
+        grid.addWidget(medianFilterLabel, row, 1, 1, 1)
+
         self.medianFilterSB = QSpinBox()
         self.medianFilterSB.setRange(3, 33)
         self.medianFilterSB.setValue(3)
         self.medianFilterSB.setSingleStep(2)
         self.medianFilterSB.setAlignment(Qt.AlignRight)
+        grid.addWidget(self.medianFilterSB, row, 2, 1, 1)
 
         self.medianFilterCheckBox = QCheckBox('Disable Median Filter')
         self.medianFilterCheckBox.setChecked(False)
+        grid.addWidget(self.medianFilterCheckBox, row, 3, 1, 2)
 
+        row += 1
         saveFileButton = QPushButton('Save File Location')
         saveFileButton.clicked.connect(
             lambda:self.fileDialog(
@@ -1117,59 +1225,50 @@ class SDBWidget(QWidget):
                 text_browser=self.savelocList
             )
         )
+        grid.addWidget(saveFileButton, row, 1, 1, 4)
 
+        row += 1
         locLabel = QLabel('Location:')
-        self.savelocList = QTextBrowser()
+        grid.addWidget(locLabel, row, 1, 1, 4)
 
+        row += 1
+        self.savelocList = QTextBrowser()
+        grid.addWidget(self.savelocList, row, 1, 1, 4)
+
+        row += 1
         self.scatterPlotCheckBox = QCheckBox('Save Scatter Plot')
         self.scatterPlotCheckBox.setChecked(False)
+        grid.addWidget(self.scatterPlotCheckBox, row, 1, 1, 2)
 
+        row += 1
         self.trainTestDataCheckBox = QCheckBox('Save Training and Testing Data in')
         self.trainTestDataCheckBox.setChecked(False)
+        grid.addWidget(self.trainTestDataCheckBox, row, 1, 1, 2)
 
         self.trainTestFormatCB = QComboBox()
         self.trainTestFormatCB.addItems(['.csv', '.shp'])
+        grid.addWidget(self.trainTestFormatCB, row, 3, 1, 1)
 
         trainTestLabel = QLabel('format')
+        grid.addWidget(trainTestLabel, row, 4, 1, 1)
 
+        row += 1
         self.saveDEMCheckBox = QCheckBox('Save DEM')
         self.saveDEMCheckBox.setChecked(True)
+        grid.addWidget(self.saveDEMCheckBox, row, 1, 1, 1)
 
         self.reportCheckBox = QCheckBox('Save Report')
         self.reportCheckBox.setChecked(True)
+        grid.addWidget(self.reportCheckBox, row, 2, 1, 1)
 
-        cancelButton = QPushButton('Cancel')
-        cancelButton.clicked.connect(self.saveOptionDialog.close)
         saveButton = QPushButton('Save')
         saveButton.clicked.connect(self.saveAction)
         saveButton.clicked.connect(self.saveOptionDialog.close)
+        grid.addWidget(saveButton, row, 3, 1, 1)
 
-        grid = QGridLayout()
-        grid.addWidget(dataTypeLabel, 1, 1, 1, 1)
-        grid.addWidget(self.dataTypeCB, 1, 2, 1, 3)
-
-        grid.addWidget(depthDirectionSaveLabel, 2, 1, 1, 1)
-        grid.addWidget(self.depthDirectionSaveCB, 2, 2, 1, 3)
-
-        grid.addWidget(medianFilterLabel, 3, 1, 1, 1)
-        grid.addWidget(self.medianFilterSB, 3, 2, 1, 1)
-        grid.addWidget(self.medianFilterCheckBox, 3, 3, 1, 2)
-
-        grid.addWidget(saveFileButton, 4, 1, 1, 4)
-
-        grid.addWidget(locLabel, 5, 1, 1, 4)
-        grid.addWidget(self.savelocList, 6, 1, 1, 4)
-
-        grid.addWidget(self.scatterPlotCheckBox, 7, 1, 1, 2)
-
-        grid.addWidget(self.trainTestDataCheckBox, 8, 1, 1, 2)
-        grid.addWidget(self.trainTestFormatCB, 8, 3, 1, 1)
-        grid.addWidget(trainTestLabel, 8, 4, 1, 1)
-
-        grid.addWidget(self.saveDEMCheckBox, 9, 1, 1, 1)
-        grid.addWidget(self.reportCheckBox, 9, 2, 1, 1)
-        grid.addWidget(saveButton, 9, 3, 1, 1)
-        grid.addWidget(cancelButton, 9, 4, 1, 1)
+        cancelButton = QPushButton('Cancel')
+        cancelButton.clicked.connect(self.saveOptionDialog.close)
+        grid.addWidget(cancelButton, row, 4, 1, 1)
 
         self.saveOptionDialog.setLayout(grid)
 
@@ -1201,29 +1300,32 @@ class SDBWidget(QWidget):
             train_df_copy = end_results['train'].copy()
             test_df_copy = end_results['test'].copy()
 
-            if DEPTH_DIR_DICT[self.depthDirectionSaveCB.currentText()][1]:
+            if DEPTH_DIRECTION[self.depthDirectionSaveCB.currentText()][1]:
                 daz_filtered.values[0] *=-1
                 test_df_copy['z'] *=-1
-                test_df_copy['z_predict'] *=-1
+                test_df_copy['z_validate'] *=-1
                 train_df_copy['z'] *=-1
 
             if not self.savelocList.toPlainText():
                 raise ValueError('empty save location')
 
-            sdb.write_geotiff(
-                daz_filtered,
-                self.savelocList.toPlainText()
-            )
-
             if self.saveDEMCheckBox.isChecked() == True:
+                sdb.write_geotiff(
+                    daz_filtered,
+                    self.savelocList.toPlainText()
+                )
                 new_img_size = os.path.getsize(self.savelocList.toPlainText())
                 print_dem_info = (
                     f'{print_filter_info}\n\n'
                     f'DEM Output:\t\t{self.savelocList.toPlainText()} '
                     f'({round(new_img_size / 2**10 / 2**10, 2)} MiB)\n'
                 )
+                logger.info(
+                    f'DEM with the size of {new_img_size} B has been saved'
+                )
+                logger.debug(f'DEM location: {self.savelocList.toPlainText()}')
             elif self.saveDEMCheckBox.isChecked() == False:
-                os.remove(self.savelocList.toPlainText())
+                # os.remove(self.savelocList.toPlainText())
                 print_dem_info = (
                     'DEM Output:\t\tNot Saved\n'
                 )
@@ -1266,6 +1368,13 @@ class SDBWidget(QWidget):
                     f'Test Data output:\t{test_save_loc} '
                     f'({round(test_data_size / 2**10 / 2**10, 2)} MiB)\n'
                 )
+                logger.info(
+                    f'splitted train and test data with {
+                        self.trainTestFormatCB.currentText()
+                    } format has been saved'
+                )
+                logger.debug(f'train data location: {train_save_loc}')
+                logger.debug(f'test data location: {test_save_loc}')
             elif self.trainTestDataCheckBox.isChecked() == False:
                 print_train_test_info = (
                     'Train Data Output:\tNot Saved\n'
@@ -1279,7 +1388,7 @@ class SDBWidget(QWidget):
                 )
                 scatter_plot = sdb.scatter_plotter(
                     true_val=test_df_copy['z'],
-                    pred_val=test_df_copy['z_predict'],
+                    pred_val=test_df_copy['z_validate'],
                     title=self.methodCB.currentText()
                 )
                 scatter_plot[0].savefig(scatter_plot_loc)
@@ -1290,6 +1399,8 @@ class SDBWidget(QWidget):
                     f'Scatter Plot:\t{scatter_plot_loc} '
                     f'({round(scatter_plot_size / 2**10, 2)} KiB)\n'
                 )
+                logger.info(f'scatter plot has been saved')
+                logger.debug(f'scatter plot location: {scatter_plot_loc}')
             elif self.scatterPlotCheckBox.isChecked() == False:
                 print_scatter_plot_info = 'Scatter Plot:\tNotSaved\n'
 
@@ -1310,6 +1421,8 @@ class SDBWidget(QWidget):
                     print_train_test_info +
                     print_scatter_plot_info
                 )
+                logger.info('report has been saved')
+                logger.debug(f'report location: {report_save_loc}')
         except ValueError as e:
             if 'Allowed value: >= 3 or odd numbers' in str(e):
                 self.saveOptionDialog.close()
@@ -1347,27 +1460,24 @@ class SDBWidget(QWidget):
             'GeoPandas': 'licenses/geopandas_license',
             'Scikit Learn': 'licenses/scikit-learn_license'
         }
-        license_list = list(license_dict)
 
+        grid = QGridLayout()
         licenseCB = QComboBox()
-        licenseCB.addItems(license_list)
+        licenseCB.addItems(list(license_dict))
         licenseCB.activated.connect(
             lambda: self.licenseSelection(
                 location=license_dict[licenseCB.currentText()]
             )
         )
+        grid.addWidget(licenseCB, 1, 1, 1, 4)
 
-        license_file = open(resource_path('LICENSE'), 'r')
         self.licenseText = QTextBrowser()
+        license_file = open(resource_path('LICENSE'), 'r')
         self.licenseText.setText(license_file.read())
+        grid.addWidget(self.licenseText, 2, 1, 1, 4)
 
         okButton = QPushButton('OK')
         okButton.clicked.connect(licenses.close)
-
-        grid = QGridLayout()
-
-        grid.addWidget(licenseCB, 1, 1, 1, 4)
-        grid.addWidget(self.licenseText, 2, 1, 1, 4)
         grid.addWidget(okButton, 3, 4, 1, 1)
 
         licenses.setLayout(grid)
@@ -1397,6 +1507,7 @@ class Process(QThread):
     warning_with_clear = pyqtSignal(str)
     warning_without_clear = pyqtSignal(str)
 
+
     def __init__(self):
 
         QThread.__init__(self)
@@ -1417,6 +1528,7 @@ class Process(QThread):
         self.method = input_dict['method']
         self.train_select = input_dict['train_select']
         self.selection = input_dict['selection']
+        self.eval_type = input_dict['eval_type']
 
 
     def preprocess(self):
@@ -1426,7 +1538,6 @@ class Process(QThread):
         depth sample CRS, sampling raster value and depth value, 
         and then limiting or not limiting depth value.
         """
-
 
         if not self._is_running:
             return None
@@ -1447,7 +1558,7 @@ class Process(QThread):
         depth_filtered_sample = sdb.in_depth_filter(
             vector=clipped_sample,
             header=self.depth_label,
-            depth_direction=DEPTH_DIR_DICT[self.depth_direction][0],
+            depth_direction=DEPTH_DIRECTION[self.depth_direction][0],
             disable_depth_filter=self.limit_state,
             upper_limit=self.limit_a_value,
             lower_limit=self.limit_b_value
@@ -1459,8 +1570,8 @@ class Process(QThread):
         time_depth_filter = datetime.datetime.now()
         depth_filter_list = [time_depth_filter, 'Split Train and Test...\n']
         self.time_signal.emit(depth_filter_list)
-        if self.train_select == 'Random Selection':
-            logger.info('split depth sample randomly')
+        logger.info(f'split depth sample by {self.train_select}: {self.selection}')
+        if self.train_select == SELECTION_TYPES['RANDOM']:
             f_train, f_test, z_train, z_test = sdb.split_random(
                 raster=image_raw,
                 vector=depth_filtered_sample,
@@ -1468,8 +1579,7 @@ class Process(QThread):
                 train_size=self.selection['train_size'],
                 random_state=self.selection['random_state']
             )
-        elif self.train_select == 'Attribute Selection':
-            logger.info('split depth sample by selected attribute')
+        elif self.train_select == SELECTION_TYPES['ATTRIBUTE']:
             f_train, f_test, z_train, z_test = sdb.split_attribute(
                 raster=image_raw,
                 vector=depth_filtered_sample,
@@ -1516,14 +1626,22 @@ class Process(QThread):
         print_parameters_info = ''
         for key, value in model_parameters.items():
             print_parameters_info += (
-                f'{key.replace('_', ' ').title()}:\t\t{value}\n'
+                f'{to_title(key)}:\t\t{value}\n'
             )
 
-        z_predict = sdb.prediction(
+        if EVALUATION_TYPES[self.eval_type] == True:
+            logger.debug('recalculate prediction using test data')
+            f_test = results['f_test'].drop(columns=['x', 'y'])
+        else:
+            logger.debug('using prediction data to later use against z_test')
+            f_test = None
+
+        z_predict, z_validate = sdb.prediction(
             model=method,
             unraveled_band=bands_df,
             features_train=results['f_train'].drop(columns=['x', 'y']),
             label_train=results['z_train'],
+            features_test=f_test,
             backend=proc_op_dict['backend'],
             n_jobs=proc_op_dict['n_jobs'],
             **model_parameters
@@ -1532,7 +1650,10 @@ class Process(QThread):
         if not self._is_running:
             return None
 
-        results.update({'z_predict': z_predict})
+        results.update({
+            'z_predict': z_predict,
+            'z_validate': z_validate
+        })
 
         logger.debug('prediction ended')
         return results
@@ -1572,18 +1693,20 @@ class Process(QThread):
                 band_name=('band', ['original'])
             )
 
-            logger.debug('sampling predictin based on test data coordinates')
-            dfz_predict = sdb.point_sampling(
-                daz_predict,
-                x=results['f_test'].x,
-                y=results['f_test'].y,
-                include_xy=False
-            )
+            if EVALUATION_TYPES[self.eval_type] == False:
+                logger.debug('sampling prediction based on test data coordinates')
+                dfz_predict = sdb.point_sampling(
+                    daz_predict,
+                    x=results['f_test'].x,
+                    y=results['f_test'].y,
+                    include_xy=False
+                )
+                results['z_validate'] = dfz_predict['band_1'].to_numpy()
 
             logger.info('evaluating prediction')
             rmse, mae, r2 = sdb.evaluate(
                 true_val=results['z_test'],
-                pred_val=dfz_predict['band_1'].to_numpy()
+                pred_val=results['z_validate']
             )
             logger.info(f'RMSE: {rmse}, MAE: {mae}, R2: {r2}')
 
@@ -1596,7 +1719,7 @@ class Process(QThread):
 
             test_df = results['f_test'].copy()
             test_df['z'] = results['z_test'].copy()
-            test_df['z_predict'] = dfz_predict['band_1'].copy()
+            test_df['z_validate'] = results['z_validate'].copy()
 
             results.update({
                 'daz_predict': daz_predict,
@@ -1645,18 +1768,36 @@ def default_values():
     Default values container
     """
 
+    random_selection = {
+        'name': SELECTION_TYPES['RANDOM'],
+        'parameters': OrderedDict([
+            ('train_size', 0.75),
+            ('random_state', 0)
+        ])
+    }
+
+    attribute_selection = {
+        'name': SELECTION_TYPES['ATTRIBUTE'],
+        'parameters': OrderedDict([
+            ('header', ''),
+            ('group', '')
+        ])
+    }
+
     proc_op_dict = {
         'depth_limit': {
             'disable': False,
-            'upper': 0.0,
+            'upper': 2.0,
             'lower': -15.0
         },
         'backend': 'threading',
         'n_jobs': -2,
-        'selection' : {
-            'train_size': 0.75,
-            'random_state': 0
-        },
+        'current_eval': 'Use Current Prediction',
+        'selection' : OrderedDict([
+            (random_selection['name'], random_selection),
+            (attribute_selection['name'], attribute_selection)
+        ]),
+        'current_selection': random_selection['name'],
         'backend_set': (
             'loky', 'threading', 'multiprocessing'
         )
@@ -1731,6 +1872,42 @@ def acronym(phrase: str) -> str:
 
     words = re.split(r'[\s\-]+', phrase)
     return ''.join(word[0].upper() for word in words if word and word[0].isalpha())
+
+
+def to_title(phrase: str) -> str:
+    """
+    Convert a variable like phrase to a title case string.
+    Change underscores to spaces and capitalize the first letter of each word.
+    """
+
+    return phrase.replace('_', ' ').title()
+
+
+def get_log_level() -> int:
+    """
+    Get logging level from command line argument.
+    Default to INFO if no argument provided.
+    """
+
+    if len(sys.argv) > 1:
+        level = sys.argv[1].upper()
+        if hasattr(logging, level):
+            return getattr(logging, level)
+    return logging.INFO
+
+
+logging.basicConfig(
+    level=get_log_level(),
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(LOG_NAME, mode='w'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+logger.info(
+    f'logging level set to: {logging.getLevelName(logger.getEffectiveLevel())}'
+)
 
 
 if __name__ == '__main__':

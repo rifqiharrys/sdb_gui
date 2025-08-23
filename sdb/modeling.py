@@ -1,4 +1,4 @@
-from typing import Dict, Set, Any
+from typing import Any, Dict, Set, Tuple
 
 import numpy as np
 import pandas as pd
@@ -13,10 +13,11 @@ def prediction(
         unraveled_band: pd.DataFrame,
         features_train: pd.DataFrame,
         label_train: pd.Series,
+        features_test: pd.DataFrame | None = None,
         backend: str = 'threading',
         n_jobs: int = -2,
         **params: Any
-) -> np.ndarray:
+) -> Tuple[np.ndarray, np.ndarray | None]:
     """
     Predicting depth using different models.
 
@@ -31,6 +32,8 @@ def prediction(
         Features from train data.
     label_train : pd.Series
         Label from train data.
+    features_test : pd.DataFrame | None, optional
+        Features from test data.
     backend : str, optional
         Backend to use for parallel processing. Default is 'threading'.
     n_jobs : int, optional
@@ -83,4 +86,9 @@ def prediction(
         regressor.fit(features_train, label_train)
         z_predict = regressor.predict(unraveled_band)
 
-    return z_predict
+        if features_test is not None:
+            z_validate = regressor.predict(features_test)
+        else:
+            z_validate = None
+
+    return z_predict, z_validate
