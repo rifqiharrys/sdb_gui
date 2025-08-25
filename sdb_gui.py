@@ -1026,6 +1026,9 @@ class SDBWidget(QWidget):
             f'({round(sample_size / 2**20, 2)} MiB)\n'
             f'Selected Header:\t{self.depthHeaderCB.currentText()}\n'
             f'Depth Direction:\t\t{self.depthDirectionCB.currentText()}\n\n'
+            'Min/Max Depth:\t\t'
+            f'{sample_raw[self.depthHeaderCB.currentText()].min():.2f}/'
+            f'{sample_raw[self.depthHeaderCB.currentText()].max():.2f}\n'
             f'{print_limit}\n'
             f'Used Sample:\t\t{used_sample_size} points '
             f'({round(used_sample_size / sample_raw.shape[0] * 100, 2)}% '
@@ -1431,7 +1434,7 @@ class SDBWidget(QWidget):
                 logger.info(f'scatter plot has been saved')
                 logger.debug(f'scatter plot location: {scatter_plot_loc}')
             elif self.scatterPlotCheckBox.isChecked() == False:
-                print_scatter_plot_info = 'Scatter Plot:\tNotSaved\n'
+                print_scatter_plot_info = 'Scatter Plot:\t\tNotSaved\n'
 
             self.resultText.append(print_dem_info)
             self.resultText.append(print_train_test_info)
