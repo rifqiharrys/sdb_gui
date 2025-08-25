@@ -989,6 +989,7 @@ class SDBWidget(QWidget):
         global end_results
         end_results = result_dict
 
+        daz_predict = end_results['daz_predict']
         rmse, mae, r2 = end_results['rmse'], end_results['mae'], end_results['r2']
 
         train_size_percent = (
@@ -1025,10 +1026,10 @@ class SDBWidget(QWidget):
             f'Sample Data:\t\t{self.samplelocList.toPlainText()} '
             f'({round(sample_size / 2**20, 2)} MiB)\n'
             f'Selected Header:\t{self.depthHeaderCB.currentText()}\n'
-            f'Depth Direction:\t\t{self.depthDirectionCB.currentText()}\n\n'
-            'Min/Max Depth:\t\t'
+            f'Depth Direction:\t\t{self.depthDirectionCB.currentText()}\n'
+            'Min/Max:\t\t'
             f'{sample_raw[self.depthHeaderCB.currentText()].min():.2f}/'
-            f'{sample_raw[self.depthHeaderCB.currentText()].max():.2f}\n'
+            f'{sample_raw[self.depthHeaderCB.currentText()].max():.2f}\n\n'
             f'{print_limit}\n'
             f'Used Sample:\t\t{used_sample_size} points '
             f'({round(used_sample_size / sample_raw.shape[0] * 100, 2)}% '
@@ -1050,11 +1051,14 @@ class SDBWidget(QWidget):
             f'Modeling Runtime:\t{runtime[3]}\n'
             f'Evaluation Runtime:\t{runtime[4]}\n'
             f'Overall Runtime:\t{runtime[5]}\n\n'
-            f'CRS:\t\t{image_raw.rio.crs}\n'
-            f'Dimensions:\t\t{image_raw.rio.width} x '
-            f'{image_raw.rio.height} pixels\n'
-            f'Pixel Size:\t\t{abs(image_raw.rio.resolution()[0])} , '
-            f'{abs(image_raw.rio.resolution()[1])}\n\n'
+            f'CRS:\t\t{daz_predict.rio.crs}\n'
+            f'Dimensions:\t\t{daz_predict.rio.width} x '
+            f'{daz_predict.rio.height} pixels\n'
+            f'Pixel Size:\t\t{abs(daz_predict.rio.resolution()[0])} , '
+            f'{abs(daz_predict.rio.resolution()[1])}\n'
+            'Min/Max:\t\t'
+            f'{daz_predict.values[0].min():.2f}/'
+            f'{daz_predict.values[0].max():.2f}\n\n'
         )
 
         self.resultText.setText(print_result_info)
