@@ -1201,6 +1201,29 @@ class SDBWidget(QWidget):
         grid.addWidget(self.depthDirectionSaveCB, row, 2, 1, 3)
 
         row += 1
+        limitALabel = QLabel('Upper Limit:')
+        grid.addWidget(limitALabel, row, 1, 1, 1)
+
+        self.saveLimitADSB = QDoubleSpinBox()
+        self.saveLimitADSB.setRange(-100, 100)
+        self.saveLimitADSB.setDecimals(1)
+        self.saveLimitADSB.setValue(proc_op_dict['saved_depth']['upper'])
+        self.saveLimitADSB.setSuffix(' m')
+        self.saveLimitADSB.setAlignment(Qt.AlignRight)
+        grid.addWidget(self.saveLimitADSB, row, 2, 1, 1)
+
+        limitBLabel = QLabel('Lower Limit:')
+        grid.addWidget(limitBLabel, row, 3, 1, 1)
+
+        self.saveLimitBDSB = QDoubleSpinBox()
+        self.saveLimitBDSB.setRange(-100, 100)
+        self.saveLimitBDSB.setDecimals(1)
+        self.saveLimitBDSB.setValue(proc_op_dict['saved_depth']['lower'])
+        self.saveLimitBDSB.setSuffix(' m')
+        self.saveLimitBDSB.setAlignment(Qt.AlignRight)
+        grid.addWidget(self.saveLimitBDSB, row, 4, 1, 1)
+
+        row += 1
         medianFilterLabel = QLabel('Median Filter Size:')
         grid.addWidget(medianFilterLabel, row, 1, 1, 1)
 
@@ -1296,6 +1319,12 @@ class SDBWidget(QWidget):
                 daz_filtered.band_name.values[0] = 'filtered'
             else:
                 print_filter_info = 'Median Filter Size:\tDisabled'
+
+            daz_filtered.values[0] = sdb.out_depth_filter(
+                array=daz_filtered.values[0],
+                top_limit=self.saveLimitADSB.value(),
+                bottom_limit=self.saveLimitBDSB.value()
+            )
 
             train_df_copy = end_results['train'].copy()
             test_df_copy = end_results['test'].copy()
@@ -1787,6 +1816,10 @@ def default_values():
     proc_op_dict = {
         'depth_limit': {
             'disable': False,
+            'upper': 2.0,
+            'lower': -15.0
+        },
+        'saved_depth': {
             'upper': 2.0,
             'lower': -15.0
         },
