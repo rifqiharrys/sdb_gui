@@ -14,7 +14,7 @@ def out_depth_filter(
         bottom_limit: float = -12.0
 ) -> np.ndarray:
     """
-    Filter depth prediction output in 1D array based on allowed depth
+    Filter depth prediction output in an array for the allowed depth
     in positive up direction by changing it to NaN.
 
     Parameters

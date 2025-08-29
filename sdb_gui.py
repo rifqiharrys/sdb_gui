@@ -989,6 +989,7 @@ class SDBWidget(QWidget):
         global end_results
         end_results = result_dict
 
+        daz_predict = end_results['daz_predict']
         rmse, mae, r2 = end_results['rmse'], end_results['mae'], end_results['r2']
 
         train_size_percent = (
@@ -1025,7 +1026,10 @@ class SDBWidget(QWidget):
             f'Sample Data:\t\t{self.samplelocList.toPlainText()} '
             f'({round(sample_size / 2**20, 2)} MiB)\n'
             f'Selected Header:\t{self.depthHeaderCB.currentText()}\n'
-            f'Depth Direction:\t\t{self.depthDirectionCB.currentText()}\n\n'
+            f'Depth Direction:\t\t{self.depthDirectionCB.currentText()}\n'
+            'Min/Max:\t\t'
+            f'{sample_raw[self.depthHeaderCB.currentText()].min():.2f}/'
+            f'{sample_raw[self.depthHeaderCB.currentText()].max():.2f}\n\n'
             f'{print_limit}\n'
             f'Used Sample:\t\t{used_sample_size} points '
             f'({round(used_sample_size / sample_raw.shape[0] * 100, 2)}% '
@@ -1047,11 +1051,14 @@ class SDBWidget(QWidget):
             f'Modeling Runtime:\t{runtime[3]}\n'
             f'Evaluation Runtime:\t{runtime[4]}\n'
             f'Overall Runtime:\t{runtime[5]}\n\n'
-            f'CRS:\t\t{image_raw.rio.crs}\n'
-            f'Dimensions:\t\t{image_raw.rio.width} x '
-            f'{image_raw.rio.height} pixels\n'
-            f'Pixel Size:\t\t{abs(image_raw.rio.resolution()[0])} , '
-            f'{abs(image_raw.rio.resolution()[1])}\n\n'
+            f'CRS:\t\t{daz_predict.rio.crs}\n'
+            f'Dimensions:\t\t{daz_predict.rio.width} x '
+            f'{daz_predict.rio.height} pixels\n'
+            f'Pixel Size:\t\t{abs(daz_predict.rio.resolution()[0])} , '
+            f'{abs(daz_predict.rio.resolution()[1])}\n'
+            'Min/Max:\t\t'
+            f'{daz_predict.values[0].min():.2f}/'
+            f'{daz_predict.values[0].max():.2f}\n\n'
         )
 
         self.resultText.setText(print_result_info)
@@ -1201,6 +1208,29 @@ class SDBWidget(QWidget):
         grid.addWidget(self.depthDirectionSaveCB, row, 2, 1, 3)
 
         row += 1
+        limitALabel = QLabel('Upper Limit:')
+        grid.addWidget(limitALabel, row, 1, 1, 1)
+
+        self.saveLimitADSB = QDoubleSpinBox()
+        self.saveLimitADSB.setRange(-100, 100)
+        self.saveLimitADSB.setDecimals(1)
+        self.saveLimitADSB.setValue(proc_op_dict['saved_depth']['upper'])
+        self.saveLimitADSB.setSuffix(' m')
+        self.saveLimitADSB.setAlignment(Qt.AlignRight)
+        grid.addWidget(self.saveLimitADSB, row, 2, 1, 1)
+
+        limitBLabel = QLabel('Lower Limit:')
+        grid.addWidget(limitBLabel, row, 3, 1, 1)
+
+        self.saveLimitBDSB = QDoubleSpinBox()
+        self.saveLimitBDSB.setRange(-100, 100)
+        self.saveLimitBDSB.setDecimals(1)
+        self.saveLimitBDSB.setValue(proc_op_dict['saved_depth']['lower'])
+        self.saveLimitBDSB.setSuffix(' m')
+        self.saveLimitBDSB.setAlignment(Qt.AlignRight)
+        grid.addWidget(self.saveLimitBDSB, row, 4, 1, 1)
+
+        row += 1
         medianFilterLabel = QLabel('Median Filter Size:')
         grid.addWidget(medianFilterLabel, row, 1, 1, 1)
 
@@ -1296,6 +1326,12 @@ class SDBWidget(QWidget):
                 daz_filtered.band_name.values[0] = 'filtered'
             else:
                 print_filter_info = 'Median Filter Size:\tDisabled'
+
+            daz_filtered.values[0] = sdb.out_depth_filter(
+                array=daz_filtered.values[0],
+                top_limit=self.saveLimitADSB.value(),
+                bottom_limit=self.saveLimitBDSB.value()
+            )
 
             train_df_copy = end_results['train'].copy()
             test_df_copy = end_results['test'].copy()
@@ -1402,7 +1438,7 @@ class SDBWidget(QWidget):
                 logger.info(f'scatter plot has been saved')
                 logger.debug(f'scatter plot location: {scatter_plot_loc}')
             elif self.scatterPlotCheckBox.isChecked() == False:
-                print_scatter_plot_info = 'Scatter Plot:\tNotSaved\n'
+                print_scatter_plot_info = 'Scatter Plot:\t\tNotSaved\n'
 
             self.resultText.append(print_dem_info)
             self.resultText.append(print_train_test_info)
@@ -1787,6 +1823,10 @@ def default_values():
     proc_op_dict = {
         'depth_limit': {
             'disable': False,
+            'upper': 2.0,
+            'lower': -15.0
+        },
+        'saved_depth': {
             'upper': 2.0,
             'lower': -15.0
         },
