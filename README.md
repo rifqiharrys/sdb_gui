@@ -30,7 +30,7 @@ This SDB project is using python and would not work without packages listed belo
 
 Image below is the workflow of predicting bathymetric depth using SDB GUI if you're running the latest [release](https://github.com/rifqiharrys/sdb_gui/releases) and the latest source code or release version 3 and up.
 
-![workflow](workflow_sdb_gui.png "Workflow")
+![workflow](./docs/fig/workflow_sdb_gui.png "Workflow")
 
 ## Table of Contents
 
@@ -98,6 +98,8 @@ Open `sdb_gui_x.x.x_one_file.exe` if you're using the executable version or run 
 
 If you're using the executable version, you can open by double click on the file (`sdb_gui_x.x.x_one_file.exe`) or if you're using terminal, you can type `sdb_gui_x.x.x_one_file.exe` in the terminal in the same directory. If you're using the source code, run `sdb_gui.py` using python in your conda environment. Wait until SDB GUI opens.
 
+![main_window](./docs/fig/main_window.png)
+
 Load your data into SDB GUI. When your data is successfully loaded, the GUI will show the file name beside the load buttons.
 
 ### b. Insert parameters and setting options
@@ -106,11 +108,11 @@ After loading depth sample data, you will notice a table loaded with said data a
 
 Correctly selecting depth header and depth direction is important because it will allow SDB GUI to process the data correctly. The first selection is the column name or header name of the column of the depth data. The selection will show all of the header/column names of the sample data. The second selection will show two options, which are **Positive Up** and **Positive Down**. If your depth data decreases in values as it goes deeper, choose **Positive Up** because the positive values are going up, otherwise choose **Positive Down**.
 
-The next parameters are depth limitation window for sample data input. There are two values for depth limit window, upper limit (default value is 0) and bottom limit (default value is -15). Both values are in the **Positive Up** direction manner. You could disable depth limitation by checking the Disable Depth Limitation checkbox.
+The next parameters are depth limitation window for sample data input. There are two values for depth limit window, upper limit (default value is 2) and lower limit (default value is -15). Both values are in the **Positive Up** direction manner. You could disable depth limitation by checking the Disable Depth Limitation checkbox.
 
 Next, select your desired regression method. There are three options to select, which are K-Nearest Neighbors, Multiple Linear Regression, and Random Forest. For every regression method, you could change its hyperparameters by clicking the **Method Options** button. The explanation of every hyperparameter is in [scikit-learn user guide](https://scikit-learn.org/stable/user_guide.html).
 
-Right below regression method selection is train data selection. It is how you want to select train data among loaded depth data. You could select either **Random Selection** or **Attribute Selection**. With **Random Selection**, train data will be selected randomly by your desired percentage (default 75%) and random state. Press **Processing Options** button to change this parameters. With **Attribute Selection**, you can select which attribute you want to use as train data by marking it with certain strings of your selection. If you want to use this option, **YOU HAVE TO** select which header name is the attribute of the marker and select the group of which it belongs. These options are available in **Processing Options**.
+On the right of the **Method Options** button is the **Processing Options** button which contain options related to the overall process that are unrelated to the regression method. Leaving it as is would set the processing parameters using default values and settings.
 
 ### c. Generate depth prediction
 
