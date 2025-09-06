@@ -96,7 +96,7 @@ The imagery required should be a multi-band imagery (e.g. RGB, RGBN, or others) 
 
 Open `sdb_gui_x.x.x_one_file.exe` if you're using the executable version or run `sdb_gui.py` if you're using the source code.
 
-If you're using the executable version, you can open by double click on the file (`sdb_gui_x.x.x_one_file.exe`) or if you're using terminal, you can type `sdb_gui_x.x.x_one_file.exe` in the terminal in the same directory. If you're using the source code, run `sdb_gui.py` using python in your conda environment. Wait until SDB GUI opens.
+If you're using the executable version, you can open by double click on the file (`sdb_gui_x.x.x_one_file.exe`) or if you're using terminal, you can type `sdb_gui_x.x.x_one_file.exe` in the terminal in the same directory. If you're using the source code, run `sdb_gui.py` using python in your conda environment. Wait until SDB GUI opens and shows a window like the picture shown below. The preview of SDB GUI interface is available at [SDB GUI Preview document](./docs/sdb-gui-preview.md).
 
 ![main_window](./docs/fig/main_window.png)
 
@@ -112,11 +112,7 @@ The next parameters are depth limitation window for sample data input. There are
 
 Next, select your desired regression method. There are three options to select, which are K-Nearest Neighbors, Multiple Linear Regression, and Random Forest. For every regression method, you could change its hyperparameters by clicking the **Method Options** button. The explanation of every hyperparameter is in [scikit-learn user guide](https://scikit-learn.org/stable/user_guide.html).
 
-![knn_option](./docs/fig/knn_option_window.png) ![mlr_option](./docs/fig/mlr_option_window.png) ![rf_option](./docs/fig/rf_option_window.png)
-
 On the right of the **Method Options** button is the **Processing Options** button which contain options related to the overall process that are unrelated to the regression method. Leaving it as is would set the processing parameters using default values and settings.
-
-![processing_option](./docs/fig/processing_option_window.png)
 
 ### c. Generate depth prediction
 
@@ -126,7 +122,6 @@ Generate depth prediction by pressing **Generate Prediction** button. While proc
 
 After depth prediction was generated, you can save it into a Geotiff or XYZ file. In the save file window, there are other options to use median filter to remove noise (default is on), save report, save train and test data, and create scatter plot using test data.
 
-![save_option](./docs/fig/save_option_window.png)
 
 ## 3. Notebook
 
