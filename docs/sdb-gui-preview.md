@@ -1,6 +1,6 @@
 # SDB GUI Preview
 
-This is a document that shows the SDB GUI interface. Picture below is the main window. Inside the main window is 11 buttons, 3 dropdown menus, 1 table field, 2 numeric input fields, 1 check box, and 1 text field.
+This is a document that shows the SDB GUI interface and a little bit about what they do. The first picture below shows the main window. Inside the main window are 11 buttons, 3 dropdown menus, 1 table field, 2 numeric input fields, 1 check box, and 1 text field.
 
 ![main-window](./fig/main_window.png)
 
@@ -38,8 +38,6 @@ This is a document that shows the SDB GUI interface. Picture below is the main w
 
 ### 1. Load data
 
-These buttons are for loading data.
-
 #### a. Load image
 
 Pushing the "Load Image" button will open a window that allows users to load a GeotTIFF image file. After the user push the "Load" button, the image filename will show up beside the "Load Image" button as the image is loaded.
@@ -54,21 +52,23 @@ Pushing the "Load Sample" button will open a window that allows user to load an 
 
 ### 2. Option buttons
 
-These buttons are related to options functionalities.
+These buttons are related to options functionalities in general or related to each ML method.
 
 #### a. Method options
 
-Pictures below show every method option windows while selecting each regression method.
+Pictures below show every method option windows while selecting each regression method and then pushing the "Method Options" button.
 
 ![knn-option](./fig/knn_option_window.png) ![mlr-option](./fig/mlr_option_window.png) ![rf-option](./fig/rf_option_window.png)
 
 #### b. Processing options
 
+Pushing the "Processing Options" button will open a window that allows user to change the general settings on the data processing such as parallel backend, number of processing cores, howt to evaluate the result, and how to select train data from all the samples.
+
 ![processing-option](./fig/processing_option_window.png)
 
 #### c. Reset settings
 
-Pushing this button will open a confirmation window to reset all options to default and saved last directory.
+Pushing the "Reset Settings" button will open a confirmation window to reset all options to default and saved last directory.
 
 ![reset-setting](./fig/reset_setting_window.png)
 
@@ -104,9 +104,15 @@ Pushing this button will direct the user to the README page in GitHub.
 
 ### 2. Depth direction
 
+The option from the list are Positive Up and Positive Down. The user must select the option that matches the depth data from the loaded sample data. Positive Up means that the data that has the positive sign is pointed to up direction. Positive down means that the data that has the positive sign is pointed to down direction.
+
 ### 3. Regression method
 
+There are the ML methods available, which are K-Nearest Neighbors (KNN), Multiple Linear Regression (MLR), and Random Forest (RF).
+
 ## C. Table field
+
+This field shows a table of the loaded depth sample data.
 
 ## D. Numeric inputs
 
