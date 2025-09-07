@@ -102,9 +102,15 @@ Pushing this button will direct the user to the README page in GitHub.
 
 ### 1. Depth header
 
+The "Depth Header" dropdown menu shows all headers or columns containing float data. The data under the selected header will be used as the depth sample. So, choose it correctly.
+
+![depth-header](./fig/depth_header_list.png)
+
 ### 2. Depth direction
 
 The option from the list are Positive Up and Positive Down. The user must select the option that matches the depth data from the loaded sample data. Positive Up means that the data that has the positive sign is pointed to up direction. Positive down means that the data that has the positive sign is pointed to down direction.
+
+![depth-direction](./fig/depth_direction_list.png)
 
 ### 3. Regression method
 
