@@ -25,7 +25,6 @@ SOFTWARE.
 
 import datetime
 import logging
-import os
 import pprint
 import re
 import sys
@@ -88,10 +87,7 @@ class SDBWidget(QWidget):
             f'initial options: \n{pprint.pformat(option_pool, width=200)}'
         )
 
-        self.dir_path = self.settings.value(
-            'last_directory',
-            os.path.abspath(Path.home())
-        )
+        self.dir_path = Path(self.settings.value('last_directory', Path.home()))
         self.initUI()
 
 
@@ -323,7 +319,7 @@ class SDBWidget(QWidget):
             self.limitADSB.setValue(proc_op_dict['depth_limit']['upper'])
             self.limitBDSB.setValue(proc_op_dict['depth_limit']['lower'])
 
-            home_dir = os.path.abspath(Path.home())
+            home_dir = Path.home()
             self.dir_path = home_dir
             self.settings.setValue('last_directory', home_dir)
             logger.info('last directory and options reset to default')
@@ -381,14 +377,14 @@ class SDBWidget(QWidget):
         fname = command(
             self,
             window_text,
-            self.dir_path,
+            str(self.dir_path),
             fileFilter,
             selectedFilter
         )
 
         if fname[0]:
             text_browser.setText(fname[0])
-            self.dir_path = os.path.dirname(fname[0])
+            self.dir_path = Path(fname[0]).parent
             self.settings.setValue('last_directory', self.dir_path)
 
 
@@ -453,7 +449,7 @@ class SDBWidget(QWidget):
 
             logger.debug(f'loading image from: {self.imglocList.toPlainText()}')
 
-            self.img_size = os.path.getsize(self.imglocList.toPlainText())
+            self.img_size = Path(self.imglocList.toPlainText()).stat().st_size
 
             global image_raw
             image_raw = sdb.read_geotiff(self.imglocList.toPlainText())
@@ -461,9 +457,7 @@ class SDBWidget(QWidget):
             global bands_df
             bands_df = sdb.unravel(image_raw)
 
-            self.loadImageLabel.setText(
-                os.path.split(self.imglocList.toPlainText())[1]
-            )
+            self.loadImageLabel.setText(Path(self.imglocList.toPlainText()).name)
 
             logger.info(f'load image successfully of size: {self.img_size} B')
             logger.info(f'image CRS: {image_raw.rio.crs}')
@@ -543,7 +537,7 @@ class SDBWidget(QWidget):
             )
 
             global sample_size
-            sample_size = os.path.getsize(self.samplelocList.toPlainText())
+            sample_size = Path(self.samplelocList.toPlainText()).stat().st_size
 
             global sample_raw
             sample_raw = sdb.read_shapefile(self.samplelocList.toPlainText())
@@ -564,8 +558,8 @@ class SDBWidget(QWidget):
 
             logger.debug('reset attribute selection parameters for new dataset')
 
-            self.loadSampleLabel.setText(os.path.split(
-                self.samplelocList.toPlainText())[1]
+            self.loadSampleLabel.setText(
+                Path(self.samplelocList.toPlainText()).name
             )
 
             if (sample_raw.geom_type != 'Point').any():
@@ -1084,9 +1078,12 @@ class SDBWidget(QWidget):
 
         if hasattr(self, 'savelocList') and self.savelocList.toPlainText():
             try:
-                save_path = f'{
-                    os.path.splitext(self.savelocList.toPlainText())[0]
-                }.log'
+                # save_path = f'{
+                #     os.path.splitext(self.savelocList.toPlainText())[0]
+                # }.log'
+                save_path = Path(
+                    self.savelocList.toPlainText()
+                ).with_suffix('.log')
 
                 with open(LOG_NAME, 'r') as source, open(save_path, 'w') as target:
                     target.write(source.read())
@@ -1345,35 +1342,35 @@ class SDBWidget(QWidget):
             if not self.savelocList.toPlainText():
                 raise ValueError('empty save location')
 
+            save_loc = self.savelocList.toPlainText()
             if self.saveDEMCheckBox.isChecked() == True:
                 sdb.write_geotiff(
                     daz_filtered,
-                    self.savelocList.toPlainText()
+                    save_loc
                 )
-                new_img_size = os.path.getsize(self.savelocList.toPlainText())
+                new_img_size = Path(save_loc).stat().st_size
                 print_dem_info = (
                     f'{print_filter_info}\n\n'
-                    f'DEM Output:\t\t{self.savelocList.toPlainText()} '
+                    f'DEM Output:\t\t{save_loc} '
                     f'({round(new_img_size / 2**10 / 2**10, 2)} MiB)\n'
                 )
                 logger.info(
                     f'DEM with the size of {new_img_size} B has been saved'
                 )
-                logger.debug(f'DEM location: {self.savelocList.toPlainText()}')
+                logger.debug(f'DEM location: {save_loc}')
             elif self.saveDEMCheckBox.isChecked() == False:
-                # os.remove(self.savelocList.toPlainText())
                 print_dem_info = (
                     'DEM Output:\t\tNot Saved\n'
                 )
 
             if self.trainTestDataCheckBox.isChecked() == True:
-                train_save_loc = (
-                    f'{os.path.splitext(self.savelocList.toPlainText())[0]}'
-                    f'_train{self.trainTestFormatCB.currentText()}'
+                train_save_loc = Path(save_loc).with_name(
+                    f'{Path(save_loc).stem}_train'
+                    f'{self.trainTestFormatCB.currentText()}'
                 )
-                test_save_loc = (
-                    f'{os.path.splitext(self.savelocList.toPlainText())[0]}'
-                    f'_test{self.trainTestFormatCB.currentText()}'
+                test_save_loc = Path(save_loc).with_name(
+                    f'{Path(save_loc).stem}_test'
+                    f'{self.trainTestFormatCB.currentText()}'
                 )
 
                 if self.trainTestFormatCB.currentText() == '.csv':
@@ -1395,8 +1392,8 @@ class SDBWidget(QWidget):
                         crs=end_results['sample_gdf'].crs
                     )
 
-                train_data_size = os.path.getsize(train_save_loc)
-                test_data_size = os.path.getsize(test_save_loc)
+                train_data_size = Path(train_save_loc).stat().st_size
+                test_data_size = Path(test_save_loc).stat().st_size
 
                 print_train_test_info = (
                     f'Train Data Output:\t{train_save_loc} '
@@ -1418,9 +1415,8 @@ class SDBWidget(QWidget):
                 )
 
             if self.scatterPlotCheckBox.isChecked() == True:
-                scatter_plot_loc = (
-                    os.path.splitext(self.savelocList.toPlainText())[0] +
-                    '_scatter_plot.png'
+                scatter_plot_loc = Path(save_loc).with_name(
+                    f'{Path(save_loc).stem}_scatter_plot.png'
                 )
                 scatter_plot = sdb.scatter_plotter(
                     true_val=test_df_copy['z'],
@@ -1429,7 +1425,7 @@ class SDBWidget(QWidget):
                 )
                 scatter_plot[0].savefig(scatter_plot_loc)
 
-                scatter_plot_size = os.path.getsize(scatter_plot_loc)
+                scatter_plot_size = Path(scatter_plot_loc).stat().st_size
 
                 print_scatter_plot_info = (
                     f'Scatter Plot:\t{scatter_plot_loc} '
@@ -1445,9 +1441,8 @@ class SDBWidget(QWidget):
             self.resultText.append(print_scatter_plot_info)
 
             if self.reportCheckBox.isChecked() == True:
-                report_save_loc = (
-                    os.path.splitext(self.savelocList.toPlainText())[0] +
-                    '_report.txt'
+                report_save_loc = Path(save_loc).with_name(
+                    f'{Path(save_loc).stem}_report.txt'
                 )
                 report = open(report_save_loc, 'w')
 
@@ -1900,8 +1895,8 @@ def resource_path(relative_path):
         # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS # type: ignore
     except Exception:
-        base_path = os.path.abspath('.')
-    return os.path.join(base_path, relative_path)
+        base_path = Path.cwd()
+    return str(Path(base_path) / relative_path)
 
 
 def acronym(phrase: str) -> str:
