@@ -44,7 +44,8 @@ def read_shapefile(vector_loc: Path | str) -> gpd.GeoDataFrame:
 
 def write_geotiff(
         raster: xr.DataArray,
-        raster_loc: Path | str
+        raster_loc: Path | str,
+        to_tif: bool = False,
 ) -> None:
     """
     Write dataarray to Geotiff.
@@ -55,11 +56,19 @@ def write_geotiff(
         Raster data in dataarray.
     raster_loc : Path | str
         Raster save data location.
+    to_tif : bool, optional
+        Whether to save the file with .tif extension.
+        The raster will be written as Geotiff file if True,
+        otherwise it will be saved with the provided extension.
+        Default is False.
 
     Returns
     -------
     None
     """
+
+    if to_tif:
+        raster_loc = Path(raster_loc).with_suffix('.tif')
 
     raster.rio.to_raster(raster_loc)
 
@@ -99,17 +108,15 @@ def write_shapefile(
     y = table[y_col_name]
 
     if z_col_name is None:
-        gdf = gpd.GeoDataFrame(
-            table,
-            geometry=gpd.points_from_xy(x, y),
-            crs=crs
-        )
+        geometry = gpd.points_from_xy(x, y)
     else:
         z = table[z_col_name]
-        gdf = gpd.GeoDataFrame(
-            table,
-            geometry=gpd.points_from_xy(x, y, z),
-            crs=crs
-        )
+        geometry = gpd.points_from_xy(x, y, z)
+
+    gdf = gpd.GeoDataFrame(
+        table,
+        geometry=geometry,
+        crs=crs
+    )
 
     gdf.to_file(vector_loc)
