@@ -8,7 +8,10 @@ import xarray as xr
 from pyproj.crs.crs import CRS
 
 
-def read_geotiff(raster_loc: Path | str) -> xr.DataArray:
+def read_geotiff(
+        raster_loc: Path | str,
+        **params: Any,
+) -> xr.DataArray:
     """
     Read Geotiff raster data using Xarray (using rioxarray extension).
 
@@ -16,16 +19,21 @@ def read_geotiff(raster_loc: Path | str) -> xr.DataArray:
     ----------
     raster_loc : Path | str
         Raster data location.
+    **params : Any
+        Additional parameters passed to rioxarray.open_rasterio()
 
     Returns
     -------
     xr.DataArray
     """
 
-    return rxr.open_rasterio(raster_loc, masked=True) # type: ignore
+    return rxr.open_rasterio(raster_loc, masked=True, **params) # type: ignore
 
 
-def read_shapefile(vector_loc: Path | str) -> gpd.GeoDataFrame:
+def read_shapefile(
+        vector_loc: Path | str,
+        **params: Any,
+) -> gpd.GeoDataFrame:
     """
     Read shapefile vector data containing depth samples using Geopandas.
 
@@ -33,19 +41,31 @@ def read_shapefile(vector_loc: Path | str) -> gpd.GeoDataFrame:
     ----------
     vector_loc : Path | str
         Vector data location containing point depth samples.
+    **params : Any
+        Additional parameters passed to geopandas.read_file()
 
     Returns
     -------
     GeoDataFrame
-    """
 
-    return gpd.read_file(vector_loc)
+    Raises
+    ------
+    ValueError
+        If the file doesn't contain valid geometry data
+    """
+    gdf = gpd.read_file(vector_loc, **params)
+
+    if not isinstance(gdf, gpd.GeoDataFrame):
+        raise ValueError('Input file does not contain valid geometry data')
+
+    return gdf
 
 
 def write_geotiff(
         raster: xr.DataArray,
         raster_loc: Path | str,
         to_tif: bool = False,
+        **params: Any,
 ) -> None:
     """
     Write dataarray to Geotiff.
@@ -61,6 +81,8 @@ def write_geotiff(
         The raster will be written as Geotiff file if True,
         otherwise it will be saved with the provided extension.
         Default is False.
+    **params : Any
+        Additional parameters passed to rioxarray.DataArray.rio.to_raster()
 
     Returns
     -------
@@ -70,7 +92,7 @@ def write_geotiff(
     if to_tif:
         raster_loc = Path(raster_loc).with_suffix('.tif')
 
-    raster.rio.to_raster(raster_loc)
+    raster.rio.to_raster(raster_loc, **params)
 
 
 def write_shapefile(
@@ -79,7 +101,8 @@ def write_shapefile(
         x_col_name: str,
         y_col_name: str,
         crs: CRS | str | dict[str, Any],
-        z_col_name: str | None = None
+        z_col_name: str | None = None,
+        **params: Any,
 ) -> None:
     """
     Write dataframe to ESRI Shapefile.
@@ -98,6 +121,8 @@ def write_shapefile(
         Coordinate Reference System as CRS object, string, or dictionary.
     z_col_name : str, optional
         Z coordinates column name, by default None.
+    **params : Any
+        Additional parameters passed to geopandas.GeoDataFrame.to_file()
 
     Returns
     -------
@@ -119,4 +144,4 @@ def write_shapefile(
         crs=crs
     )
 
-    gdf.to_file(vector_loc)
+    gdf.to_file(vector_loc, **params)
