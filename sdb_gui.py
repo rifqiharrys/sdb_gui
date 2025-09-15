@@ -34,6 +34,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Tuple, Union
 
 import numpy as np
+import pandas as pd
 from PyQt5.QtCore import QSettings, Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDialog,
@@ -60,6 +61,11 @@ SELECTION_TYPES: Dict[str, str] = {
 EVALUATION_TYPES: Dict[str, bool] = {
     'Use Current Prediction': False,
     'Recalculate from Test Data': True,
+}
+TRAIN_TEST_SAVE: Dict[str, bool] = {
+    '.csv': True,
+    '.shp': True,
+    '.gpkg': False,
 }
 
 
@@ -447,7 +453,9 @@ class SDBWidget(QWidget):
                 logger.critical('no image filepath')
                 raise ValueError('empty file path')
 
-            logger.debug(f'loading image from: {self.imglocList.toPlainText()}')
+            logger.debug(
+                f'loading image from: {Path(self.imglocList.toPlainText())}'
+            )
 
             self.img_size = Path(self.imglocList.toPlainText()).stat().st_size
 
@@ -533,7 +541,9 @@ class SDBWidget(QWidget):
                 raise ValueError('empty file path')
 
             logger.debug(
-                f'loading sample data from: {self.samplelocList.toPlainText()}'
+                f'loading sample data from: {
+                    Path(self.samplelocList.toPlainText())
+                }'
             )
 
             global sample_size
@@ -1015,9 +1025,9 @@ class SDBWidget(QWidget):
         global print_result_info
         print_result_info = (
             f'Software Version:\t{SDB_GUI_VERSION}\n\n'
-            f'Image Input:\t\t{self.imglocList.toPlainText()} '
+            f'Image Input:\t\t{Path(self.imglocList.toPlainText())} '
             f'({round(self.img_size / 2**20, 2)} MiB)\n'
-            f'Sample Data:\t\t{self.samplelocList.toPlainText()} '
+            f'Sample Data:\t\t{Path(self.samplelocList.toPlainText())} '
             f'({round(sample_size / 2**20, 2)} MiB)\n'
             f'Selected Header:\t{self.depthHeaderCB.currentText()}\n'
             f'Depth Direction:\t\t{self.depthDirectionCB.currentText()}\n'
@@ -1273,7 +1283,7 @@ class SDBWidget(QWidget):
         grid.addWidget(self.trainTestDataCheckBox, row, 1, 1, 2)
 
         self.trainTestFormatCB = QComboBox()
-        self.trainTestFormatCB.addItems(['.csv', '.shp'])
+        self.trainTestFormatCB.addItems(TRAIN_TEST_SAVE.keys())
         grid.addWidget(self.trainTestFormatCB, row, 3, 1, 1)
 
         trainTestLabel = QLabel('format')
@@ -1342,7 +1352,7 @@ class SDBWidget(QWidget):
             if not self.savelocList.toPlainText():
                 raise ValueError('empty save location')
 
-            save_loc = self.savelocList.toPlainText()
+            save_loc = Path(self.savelocList.toPlainText())
             if self.saveDEMCheckBox.isChecked() == True:
                 sdb.write_geotiff(
                     daz_filtered,
@@ -1364,54 +1374,22 @@ class SDBWidget(QWidget):
                 )
 
             if self.trainTestDataCheckBox.isChecked() == True:
-                train_save_loc = Path(save_loc).with_name(
-                    f'{Path(save_loc).stem}_train'
-                    f'{self.trainTestFormatCB.currentText()}'
-                )
-                test_save_loc = Path(save_loc).with_name(
-                    f'{Path(save_loc).stem}_test'
-                    f'{self.trainTestFormatCB.currentText()}'
+                print_train_test_info = self.trainTestSave(
+                    train_data=train_df_copy,
+                    test_data=test_df_copy,
+                    save_location=save_loc,
+                    data_format=self.trainTestFormatCB.currentText(),
+                    split=TRAIN_TEST_SAVE[self.trainTestFormatCB.currentText()],
                 )
 
-                if self.trainTestFormatCB.currentText() == '.csv':
-                    train_df_copy.to_csv(train_save_loc, index=False)
-                    test_df_copy.to_csv(test_save_loc, index=False)
-                elif self.trainTestFormatCB.currentText() == '.shp':
-                    sdb.write_shapefile(
-                        train_df_copy,
-                        train_save_loc,
-                        x_col_name='x',
-                        y_col_name='y',
-                        crs=end_results['sample_gdf'].crs
-                    )
-                    sdb.write_shapefile(
-                        test_df_copy,
-                        test_save_loc,
-                        x_col_name='x',
-                        y_col_name='y',
-                        crs=end_results['sample_gdf'].crs
-                    )
-
-                train_data_size = Path(train_save_loc).stat().st_size
-                test_data_size = Path(test_save_loc).stat().st_size
-
-                print_train_test_info = (
-                    f'Train Data Output:\t{train_save_loc} '
-                    f'({round(train_data_size / 2**10 / 2**10, 2)} MiB)\n'
-                    f'Test Data output:\t{test_save_loc} '
-                    f'({round(test_data_size / 2**10 / 2**10, 2)} MiB)\n'
-                )
                 logger.info(
                     f'splitted train and test data with {
                         self.trainTestFormatCB.currentText()
                     } format has been saved'
                 )
-                logger.debug(f'train data location: {train_save_loc}')
-                logger.debug(f'test data location: {test_save_loc}')
             elif self.trainTestDataCheckBox.isChecked() == False:
                 print_train_test_info = (
-                    'Train Data Output:\tNot Saved\n'
-                    'Test Data output:\tNot Saved\n'
+                    'Train dna Test Data Output:\tNot Saved\n'
                 )
 
             if self.scatterPlotCheckBox.isChecked() == True:
@@ -1467,6 +1445,87 @@ class SDBWidget(QWidget):
                     'Please insert save location!'
                 )
                 self.saveOptionWindow()
+
+
+    def trainTestSave(
+        self,
+        train_data: pd.DataFrame,
+        test_data: pd.DataFrame,
+        save_location: Path | str,
+        data_format: str,
+        split: bool,
+    ) -> str:
+        """
+        Saving splitted train and test data into file
+        and returning the print info to be shown in result text browser.
+        """
+
+        if split:
+            train_save_loc = Path(save_location).with_name(
+                f'{Path(save_location).stem}_train{data_format}'
+            )
+            test_save_loc = Path(save_location).with_name(
+                f'{Path(save_location).stem}_test{data_format}'
+            )
+            if data_format == '.csv':
+                train_data.to_csv(train_save_loc, index=False)
+                test_data.to_csv(test_save_loc, index=False)
+            elif data_format == '.shp':
+                sdb.write_shapefile(
+                    train_data,
+                    train_save_loc,
+                    x_col_name='x',
+                    y_col_name='y',
+                    crs=end_results['sample_gdf'].crs
+                )
+                sdb.write_shapefile(
+                    test_data,
+                    test_save_loc,
+                    x_col_name='x',
+                    y_col_name='y',
+                    crs=end_results['sample_gdf'].crs
+                )
+
+            train_data_size = Path(train_save_loc).stat().st_size
+            test_data_size = Path(test_save_loc).stat().st_size
+            print_info = (
+                f'Train Data Output:\t{train_save_loc} '
+                f'{round(train_data_size / 2**10 / 2**10, 2)} MiB\n'
+                f'Test Data output:\t{test_save_loc} '
+                f'{round(test_data_size / 2**10 / 2**10, 2)} MiB\n'
+            )
+            logger.debug(f'train data location: {train_save_loc}')
+            logger.debug(f'test data location: {test_save_loc}')
+        else:
+            merge_data_loc = Path(save_location).with_name(
+                f'{Path(save_location).stem}_splitted_data{data_format}'
+            )
+            if data_format =='.gpkg':
+                sdb.write_shapefile(
+                    train_data,
+                    merge_data_loc,
+                    x_col_name='x',
+                    y_col_name='y',
+                    crs=end_results['sample_gdf'].crs,
+                    layer='train_data'
+                )
+                sdb.write_shapefile(
+                    test_data,
+                    merge_data_loc,
+                    x_col_name='x',
+                    y_col_name='y',
+                    crs=end_results['sample_gdf'].crs,
+                    layer='test_data'
+                )
+
+            train_test_data_size = Path(merge_data_loc).stat().st_size
+            print_info = (
+                f'Train and Test Data Output:\t{merge_data_loc} '
+                f'{round(train_test_data_size / 2**10 / 2**10, 2)} MiB\n'
+            )
+            logger.debug(f'train & test data location: {merge_data_loc}')
+
+        return print_info
 
 
     def licensesDialog(self):
