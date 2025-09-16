@@ -62,6 +62,11 @@ EVALUATION_TYPES: Dict[str, bool] = {
     'Use Current Prediction': False,
     'Recalculate from Test Data': True,
 }
+DEM_FORMATS: List[str] = [
+    'GeoTIFF (*.tif)',
+    'ASCII Gridded XYZ (*.xyz)',
+]
+DEM_FORMATS.sort()
 TRAIN_TEST_SAVE: Dict[str, bool] = {
     '.csv': True,
     '.shp': True,
@@ -84,11 +89,7 @@ class SDBWidget(QWidget):
         super(SDBWidget, self).__init__()
 
         self.settings = QSettings('SDB', 'SDB GUI')
-
-        global option_pool, proc_op_dict
-        option_pool = self.loadSettings()
-        proc_op_dict = option_pool['processing']
-
+        self.assignSettings()
         logger.debug(
             f'initial options: \n{pprint.pformat(option_pool, width=200)}'
         )
@@ -142,6 +143,7 @@ class SDBWidget(QWidget):
         self.depthDirectionCB = QComboBox()
         direction_list = list(DEPTH_DIRECTION.keys())
         self.depthDirectionCB.addItems(direction_list)
+        self.depthDirectionCB.setCurrentText(main_set['direction'])
         grid1.addWidget(self.depthDirectionCB, row_grid1, 4, 1, 1)
 
         row_grid1 += 1
@@ -163,14 +165,14 @@ class SDBWidget(QWidget):
         self.limitADSB = QDoubleSpinBox()
         self.limitADSB.setRange(-100, 100)
         self.limitADSB.setDecimals(1)
-        self.limitADSB.setValue(proc_op_dict['depth_limit']['upper'])
+        self.limitADSB.setValue(main_set['depth_limit']['upper'])
         self.limitADSB.setSuffix(' m')
         self.limitADSB.setAlignment(Qt.AlignRight)
         grid2.addWidget(self.limitADSB, row_grid2, 4, 1, 1)
 
         row_grid2 += 1
         self.limitCheckBox = QCheckBox('Disable Depth Limitation')
-        self.limitCheckBox.setChecked(proc_op_dict['depth_limit']['disable'])
+        self.limitCheckBox.setChecked(main_set['depth_limit']['disable'])
         grid2.addWidget(self.limitCheckBox, row_grid2, 1, 1, 2)
 
         limitBLabel = QLabel('Lower Limit:')
@@ -179,7 +181,7 @@ class SDBWidget(QWidget):
         self.limitBDSB = QDoubleSpinBox()
         self.limitBDSB.setRange(-100, 100)
         self.limitBDSB.setDecimals(1)
-        self.limitBDSB.setValue(proc_op_dict['depth_limit']['lower'])
+        self.limitBDSB.setValue(main_set['depth_limit']['lower'])
         self.limitBDSB.setSuffix(' m')
         self.limitBDSB.setAlignment(Qt.AlignRight)
         grid2.addWidget(self.limitBDSB, row_grid2, 4, 1, 1)
@@ -194,6 +196,7 @@ class SDBWidget(QWidget):
         self.methodCB = QComboBox()
         method_list = list(option_pool['method'].keys())
         self.methodCB.addItems(method_list)
+        self.methodCB.setCurrentText(main_set['method'])
         grid3.addWidget(self.methodCB, row_grid3, 2, 1, 1)
 
         self.optionsButton = QPushButton('Method Options')
@@ -270,9 +273,42 @@ class SDBWidget(QWidget):
         Load settings or return defaults if none exist
         """
 
-        if self.settings.value('options'):
-            return self.settings.value('options')
-        return default_values()
+        try:
+            if self.settings.value('options'):
+                saved_settings = self.settings.value('options')
+
+                try:
+                    _ = saved_settings['main']['direction']
+                    _ = saved_settings['main']['depth_limit']
+                    _ = saved_settings['main']['method']
+
+                    _ = saved_settings['save']
+
+                    _ = saved_settings['processing']
+
+                    _ = saved_settings['method']
+
+                    return saved_settings
+                except KeyError as e:
+                    logger.warning(f'Missing or invalid settings structure: {e}, loading defaults')
+                    return default_values()
+
+            return default_values()
+        except Exception as e:
+            logger.error(f'Error loading settings: {e}')
+            return default_values()
+
+
+    def assignSettings(self) -> None:
+        """
+        Assign loaded settings to global variables
+        """
+
+        global option_pool, proc_op_dict, main_set, save_set
+        option_pool = self.loadSettings()
+        proc_op_dict = option_pool['processing']
+        main_set = option_pool['main']
+        save_set = option_pool['save']
 
 
     def saveSettings(self) -> None:
@@ -287,10 +323,14 @@ class SDBWidget(QWidget):
             self.limitADSB.setValue(b)
             self.limitBDSB.setValue(a)
 
-        proc_op_dict['depth_limit'].update({
-            'disable': self.limitCheckBox.isChecked(),
-            'upper': self.limitADSB.value(),
-            'lower': self.limitBDSB.value()
+        main_set.update({
+            'method': self.methodCB.currentText(),
+            'direction': self.depthDirectionCB.currentText(),
+            'depth_limit': {
+                'disable': self.limitCheckBox.isChecked(),
+                'upper': self.limitADSB.value(),
+                'lower': self.limitBDSB.value()
+            },
         })
 
         self.settings.setValue('options', option_pool)
@@ -317,13 +357,13 @@ class SDBWidget(QWidget):
 
         if reply == QMessageBox.Yes:
             self.settings.clear()
+            self.assignSettings()
 
-            global option_pool, proc_op_dict
-            option_pool = default_values()
-            proc_op_dict = option_pool['processing']
-            self.limitCheckBox.setChecked(proc_op_dict['depth_limit']['disable'])
-            self.limitADSB.setValue(proc_op_dict['depth_limit']['upper'])
-            self.limitBDSB.setValue(proc_op_dict['depth_limit']['lower'])
+            self.depthDirectionCB.setCurrentText(main_set['direction'])
+            self.limitCheckBox.setChecked(main_set['depth_limit']['disable'])
+            self.limitADSB.setValue(main_set['depth_limit']['upper'])
+            self.limitBDSB.setValue(main_set['depth_limit']['lower'])
+            self.methodCB.setCurrentText(main_set['method'])
 
             home_dir = Path.home()
             self.dir_path = home_dir
@@ -1193,16 +1233,44 @@ class SDBWidget(QWidget):
             QIcon(resource_path('icons/load-pngrepo-com.png'))
         )
 
+        def dialogCloseEvent(event):
+            """Save settings before closing dialog"""
+
+            save_set.update({
+                'type': self.dataTypeCB.currentText(),
+                'direction': self.depthDirectionSaveCB.currentText(),
+                'depth_limit': {
+                    'upper': self.saveLimitADSB.value(),
+                    'lower': self.saveLimitBDSB.value(),
+                },
+                'filter': {
+                    'disable': self.medianFilterCheckBox.isChecked(),
+                    'size': self.medianFilterSB.value(),
+                },
+                'scatter_plot': self.scatterPlotCheckBox.isChecked(),
+                'train_test': {
+                    'save': self.trainTestDataCheckBox.isChecked(),
+                    'format': self.trainTestFormatCB.currentText(),
+                },
+                'dem': self.saveDEMCheckBox.isChecked(),
+                'report': self.reportCheckBox.isChecked(),
+            })
+            print(self.dataTypeCB.currentText())
+
+            self.settings.setValue('options', option_pool)
+            logger.debug('save options updated')
+            event.accept()
+
+        self.saveOptionDialog.closeEvent = dialogCloseEvent
+
         grid = QGridLayout()
         row = 1
         dataTypeLabel = QLabel('Data Type:')
         grid.addWidget(dataTypeLabel, row, 1, 1, 1)
 
         self.dataTypeCB = QComboBox()
-        format_list = ['GeoTIFF (*.tif)','ASCII Gridded XYZ (*.xyz)']
-        format_list.sort()
-        self.dataTypeCB.addItems(format_list)
-        self.dataTypeCB.setCurrentText('GeoTIFF (*.tif)')
+        self.dataTypeCB.addItems(DEM_FORMATS)
+        self.dataTypeCB.setCurrentText(save_set['type'])
         grid.addWidget(self.dataTypeCB, row, 2, 1, 3)
 
         row += 1
@@ -1212,6 +1280,7 @@ class SDBWidget(QWidget):
         self.depthDirectionSaveCB = QComboBox()
         direction_list = list(DEPTH_DIRECTION.keys())
         self.depthDirectionSaveCB.addItems(direction_list)
+        self.depthDirectionSaveCB.setCurrentText(save_set['direction'])
         grid.addWidget(self.depthDirectionSaveCB, row, 2, 1, 3)
 
         row += 1
@@ -1221,7 +1290,7 @@ class SDBWidget(QWidget):
         self.saveLimitADSB = QDoubleSpinBox()
         self.saveLimitADSB.setRange(-100, 100)
         self.saveLimitADSB.setDecimals(1)
-        self.saveLimitADSB.setValue(proc_op_dict['saved_depth']['upper'])
+        self.saveLimitADSB.setValue(save_set['depth_limit']['upper'])
         self.saveLimitADSB.setSuffix(' m')
         self.saveLimitADSB.setAlignment(Qt.AlignRight)
         grid.addWidget(self.saveLimitADSB, row, 2, 1, 1)
@@ -1232,7 +1301,7 @@ class SDBWidget(QWidget):
         self.saveLimitBDSB = QDoubleSpinBox()
         self.saveLimitBDSB.setRange(-100, 100)
         self.saveLimitBDSB.setDecimals(1)
-        self.saveLimitBDSB.setValue(proc_op_dict['saved_depth']['lower'])
+        self.saveLimitBDSB.setValue(save_set['depth_limit']['lower'])
         self.saveLimitBDSB.setSuffix(' m')
         self.saveLimitBDSB.setAlignment(Qt.AlignRight)
         grid.addWidget(self.saveLimitBDSB, row, 4, 1, 1)
@@ -1243,13 +1312,13 @@ class SDBWidget(QWidget):
 
         self.medianFilterSB = QSpinBox()
         self.medianFilterSB.setRange(3, 33)
-        self.medianFilterSB.setValue(3)
+        self.medianFilterSB.setValue(save_set['filter']['size'])
         self.medianFilterSB.setSingleStep(2)
         self.medianFilterSB.setAlignment(Qt.AlignRight)
         grid.addWidget(self.medianFilterSB, row, 2, 1, 1)
 
         self.medianFilterCheckBox = QCheckBox('Disable Median Filter')
-        self.medianFilterCheckBox.setChecked(False)
+        self.medianFilterCheckBox.setChecked(save_set['filter']['disable'])
         grid.addWidget(self.medianFilterCheckBox, row, 3, 1, 2)
 
         row += 1
@@ -1274,16 +1343,17 @@ class SDBWidget(QWidget):
 
         row += 1
         self.scatterPlotCheckBox = QCheckBox('Save Scatter Plot')
-        self.scatterPlotCheckBox.setChecked(False)
+        self.scatterPlotCheckBox.setChecked(save_set['scatter_plot'])
         grid.addWidget(self.scatterPlotCheckBox, row, 1, 1, 2)
 
         row += 1
         self.trainTestDataCheckBox = QCheckBox('Save Training and Testing Data in')
-        self.trainTestDataCheckBox.setChecked(False)
+        self.trainTestDataCheckBox.setChecked(save_set['train_test']['save'])
         grid.addWidget(self.trainTestDataCheckBox, row, 1, 1, 2)
 
         self.trainTestFormatCB = QComboBox()
         self.trainTestFormatCB.addItems(TRAIN_TEST_SAVE.keys())
+        self.trainTestFormatCB.setCurrentText(save_set['train_test']['format'])
         grid.addWidget(self.trainTestFormatCB, row, 3, 1, 1)
 
         trainTestLabel = QLabel('format')
@@ -1291,11 +1361,11 @@ class SDBWidget(QWidget):
 
         row += 1
         self.saveDEMCheckBox = QCheckBox('Save DEM')
-        self.saveDEMCheckBox.setChecked(True)
+        self.saveDEMCheckBox.setChecked(save_set['dem'])
         grid.addWidget(self.saveDEMCheckBox, row, 1, 1, 1)
 
         self.reportCheckBox = QCheckBox('Save Report')
-        self.reportCheckBox.setChecked(True)
+        self.reportCheckBox.setChecked(save_set['report'])
         grid.addWidget(self.reportCheckBox, row, 2, 1, 1)
 
         saveButton = QPushButton('Save')
@@ -1875,11 +1945,6 @@ def default_values():
     }
 
     proc_op_dict = {
-        'depth_limit': {
-            'disable': False,
-            'upper': 2.0,
-            'lower': -15.0
-        },
         'saved_depth': {
             'upper': 2.0,
             'lower': -15.0
@@ -1933,13 +1998,45 @@ def default_values():
         )
     }
 
+    main_dict = {
+        'method': knn_op_dict['name'],
+        'direction': list(DEPTH_DIRECTION.keys())[0],
+        'depth_limit': {
+            'disable': False,
+            'upper': 2.0,
+            'lower': -15.0
+        },
+    }
+
+    save_dict = {
+        'type': 'GeoTIFF (*.tif)',
+        'direction': list(DEPTH_DIRECTION.keys())[0],
+        'depth_limit': {
+            'upper': 2.0,
+            'lower': -15.0
+        },
+        'filter': {
+            'disable': False,
+            'size': 3,
+        },
+        'scatter_plot': False,
+        'train_test': {
+            'save': False,
+            'format': list(TRAIN_TEST_SAVE.keys())[0],
+        },
+        'dem': True,
+        'report': True,
+    }
+
     default_dict = {
+        'main': main_dict,
         'processing': proc_op_dict,
         'method': {
             knn_op_dict['name']: knn_op_dict,
             mlr_op_dict['name']: mlr_op_dict,
             rf_op_dict['name']: rf_op_dict
-        }
+        },
+        'save': save_dict
     }
 
     return default_dict
