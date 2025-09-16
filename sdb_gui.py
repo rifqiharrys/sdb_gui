@@ -25,7 +25,6 @@ SOFTWARE.
 
 import datetime
 import logging
-import os
 import pprint
 import re
 import sys
@@ -35,6 +34,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Tuple, Union
 
 import numpy as np
+import pandas as pd
 from PyQt5.QtCore import QSettings, Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDialog,
@@ -62,6 +62,16 @@ EVALUATION_TYPES: Dict[str, bool] = {
     'Use Current Prediction': False,
     'Recalculate from Test Data': True,
 }
+DEM_FORMATS: List[str] = [
+    'GeoTIFF (*.tif)',
+    'ASCII Gridded XYZ (*.xyz)',
+]
+DEM_FORMATS.sort()
+TRAIN_TEST_SAVE: Dict[str, bool] = {
+    '.csv': True,
+    '.shp': True,
+    '.gpkg': False,
+}
 
 
 class SDBWidget(QWidget):
@@ -79,19 +89,12 @@ class SDBWidget(QWidget):
         super(SDBWidget, self).__init__()
 
         self.settings = QSettings('SDB', 'SDB GUI')
-
-        global option_pool, proc_op_dict
-        option_pool = self.loadSettings()
-        proc_op_dict = option_pool['processing']
-
+        self.assignSettings()
         logger.debug(
             f'initial options: \n{pprint.pformat(option_pool, width=200)}'
         )
 
-        self.dir_path = self.settings.value(
-            'last_directory',
-            os.path.abspath(Path.home())
-        )
+        self.dir_path = Path(self.settings.value('last_directory', Path.home()))
         self.initUI()
 
 
@@ -140,6 +143,7 @@ class SDBWidget(QWidget):
         self.depthDirectionCB = QComboBox()
         direction_list = list(DEPTH_DIRECTION.keys())
         self.depthDirectionCB.addItems(direction_list)
+        self.depthDirectionCB.setCurrentText(main_set['direction'])
         grid1.addWidget(self.depthDirectionCB, row_grid1, 4, 1, 1)
 
         row_grid1 += 1
@@ -161,14 +165,14 @@ class SDBWidget(QWidget):
         self.limitADSB = QDoubleSpinBox()
         self.limitADSB.setRange(-100, 100)
         self.limitADSB.setDecimals(1)
-        self.limitADSB.setValue(proc_op_dict['depth_limit']['upper'])
+        self.limitADSB.setValue(main_set['depth_limit']['upper'])
         self.limitADSB.setSuffix(' m')
         self.limitADSB.setAlignment(Qt.AlignRight)
         grid2.addWidget(self.limitADSB, row_grid2, 4, 1, 1)
 
         row_grid2 += 1
         self.limitCheckBox = QCheckBox('Disable Depth Limitation')
-        self.limitCheckBox.setChecked(proc_op_dict['depth_limit']['disable'])
+        self.limitCheckBox.setChecked(main_set['depth_limit']['disable'])
         grid2.addWidget(self.limitCheckBox, row_grid2, 1, 1, 2)
 
         limitBLabel = QLabel('Lower Limit:')
@@ -177,7 +181,7 @@ class SDBWidget(QWidget):
         self.limitBDSB = QDoubleSpinBox()
         self.limitBDSB.setRange(-100, 100)
         self.limitBDSB.setDecimals(1)
-        self.limitBDSB.setValue(proc_op_dict['depth_limit']['lower'])
+        self.limitBDSB.setValue(main_set['depth_limit']['lower'])
         self.limitBDSB.setSuffix(' m')
         self.limitBDSB.setAlignment(Qt.AlignRight)
         grid2.addWidget(self.limitBDSB, row_grid2, 4, 1, 1)
@@ -192,6 +196,7 @@ class SDBWidget(QWidget):
         self.methodCB = QComboBox()
         method_list = list(option_pool['method'].keys())
         self.methodCB.addItems(method_list)
+        self.methodCB.setCurrentText(main_set['method'])
         grid3.addWidget(self.methodCB, row_grid3, 2, 1, 1)
 
         self.optionsButton = QPushButton('Method Options')
@@ -268,9 +273,42 @@ class SDBWidget(QWidget):
         Load settings or return defaults if none exist
         """
 
-        if self.settings.value('options'):
-            return self.settings.value('options')
-        return default_values()
+        try:
+            if self.settings.value('options'):
+                saved_settings = self.settings.value('options')
+
+                try:
+                    _ = saved_settings['main']['direction']
+                    _ = saved_settings['main']['depth_limit']
+                    _ = saved_settings['main']['method']
+
+                    _ = saved_settings['save']
+
+                    _ = saved_settings['processing']
+
+                    _ = saved_settings['method']
+
+                    return saved_settings
+                except KeyError as e:
+                    logger.warning(f'Missing or invalid settings structure: {e}, loading defaults')
+                    return default_values()
+
+            return default_values()
+        except Exception as e:
+            logger.error(f'Error loading settings: {e}')
+            return default_values()
+
+
+    def assignSettings(self) -> None:
+        """
+        Assign loaded settings to global variables
+        """
+
+        global option_pool, proc_op_dict, main_set, save_set
+        option_pool = self.loadSettings()
+        proc_op_dict = option_pool['processing']
+        main_set = option_pool['main']
+        save_set = option_pool['save']
 
 
     def saveSettings(self) -> None:
@@ -285,10 +323,14 @@ class SDBWidget(QWidget):
             self.limitADSB.setValue(b)
             self.limitBDSB.setValue(a)
 
-        proc_op_dict['depth_limit'].update({
-            'disable': self.limitCheckBox.isChecked(),
-            'upper': self.limitADSB.value(),
-            'lower': self.limitBDSB.value()
+        main_set.update({
+            'method': self.methodCB.currentText(),
+            'direction': self.depthDirectionCB.currentText(),
+            'depth_limit': {
+                'disable': self.limitCheckBox.isChecked(),
+                'upper': self.limitADSB.value(),
+                'lower': self.limitBDSB.value()
+            },
         })
 
         self.settings.setValue('options', option_pool)
@@ -315,15 +357,15 @@ class SDBWidget(QWidget):
 
         if reply == QMessageBox.Yes:
             self.settings.clear()
+            self.assignSettings()
 
-            global option_pool, proc_op_dict
-            option_pool = default_values()
-            proc_op_dict = option_pool['processing']
-            self.limitCheckBox.setChecked(proc_op_dict['depth_limit']['disable'])
-            self.limitADSB.setValue(proc_op_dict['depth_limit']['upper'])
-            self.limitBDSB.setValue(proc_op_dict['depth_limit']['lower'])
+            self.depthDirectionCB.setCurrentText(main_set['direction'])
+            self.limitCheckBox.setChecked(main_set['depth_limit']['disable'])
+            self.limitADSB.setValue(main_set['depth_limit']['upper'])
+            self.limitBDSB.setValue(main_set['depth_limit']['lower'])
+            self.methodCB.setCurrentText(main_set['method'])
 
-            home_dir = os.path.abspath(Path.home())
+            home_dir = Path.home()
             self.dir_path = home_dir
             self.settings.setValue('last_directory', home_dir)
             logger.info('last directory and options reset to default')
@@ -381,14 +423,14 @@ class SDBWidget(QWidget):
         fname = command(
             self,
             window_text,
-            self.dir_path,
+            str(self.dir_path),
             fileFilter,
             selectedFilter
         )
 
         if fname[0]:
             text_browser.setText(fname[0])
-            self.dir_path = os.path.dirname(fname[0])
+            self.dir_path = Path(fname[0]).parent
             self.settings.setValue('last_directory', self.dir_path)
 
 
@@ -451,9 +493,11 @@ class SDBWidget(QWidget):
                 logger.critical('no image filepath')
                 raise ValueError('empty file path')
 
-            logger.debug(f'loading image from: {self.imglocList.toPlainText()}')
+            logger.debug(
+                f'loading image from: {Path(self.imglocList.toPlainText())}'
+            )
 
-            self.img_size = os.path.getsize(self.imglocList.toPlainText())
+            self.img_size = Path(self.imglocList.toPlainText()).stat().st_size
 
             global image_raw
             image_raw = sdb.read_geotiff(self.imglocList.toPlainText())
@@ -461,9 +505,7 @@ class SDBWidget(QWidget):
             global bands_df
             bands_df = sdb.unravel(image_raw)
 
-            self.loadImageLabel.setText(
-                os.path.split(self.imglocList.toPlainText())[1]
-            )
+            self.loadImageLabel.setText(Path(self.imglocList.toPlainText()).name)
 
             logger.info(f'load image successfully of size: {self.img_size} B')
             logger.info(f'image CRS: {image_raw.rio.crs}')
@@ -539,11 +581,13 @@ class SDBWidget(QWidget):
                 raise ValueError('empty file path')
 
             logger.debug(
-                f'loading sample data from: {self.samplelocList.toPlainText()}'
+                f'loading sample data from: {
+                    Path(self.samplelocList.toPlainText())
+                }'
             )
 
             global sample_size
-            sample_size = os.path.getsize(self.samplelocList.toPlainText())
+            sample_size = Path(self.samplelocList.toPlainText()).stat().st_size
 
             global sample_raw
             sample_raw = sdb.read_shapefile(self.samplelocList.toPlainText())
@@ -564,8 +608,8 @@ class SDBWidget(QWidget):
 
             logger.debug('reset attribute selection parameters for new dataset')
 
-            self.loadSampleLabel.setText(os.path.split(
-                self.samplelocList.toPlainText())[1]
+            self.loadSampleLabel.setText(
+                Path(self.samplelocList.toPlainText()).name
             )
 
             if (sample_raw.geom_type != 'Point').any():
@@ -1021,9 +1065,9 @@ class SDBWidget(QWidget):
         global print_result_info
         print_result_info = (
             f'Software Version:\t{SDB_GUI_VERSION}\n\n'
-            f'Image Input:\t\t{self.imglocList.toPlainText()} '
+            f'Image Input:\t\t{Path(self.imglocList.toPlainText())} '
             f'({round(self.img_size / 2**20, 2)} MiB)\n'
-            f'Sample Data:\t\t{self.samplelocList.toPlainText()} '
+            f'Sample Data:\t\t{Path(self.samplelocList.toPlainText())} '
             f'({round(sample_size / 2**20, 2)} MiB)\n'
             f'Selected Header:\t{self.depthHeaderCB.currentText()}\n'
             f'Depth Direction:\t\t{self.depthDirectionCB.currentText()}\n'
@@ -1084,9 +1128,12 @@ class SDBWidget(QWidget):
 
         if hasattr(self, 'savelocList') and self.savelocList.toPlainText():
             try:
-                save_path = f'{
-                    os.path.splitext(self.savelocList.toPlainText())[0]
-                }.log'
+                # save_path = f'{
+                #     os.path.splitext(self.savelocList.toPlainText())[0]
+                # }.log'
+                save_path = Path(
+                    self.savelocList.toPlainText()
+                ).with_suffix('.log')
 
                 with open(LOG_NAME, 'r') as source, open(save_path, 'w') as target:
                     target.write(source.read())
@@ -1186,16 +1233,44 @@ class SDBWidget(QWidget):
             QIcon(resource_path('icons/load-pngrepo-com.png'))
         )
 
+        def dialogCloseEvent(event):
+            """Save settings before closing dialog"""
+
+            save_set.update({
+                'type': self.dataTypeCB.currentText(),
+                'direction': self.depthDirectionSaveCB.currentText(),
+                'depth_limit': {
+                    'upper': self.saveLimitADSB.value(),
+                    'lower': self.saveLimitBDSB.value(),
+                },
+                'filter': {
+                    'disable': self.medianFilterCheckBox.isChecked(),
+                    'size': self.medianFilterSB.value(),
+                },
+                'scatter_plot': self.scatterPlotCheckBox.isChecked(),
+                'train_test': {
+                    'save': self.trainTestDataCheckBox.isChecked(),
+                    'format': self.trainTestFormatCB.currentText(),
+                },
+                'dem': self.saveDEMCheckBox.isChecked(),
+                'report': self.reportCheckBox.isChecked(),
+            })
+            print(self.dataTypeCB.currentText())
+
+            self.settings.setValue('options', option_pool)
+            logger.debug('save options updated')
+            event.accept()
+
+        self.saveOptionDialog.closeEvent = dialogCloseEvent
+
         grid = QGridLayout()
         row = 1
         dataTypeLabel = QLabel('Data Type:')
         grid.addWidget(dataTypeLabel, row, 1, 1, 1)
 
         self.dataTypeCB = QComboBox()
-        format_list = ['GeoTIFF (*.tif)','ASCII Gridded XYZ (*.xyz)']
-        format_list.sort()
-        self.dataTypeCB.addItems(format_list)
-        self.dataTypeCB.setCurrentText('GeoTIFF (*.tif)')
+        self.dataTypeCB.addItems(DEM_FORMATS)
+        self.dataTypeCB.setCurrentText(save_set['type'])
         grid.addWidget(self.dataTypeCB, row, 2, 1, 3)
 
         row += 1
@@ -1205,6 +1280,7 @@ class SDBWidget(QWidget):
         self.depthDirectionSaveCB = QComboBox()
         direction_list = list(DEPTH_DIRECTION.keys())
         self.depthDirectionSaveCB.addItems(direction_list)
+        self.depthDirectionSaveCB.setCurrentText(save_set['direction'])
         grid.addWidget(self.depthDirectionSaveCB, row, 2, 1, 3)
 
         row += 1
@@ -1214,7 +1290,7 @@ class SDBWidget(QWidget):
         self.saveLimitADSB = QDoubleSpinBox()
         self.saveLimitADSB.setRange(-100, 100)
         self.saveLimitADSB.setDecimals(1)
-        self.saveLimitADSB.setValue(proc_op_dict['saved_depth']['upper'])
+        self.saveLimitADSB.setValue(save_set['depth_limit']['upper'])
         self.saveLimitADSB.setSuffix(' m')
         self.saveLimitADSB.setAlignment(Qt.AlignRight)
         grid.addWidget(self.saveLimitADSB, row, 2, 1, 1)
@@ -1225,7 +1301,7 @@ class SDBWidget(QWidget):
         self.saveLimitBDSB = QDoubleSpinBox()
         self.saveLimitBDSB.setRange(-100, 100)
         self.saveLimitBDSB.setDecimals(1)
-        self.saveLimitBDSB.setValue(proc_op_dict['saved_depth']['lower'])
+        self.saveLimitBDSB.setValue(save_set['depth_limit']['lower'])
         self.saveLimitBDSB.setSuffix(' m')
         self.saveLimitBDSB.setAlignment(Qt.AlignRight)
         grid.addWidget(self.saveLimitBDSB, row, 4, 1, 1)
@@ -1236,13 +1312,13 @@ class SDBWidget(QWidget):
 
         self.medianFilterSB = QSpinBox()
         self.medianFilterSB.setRange(3, 33)
-        self.medianFilterSB.setValue(3)
+        self.medianFilterSB.setValue(save_set['filter']['size'])
         self.medianFilterSB.setSingleStep(2)
         self.medianFilterSB.setAlignment(Qt.AlignRight)
         grid.addWidget(self.medianFilterSB, row, 2, 1, 1)
 
         self.medianFilterCheckBox = QCheckBox('Disable Median Filter')
-        self.medianFilterCheckBox.setChecked(False)
+        self.medianFilterCheckBox.setChecked(save_set['filter']['disable'])
         grid.addWidget(self.medianFilterCheckBox, row, 3, 1, 2)
 
         row += 1
@@ -1267,16 +1343,17 @@ class SDBWidget(QWidget):
 
         row += 1
         self.scatterPlotCheckBox = QCheckBox('Save Scatter Plot')
-        self.scatterPlotCheckBox.setChecked(False)
+        self.scatterPlotCheckBox.setChecked(save_set['scatter_plot'])
         grid.addWidget(self.scatterPlotCheckBox, row, 1, 1, 2)
 
         row += 1
         self.trainTestDataCheckBox = QCheckBox('Save Training and Testing Data in')
-        self.trainTestDataCheckBox.setChecked(False)
+        self.trainTestDataCheckBox.setChecked(save_set['train_test']['save'])
         grid.addWidget(self.trainTestDataCheckBox, row, 1, 1, 2)
 
         self.trainTestFormatCB = QComboBox()
-        self.trainTestFormatCB.addItems(['.csv', '.shp'])
+        self.trainTestFormatCB.addItems(TRAIN_TEST_SAVE.keys())
+        self.trainTestFormatCB.setCurrentText(save_set['train_test']['format'])
         grid.addWidget(self.trainTestFormatCB, row, 3, 1, 1)
 
         trainTestLabel = QLabel('format')
@@ -1284,11 +1361,11 @@ class SDBWidget(QWidget):
 
         row += 1
         self.saveDEMCheckBox = QCheckBox('Save DEM')
-        self.saveDEMCheckBox.setChecked(True)
+        self.saveDEMCheckBox.setChecked(save_set['dem'])
         grid.addWidget(self.saveDEMCheckBox, row, 1, 1, 1)
 
         self.reportCheckBox = QCheckBox('Save Report')
-        self.reportCheckBox.setChecked(True)
+        self.reportCheckBox.setChecked(save_set['report'])
         grid.addWidget(self.reportCheckBox, row, 2, 1, 1)
 
         saveButton = QPushButton('Save')
@@ -1345,82 +1422,49 @@ class SDBWidget(QWidget):
             if not self.savelocList.toPlainText():
                 raise ValueError('empty save location')
 
+            save_loc = Path(self.savelocList.toPlainText())
             if self.saveDEMCheckBox.isChecked() == True:
                 sdb.write_geotiff(
                     daz_filtered,
-                    self.savelocList.toPlainText()
+                    save_loc
                 )
-                new_img_size = os.path.getsize(self.savelocList.toPlainText())
+                new_img_size = Path(save_loc).stat().st_size
                 print_dem_info = (
                     f'{print_filter_info}\n\n'
-                    f'DEM Output:\t\t{self.savelocList.toPlainText()} '
+                    f'DEM Output:\t\t{save_loc} '
                     f'({round(new_img_size / 2**10 / 2**10, 2)} MiB)\n'
                 )
                 logger.info(
                     f'DEM with the size of {new_img_size} B has been saved'
                 )
-                logger.debug(f'DEM location: {self.savelocList.toPlainText()}')
+                logger.debug(f'DEM location: {save_loc}')
             elif self.saveDEMCheckBox.isChecked() == False:
-                # os.remove(self.savelocList.toPlainText())
                 print_dem_info = (
                     'DEM Output:\t\tNot Saved\n'
                 )
 
             if self.trainTestDataCheckBox.isChecked() == True:
-                train_save_loc = (
-                    f'{os.path.splitext(self.savelocList.toPlainText())[0]}'
-                    f'_train{self.trainTestFormatCB.currentText()}'
-                )
-                test_save_loc = (
-                    f'{os.path.splitext(self.savelocList.toPlainText())[0]}'
-                    f'_test{self.trainTestFormatCB.currentText()}'
+                print_train_test_info = self.trainTestSave(
+                    train_data=train_df_copy,
+                    test_data=test_df_copy,
+                    save_location=save_loc,
+                    data_format=self.trainTestFormatCB.currentText(),
+                    split=TRAIN_TEST_SAVE[self.trainTestFormatCB.currentText()],
                 )
 
-                if self.trainTestFormatCB.currentText() == '.csv':
-                    train_df_copy.to_csv(train_save_loc, index=False)
-                    test_df_copy.to_csv(test_save_loc, index=False)
-                elif self.trainTestFormatCB.currentText() == '.shp':
-                    sdb.write_shapefile(
-                        train_df_copy,
-                        train_save_loc,
-                        x_col_name='x',
-                        y_col_name='y',
-                        crs=end_results['sample_gdf'].crs
-                    )
-                    sdb.write_shapefile(
-                        test_df_copy,
-                        test_save_loc,
-                        x_col_name='x',
-                        y_col_name='y',
-                        crs=end_results['sample_gdf'].crs
-                    )
-
-                train_data_size = os.path.getsize(train_save_loc)
-                test_data_size = os.path.getsize(test_save_loc)
-
-                print_train_test_info = (
-                    f'Train Data Output:\t{train_save_loc} '
-                    f'({round(train_data_size / 2**10 / 2**10, 2)} MiB)\n'
-                    f'Test Data output:\t{test_save_loc} '
-                    f'({round(test_data_size / 2**10 / 2**10, 2)} MiB)\n'
-                )
                 logger.info(
                     f'splitted train and test data with {
                         self.trainTestFormatCB.currentText()
                     } format has been saved'
                 )
-                logger.debug(f'train data location: {train_save_loc}')
-                logger.debug(f'test data location: {test_save_loc}')
             elif self.trainTestDataCheckBox.isChecked() == False:
                 print_train_test_info = (
-                    'Train Data Output:\tNot Saved\n'
-                    'Test Data output:\tNot Saved\n'
+                    'Train dna Test Data Output:\tNot Saved\n'
                 )
 
             if self.scatterPlotCheckBox.isChecked() == True:
-                scatter_plot_loc = (
-                    os.path.splitext(self.savelocList.toPlainText())[0] +
-                    '_scatter_plot.png'
+                scatter_plot_loc = Path(save_loc).with_name(
+                    f'{Path(save_loc).stem}_scatter_plot.png'
                 )
                 scatter_plot = sdb.scatter_plotter(
                     true_val=test_df_copy['z'],
@@ -1429,7 +1473,7 @@ class SDBWidget(QWidget):
                 )
                 scatter_plot[0].savefig(scatter_plot_loc)
 
-                scatter_plot_size = os.path.getsize(scatter_plot_loc)
+                scatter_plot_size = Path(scatter_plot_loc).stat().st_size
 
                 print_scatter_plot_info = (
                     f'Scatter Plot:\t{scatter_plot_loc} '
@@ -1445,9 +1489,8 @@ class SDBWidget(QWidget):
             self.resultText.append(print_scatter_plot_info)
 
             if self.reportCheckBox.isChecked() == True:
-                report_save_loc = (
-                    os.path.splitext(self.savelocList.toPlainText())[0] +
-                    '_report.txt'
+                report_save_loc = Path(save_loc).with_name(
+                    f'{Path(save_loc).stem}_report.txt'
                 )
                 report = open(report_save_loc, 'w')
 
@@ -1472,6 +1515,87 @@ class SDBWidget(QWidget):
                     'Please insert save location!'
                 )
                 self.saveOptionWindow()
+
+
+    def trainTestSave(
+        self,
+        train_data: pd.DataFrame,
+        test_data: pd.DataFrame,
+        save_location: Path | str,
+        data_format: str,
+        split: bool,
+    ) -> str:
+        """
+        Saving splitted train and test data into file
+        and returning the print info to be shown in result text browser.
+        """
+
+        if split:
+            train_save_loc = Path(save_location).with_name(
+                f'{Path(save_location).stem}_train{data_format}'
+            )
+            test_save_loc = Path(save_location).with_name(
+                f'{Path(save_location).stem}_test{data_format}'
+            )
+            if data_format == '.csv':
+                train_data.to_csv(train_save_loc, index=False)
+                test_data.to_csv(test_save_loc, index=False)
+            elif data_format == '.shp':
+                sdb.write_shapefile(
+                    train_data,
+                    train_save_loc,
+                    x_col_name='x',
+                    y_col_name='y',
+                    crs=end_results['sample_gdf'].crs
+                )
+                sdb.write_shapefile(
+                    test_data,
+                    test_save_loc,
+                    x_col_name='x',
+                    y_col_name='y',
+                    crs=end_results['sample_gdf'].crs
+                )
+
+            train_data_size = Path(train_save_loc).stat().st_size
+            test_data_size = Path(test_save_loc).stat().st_size
+            print_info = (
+                f'Train Data Output:\t{train_save_loc} '
+                f'{round(train_data_size / 2**10 / 2**10, 2)} MiB\n'
+                f'Test Data output:\t{test_save_loc} '
+                f'{round(test_data_size / 2**10 / 2**10, 2)} MiB\n'
+            )
+            logger.debug(f'train data location: {train_save_loc}')
+            logger.debug(f'test data location: {test_save_loc}')
+        else:
+            merge_data_loc = Path(save_location).with_name(
+                f'{Path(save_location).stem}_splitted_data{data_format}'
+            )
+            if data_format =='.gpkg':
+                sdb.write_shapefile(
+                    train_data,
+                    merge_data_loc,
+                    x_col_name='x',
+                    y_col_name='y',
+                    crs=end_results['sample_gdf'].crs,
+                    layer='train_data'
+                )
+                sdb.write_shapefile(
+                    test_data,
+                    merge_data_loc,
+                    x_col_name='x',
+                    y_col_name='y',
+                    crs=end_results['sample_gdf'].crs,
+                    layer='test_data'
+                )
+
+            train_test_data_size = Path(merge_data_loc).stat().st_size
+            print_info = (
+                f'Train and Test Data Output:\t{merge_data_loc} '
+                f'{round(train_test_data_size / 2**10 / 2**10, 2)} MiB\n'
+            )
+            logger.debug(f'train & test data location: {merge_data_loc}')
+
+        return print_info
 
 
     def licensesDialog(self):
@@ -1821,11 +1945,6 @@ def default_values():
     }
 
     proc_op_dict = {
-        'depth_limit': {
-            'disable': False,
-            'upper': 2.0,
-            'lower': -15.0
-        },
         'saved_depth': {
             'upper': 2.0,
             'lower': -15.0
@@ -1879,13 +1998,45 @@ def default_values():
         )
     }
 
+    main_dict = {
+        'method': knn_op_dict['name'],
+        'direction': list(DEPTH_DIRECTION.keys())[0],
+        'depth_limit': {
+            'disable': False,
+            'upper': 2.0,
+            'lower': -15.0
+        },
+    }
+
+    save_dict = {
+        'type': 'GeoTIFF (*.tif)',
+        'direction': list(DEPTH_DIRECTION.keys())[0],
+        'depth_limit': {
+            'upper': 2.0,
+            'lower': -15.0
+        },
+        'filter': {
+            'disable': False,
+            'size': 3,
+        },
+        'scatter_plot': False,
+        'train_test': {
+            'save': False,
+            'format': list(TRAIN_TEST_SAVE.keys())[0],
+        },
+        'dem': True,
+        'report': True,
+    }
+
     default_dict = {
+        'main': main_dict,
         'processing': proc_op_dict,
         'method': {
             knn_op_dict['name']: knn_op_dict,
             mlr_op_dict['name']: mlr_op_dict,
             rf_op_dict['name']: rf_op_dict
-        }
+        },
+        'save': save_dict
     }
 
     return default_dict
@@ -1900,8 +2051,8 @@ def resource_path(relative_path):
         # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS # type: ignore
     except Exception:
-        base_path = os.path.abspath('.')
-    return os.path.join(base_path, relative_path)
+        base_path = Path.cwd()
+    return str(Path(base_path) / relative_path)
 
 
 def acronym(phrase: str) -> str:
