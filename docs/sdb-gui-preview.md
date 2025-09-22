@@ -1,6 +1,6 @@
 # SDB GUI Preview
 
-This is a document that shows the SDB GUI interface and a little bit about what they do. The first picture below shows the main window. Inside the main window are 11 buttons, 3 dropdown menus, 1 table field, 2 numeric input fields, 1 check box, and 1 text field.
+This is a document that shows the SDB GUI v4.1.0 interface and a little bit about what they do. The first picture below shows the main window. Inside the main window are 11 buttons, 3 dropdown menus, 1 table field, 2 numeric input fields, 1 check box, and 1 text field. Additionally, if you are running the SDB GUI using the executable file, a console will shows up before the main GUI shows.
 
 ![main-window](./fig/main_window.png)
 
@@ -32,7 +32,8 @@ This is a document that shows the SDB GUI interface and a little bit about what 
     - [1. Upper limit](#1-upper-limit)
     - [2. Lower limit](#2-lower-limit)
   - [E. Check box](#e-check-box)
-  - [F. Text field](#f-text-field)
+  - [F. Text field and progress bar](#f-text-field-and-progress-bar)
+  - [G. Console](#g-console)
 
 ## A. Buttons
 
@@ -116,16 +117,36 @@ The option from the list are Positive Up and Positive Down. The user must select
 
 There are the ML methods available, which are K-Nearest Neighbors (KNN), Multiple Linear Regression (MLR), and Random Forest (RF).
 
+![method-list](./fig/method_list.png)
+
 ## C. Table field
 
 This field shows a table of the loaded depth sample data.
 
+![table-field](./fig/table_field.png)
+
 ## D. Numeric inputs
+
+There are two numeric inputs in the main window, upper limit and lower limit inputs. Both of which are the number that limit the depth input values in the positive up manner. The depth limit number in the GUI will always shown using meter as it is the International Standard. If the loaded depth sample is in another unit, the unit shown in the GUI will not change.
 
 ### 1. Upper limit
 
+The upper limit default value is 2.
+
+![depth-upper](./fig/depth_upper_limit.png)
+
 ### 2. Lower limit
+
+The lower limit default value is -15.
+
+![depth-lower](./fig/depth_lower_limit.png)
 
 ## E. Check box
 
-## F. Text field
+![depth-limit](./fig/depth_limit_checkbox.png)
+
+## F. Text field and progress bar
+
+![result-progress](./fig/result_progress.png)
+
+## G. Console
