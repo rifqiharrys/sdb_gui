@@ -1255,7 +1255,6 @@ class SDBWidget(QWidget):
                 'dem': self.saveDEMCheckBox.isChecked(),
                 'report': self.reportCheckBox.isChecked(),
             })
-            print(self.dataTypeCB.currentText())
 
             self.settings.setValue('options', option_pool)
             logger.debug('save options updated')
