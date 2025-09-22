@@ -77,6 +77,11 @@ def reproject_vector(
         Reprojected vector data.
     """
 
+    if raster.rio.crs is None:
+        raise ValueError('Raster CRS is not defined.')
+    if vector.crs is None:
+        raise ValueError('Vector CRS is not defined.')
+
     # Retrieve CRS information from image and sample and change it to uppercase
     raster_crs = str(raster.rio.crs).upper()
     vector_crs = str(vector.crs).upper()

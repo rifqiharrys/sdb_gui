@@ -70,7 +70,7 @@ def median_filter(
     """
 
     if filter_size < 3 or filter_size % 2 == 0:
-        raise ValueError('Allowed value: >= 3 or odd numbers')
+        raise ValueError('Allowed value: >= 3 and odd numbers')
 
     filtered = ndimage.median_filter(array, size=filter_size)
 
@@ -115,6 +115,7 @@ def array_to_dataarray(
         attrs=data_array.attrs if attrs else None
     )
 
-    new_da.rio.write_crs(data_array.rio.crs, inplace=True)
+    if data_array.rio.crs is not None:
+        new_da.rio.write_crs(data_array.rio.crs, inplace=True)
 
     return new_da
