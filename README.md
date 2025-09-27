@@ -124,7 +124,7 @@ After depth prediction was generated, you can save it into a Geotiff or XYZ file
 
 ## 3. Notebook
 
-To have a better understanding about the new SDB processing workflow in SDB GUI project, you could read a [Jupyter Notebook](./docs/) in this repository. There are two notebooks in this repository, which are `sdb-how-to-xarray-workflow.ipynb` and `sdb-module-how-to.ipynb`. Both notebooks contain a simple SDB processing workflow without GUI using Random Forest Regression.  The workflow of the first notebook might be a bit different from the recent SDB GUI, the basic idea is the same and this notebook is a prototype to the recent update (v4) of SDB GUI. The second notebook contain SDB processing using SDB module.
+To have a better understanding about the new SDB processing workflow in SDB GUI project, you could read the [Jupyter Notebook](./docs/) in this repository. There are two notebooks in this repository, which are `sdb-how-to-xarray-workflow.ipynb` and `sdb-module-how-to.ipynb`. Both notebooks contain a simple SDB processing workflow without GUI using Random Forest Regression.  The workflow of the first notebook might be a bit different from the recent SDB GUI, the basic idea is the same and this notebook is a prototype to the recent update (v4) of SDB GUI. The second notebook contain SDB processing using SDB module.
 
 ## Help and Support
 
