@@ -143,10 +143,18 @@ The lower limit default value is -15.
 
 ## E. Check box
 
+Check box to disable depth limitation.
+
 ![depth-limit](./fig/depth_limit_checkbox.png)
 
 ## F. Text field and progress bar
 
+The text field shows information about the ongoing process and the result, while the progress bar shows how far is the process going before it finishes.
+
 ![result-progress](./fig/result_progress.png)
 
 ## G. Console
+
+While running SDB GUI, the console/terminal will shows processing logs. If you are using the executable file, a console will pop up and shows the processing logs.
+
+![console](./fig/console.png)
