@@ -1,0 +1,15 @@
+name: sdb-gui
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - numpy
+  - pandas
+  - scipy
+  - xarray
+  - rioxarray
+  - geopandas
+  - scikit-learn
+  - matplotlib
+  - pyqt
+  - joblib
