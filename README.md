@@ -75,7 +75,7 @@ mamba env create -f environment.yaml
 
 to use `mamba`.
 
-When it's done, a new environment called `sdb-gui` will be available and you can call or activate it using 
+When it's done, a new environment called `sdb-gui` will be available and you can call or activate it using
 
 ```bash
 conda activate sdb-gui
