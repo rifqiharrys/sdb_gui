@@ -61,24 +61,24 @@ You can download the latest [release](https://github.com/rifqiharrys/sdb_gui/rel
 
 ### b. Python and packages installation
 
-If you're downloading the source code, you need to have the packages from the table listed above installed. There are many ways to install them, but I prefer using [Miniconda](https://docs.anaconda.com/miniconda/) because of its little installation size. You could refer to [Miniconda installation instructions](https://docs.anaconda.com/miniconda/install/) on how to install miniconda. After conda was installed, open anaconda prompt and create new environment using conda create below.
+If you're downloading the source code, you need to have the packages from the table listed above installed. You can use `environment.yaml` file to help create new environment and install the library dependancies easily using `conda` or `mamba`. To use `conda` or `mamba`, you can use [Miniconda](https://docs.anaconda.com/miniconda/) or [Miniforge](https://github.com/conda-forge/miniforge). After one of them is installed, move to the root folder of the sdb_gui repo and run
 
 ```bash
-# Replace <ENV_NAME> with a name for your environment
-conda create --name <ENV_NAME>
+conda env create -f environment.yaml
 ```
 
-To ensure that the packages installed are the latest version, install them from conda forge. To ensure the packages are installed from conda forge, add conda forge as priority channel.
+to use `conda` or run
 
 ```bash
-conda config --add channels conda-forge
+mamba env create -f environment.yaml
 ```
 
-Then activate your new environment and install python 3.12 and the packages by typing prompts below.
+to use `mamba`.
+
+When it's done, a new environment called `sdb-gui` will be available and you can call or activate it using 
 
 ```bash
-conda activate <ENV_NAME>
-conda install python=3.12 numpy scipy pandas xarray rioxarray geopandas scikit-learn matplotlib pyqt -y
+conda activate sdb-gui
 ```
 
 ### c. Data preparation
