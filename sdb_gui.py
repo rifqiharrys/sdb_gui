@@ -1478,7 +1478,7 @@ class SDBWidget(QWidget):
                     f'Scatter Plot:\t{scatter_plot_loc} '
                     f'({round(scatter_plot_size / 2**10, 2)} KiB)\n'
                 )
-                logger.info(f'scatter plot has been saved')
+                logger.info('scatter plot has been saved')
                 logger.debug(f'scatter plot location: {scatter_plot_loc}')
             elif not self.scatterPlotCheckBox.isChecked():
                 print_scatter_plot_info = 'Scatter Plot:\t\tNotSaved\n'
