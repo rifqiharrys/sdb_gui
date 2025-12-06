@@ -627,7 +627,7 @@ class SDBWidget(QWidget):
             else:
                 raw = sample_raw.copy()
 
-                if self.showCheckBox.isChecked() == True:
+                if self.showCheckBox.isChecked():
                     data = raw
                 else:
                     data = raw.head(100)
@@ -1007,7 +1007,7 @@ class SDBWidget(QWidget):
         Counting runtimes using saved time values and printing result info.
         """
 
-        if EVALUATION_TYPES[proc_op_dict['current_eval']] == True:
+        if EVALUATION_TYPES[proc_op_dict['current_eval']]:
             print_eval_type = (
                 'Evaluated using predicted values that was generated from '
                 'recalculation of depth prediction using the existing model'
@@ -1422,7 +1422,7 @@ class SDBWidget(QWidget):
                 raise ValueError('empty save location')
 
             save_loc = Path(self.savelocList.toPlainText())
-            if self.saveDEMCheckBox.isChecked() == True:
+            if self.saveDEMCheckBox.isChecked():
                 sdb.write_geotiff(
                     daz_filtered,
                     save_loc
@@ -1442,7 +1442,7 @@ class SDBWidget(QWidget):
                     'DEM Output:\t\tNot Saved\n'
                 )
 
-            if self.trainTestDataCheckBox.isChecked() == True:
+            if self.trainTestDataCheckBox.isChecked():
                 print_train_test_info = self.trainTestSave(
                     train_data=train_df_copy,
                     test_data=test_df_copy,
@@ -1461,7 +1461,7 @@ class SDBWidget(QWidget):
                     'Train dna Test Data Output:\tNot Saved\n'
                 )
 
-            if self.scatterPlotCheckBox.isChecked() == True:
+            if self.scatterPlotCheckBox.isChecked():
                 scatter_plot_loc = Path(save_loc).with_name(
                     f'{Path(save_loc).stem}_scatter_plot.png'
                 )
@@ -1487,7 +1487,7 @@ class SDBWidget(QWidget):
             self.resultText.append(print_train_test_info)
             self.resultText.append(print_scatter_plot_info)
 
-            if self.reportCheckBox.isChecked() == True:
+            if self.reportCheckBox.isChecked():
                 report_save_loc = Path(save_loc).with_name(
                     f'{Path(save_loc).stem}_report.txt'
                 )
@@ -1788,7 +1788,7 @@ class Process(QThread):
                 f'{to_title(key)}:\t\t{value}\n'
             )
 
-        if EVALUATION_TYPES[self.eval_type] == True:
+        if EVALUATION_TYPES[self.eval_type]:
             logger.debug('recalculate prediction using test data')
             f_test = results['f_test'].drop(columns=['x', 'y'])
         else:
