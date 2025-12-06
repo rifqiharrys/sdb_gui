@@ -1,0 +1,14 @@
+numpy
+pandas
+scipy
+xarray
+rioxarray
+geopandas
+matplotlib
+scikit-learn
+joblib
+PyQt5
+shapely
+pyproj
+fiona
+rasterio
