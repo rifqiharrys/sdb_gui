@@ -1013,7 +1013,7 @@ class SDBWidget(QWidget):
                 'recalculation of depth prediction using the existing model'
                 ' and test data'
             )
-        elif EVALUATION_TYPES[proc_op_dict['current_eval']] == False:
+        elif not EVALUATION_TYPES[proc_op_dict['current_eval']]:
             print_eval_type = (
                 'Evaluated using predicted values that was generated from '
                 'point samples of the existing predicted values'
@@ -1048,7 +1048,7 @@ class SDBWidget(QWidget):
             end_results['train'].shape[0] + end_results['test'].shape[0]
         )
 
-        if self.limitCheckBox.isChecked() == False:
+        if not self.limitCheckBox.isChecked():
             print_limit = (
                 f'Depth Limit:\t\tfrom {self.limitADSB.value():.1f} m '
                 f'to {self.limitBDSB.value():.1f} m'
@@ -1390,7 +1390,7 @@ class SDBWidget(QWidget):
         try:
             daz_filtered = end_results['daz_predict'].copy()
 
-            if self.medianFilterCheckBox.isChecked() == False:
+            if not self.medianFilterCheckBox.isChecked():
                 print_filter_info = (
                     f'Median Filter Size:\t{self.medianFilterSB.value()}'
                 )
@@ -1437,7 +1437,7 @@ class SDBWidget(QWidget):
                     f'DEM with the size of {new_img_size} B has been saved'
                 )
                 logger.debug(f'DEM location: {save_loc}')
-            elif self.saveDEMCheckBox.isChecked() == False:
+            elif not self.saveDEMCheckBox.isChecked():
                 print_dem_info = (
                     'DEM Output:\t\tNot Saved\n'
                 )
@@ -1456,7 +1456,7 @@ class SDBWidget(QWidget):
                         self.trainTestFormatCB.currentText()
                     } format has been saved'
                 )
-            elif self.trainTestDataCheckBox.isChecked() == False:
+            elif not self.trainTestDataCheckBox.isChecked():
                 print_train_test_info = (
                     'Train dna Test Data Output:\tNot Saved\n'
                 )
@@ -1480,7 +1480,7 @@ class SDBWidget(QWidget):
                 )
                 logger.info(f'scatter plot has been saved')
                 logger.debug(f'scatter plot location: {scatter_plot_loc}')
-            elif self.scatterPlotCheckBox.isChecked() == False:
+            elif not self.scatterPlotCheckBox.isChecked():
                 print_scatter_plot_info = 'Scatter Plot:\t\tNotSaved\n'
 
             self.resultText.append(print_dem_info)
@@ -1852,7 +1852,7 @@ class Process(QThread):
                 band_name=('band', ['original'])
             )
 
-            if EVALUATION_TYPES[self.eval_type] == False:
+            if not EVALUATION_TYPES[self.eval_type]:
                 logger.debug('sampling prediction based on test data coordinates')
                 dfz_predict = sdb.point_sampling(
                     daz_predict,
