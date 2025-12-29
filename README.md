@@ -61,24 +61,16 @@ You can download the latest [release](https://github.com/rifqiharrys/sdb_gui/rel
 
 ### b. Python and packages installation
 
-If you're downloading the source code, you need to have the packages from the table listed above installed. You can use `environment.yaml` file to help create new environment and install the library dependancies easily using `conda` or `mamba`. To use `conda` or `mamba`, you can use [Miniconda](https://docs.anaconda.com/miniconda/) or [Miniforge](https://github.com/conda-forge/miniforge). After one of them is installed, move to the root folder of the sdb_gui repo and run
+If you're downloading the source code, you need to have the packages from the table listed above installed. You can use `environment.yaml` file to help create new environment and install the library dependancies easily using `conda` or `mamba`. To use `conda` or `mamba`, you can use [Miniconda](https://docs.anaconda.com/miniconda/) or [Miniforge](https://github.com/conda-forge/miniforge). After one of them is installed, move to the root folder of the sdb_gui repo and run the command below.
 
 ```bash
 conda env create -f environment.yaml
 ```
 
-to use `conda` or run
+Or, if you prefer to use mamba. Replace `conda` with `mamba` from the same command line above. If you prefer using a python virtual environment or venv, you can install the dependancies using `requirements.txt` by running command below.
 
 ```bash
-mamba env create -f environment.yaml
-```
-
-to use `mamba`.
-
-When it's done, a new environment called `sdb-gui` will be available and you can call or activate it using
-
-```bash
-conda activate sdb-gui
+pip install -r requirements.txt
 ```
 
 ### c. Data preparation
