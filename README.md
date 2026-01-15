@@ -45,9 +45,9 @@ This SDB project is using python and would not work without packages listed belo
   - [3. Notebook](#3-notebook)
   - [Known Issues](#known-issues)
   - [Help and Support](#help-and-support)
+  - [Citation](#citation)
   - [Releases](#releases)
   - [License](#license)
-  - [Citation](#citation)
 
 ## Workflow
 
@@ -135,6 +135,10 @@ SDB GUI might close unexpectedly due to issues above or other issues. The error 
 
 If you have any questions, issues, or suggestions, please open an issue or a discussion in this repository or contact me via email at [@rifqi.m.h](mailto:rifqi.m.h@gmail.com), [@rifqiharrys](mailto:rifqiharrys@proton.me) or what is displayed in my [GitHub profile](https://github.com/rifqiharrys/).
 
+## Citation
+
+Please cite this project if you find this useful for your work or research using the metadata in the [CITATION](./CITATION.cff) file.
+
 ## Releases
 
 See [RELEASES](https://github.com/rifqiharrys/sdb_gui/releases)
@@ -142,7 +146,3 @@ See [RELEASES](https://github.com/rifqiharrys/sdb_gui/releases)
 ## License
 
 See [LICENSE](./LICENSE)
-
-## Citation
-
-Please cite this project if you find this useful for your work or research using the metadata in the [CITATION](./CITATION.cff) file.
