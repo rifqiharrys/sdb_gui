@@ -16,28 +16,23 @@ This SDB project is using python and would not work without packages listed belo
 
 |Packages|Description|
 |---------|---------|
-|[numpy](https://numpy.org/)|The fundamental package for scientific computing with Python. It provides functions for tasks such as array operations, matrix operations, and random number generation. It is the most widely used Python package for numerical computing. |
-|[scipy](https://www.scipy.org/)|The SciPy library is one of the core packages that make up the SciPy stack. It provides functions for scientific and engineering applications. The SciPy library depends on NumPy, which provides support for large, multi-dimensional arrays and matrices, including a large collection of high-level mathematical functions to operate on these arrays. The SciPy library is built on top of the NumPy extension of the Python programming language. It adds functionality in several areas, including numerical integration, special functions, statistics, and optimization. |
-|[pandas](https://pandas.pydata.org/)|Used for data manipulation and analysis. It offers data structures and functions to efficiently handle structured data, including tabular data such as spreadsheets and SQL tables. |
-|[xarray](https://xarray.dev/)|The project integrates the array-orientated features of NumPy with the labeling features of Pandas. It provides a powerful and flexible way of working with labeled, multidimensional arrays. |
-|[rioxarray](https://corteva.github.io/rioxarray)|Rioxarray is a Python package that enables the use of rasterio for xarray's raster-based operations. It provides an optional dependency for xarray, allowing it to read and write raster formats supported by rasterio. |
+|[numpy](https://numpy.org/)|The fundamental package for scientific computing with Python. It provides functions for tasks such as array operations, matrix operations, and random number generation. It is the most widely used Python package for numerical computing.|
+|[scipy](https://www.scipy.org/)|The SciPy library is one of the core packages that make up the SciPy stack. It provides functions for scientific and engineering applications. The SciPy library depends on NumPy, which provides support for large, multi-dimensional arrays and matrices, including a large collection of high-level mathematical functions to operate on these arrays. The SciPy library is built on top of the NumPy extension of the Python programming language. It adds functionality in several areas, including numerical integration, special functions, statistics, and optimization.|
+|[pandas](https://pandas.pydata.org/)|Used for data manipulation and analysis. It offers data structures and functions to efficiently handle structured data, including tabular data such as spreadsheets and SQL tables.|
+|[xarray](https://xarray.dev/)|The project integrates the array-orientated features of NumPy with the labeling features of Pandas. It provides a powerful and flexible way of working with labeled, multidimensional arrays.|
+|[rioxarray](https://corteva.github.io/rioxarray)|Rioxarray is a Python package that enables the use of rasterio for xarray's raster-based operations. It provides an optional dependency for xarray, allowing it to read and write raster formats supported by rasterio.|
 |[geopandas](https://geopandas.readthedocs.io/)|Geopandas extends the datatypes used by pandas to allow spatial operations on geometric types. It provides tools to read, write, and process geospatial data, making it easier to work with geographic datasets in Python.|
-|[scikit-learn](https://scikit-learn.org)|A machine learning library for Python that features various classification, regression and clustering algorithms including support vector machines, random forests, gradient boosting, k-means and DBSCAN, and is designed to interoperate with the Python numerical and scientific libraries NumPy and SciPy. |
-|[matplotlib](https://matplotlib.org/)|A plotting library for creating static, animated, and interactive visualizations in Python. |
-|[pyqt5](https://www.riverbankcomputing.com/static/Docs/PyQt5/)|Used to create the GUI of this software. It is a set of Python bindings for Nokia's Qt application framework and runs on all platforms supported by Qt including Windows, OS X, Linux, iOS and Android. |
-
-## Workflow
-
-Image below is the workflow of predicting bathymetric depth using SDB GUI if you're running the latest [release](https://github.com/rifqiharrys/sdb_gui/releases) and the latest source code or release version 3 and up.
-
-![workflow](./docs/fig/workflow_sdb_gui.png "Workflow")
+|[scikit-learn](https://scikit-learn.org)|A machine learning library for Python that features various classification, regression and clustering algorithms including support vector machines, random forests, gradient boosting, k-means and DBSCAN, and is designed to interoperate with the Python numerical and scientific libraries NumPy and SciPy.|
+|[joblib](https://joblib.readthedocs.io/)|A set of tools to provide lightweight pipelining in Python. It is particularly useful for running tasks in parallel and for caching the results of function calls. In this project, joblib is used to speed up the processing time by parallelizing the prediction process.|
+|[matplotlib](https://matplotlib.org/)|A plotting library for creating static, animated, and interactive visualizations in Python.|
+|[pyqt5](https://www.riverbankcomputing.com/static/Docs/PyQt5/)|Used to create the GUI of this software. It is a set of Python bindings for Nokia's Qt application framework and runs on all platforms supported by Qt including Windows, OS X, Linux, iOS and Android.|
 
 ## Table of Contents
 
 - [Satellite Derived Bathymetry (SDB) GUI](#satellite-derived-bathymetry-sdb-gui)
   - [Preface](#preface)
-  - [Workflow](#workflow)
   - [Table of Contents](#table-of-contents)
+  - [Workflow](#workflow)
   - [1. Setup and Preparation](#1-setup-and-preparation)
     - [a. Download executable file or source code](#a-download-executable-file-or-source-code)
     - [b. Python and packages installation](#b-python-and-packages-installation)
@@ -48,38 +43,39 @@ Image below is the workflow of predicting bathymetric depth using SDB GUI if you
     - [c. Generate depth prediction](#c-generate-depth-prediction)
     - [d. Save depth prediction into file](#d-save-depth-prediction-into-file)
   - [3. Notebook](#3-notebook)
+  - [Known Issues](#known-issues)
   - [Help and Support](#help-and-support)
+  - [Citation](#citation)
   - [Releases](#releases)
   - [License](#license)
-  - [Citation](#citation)
+
+## Workflow
+
+Image below is the workflow of predicting bathymetric depth using SDB GUI if you're running the latest [release](https://github.com/rifqiharrys/sdb_gui/releases) and the latest source code or release version 3 and up.
+
+![workflow](./docs/fig/workflow_sdb_gui.png "Workflow")
 
 ## 1. Setup and Preparation
 
 ### a. Download executable file or source code
 
-You can download the latest [release](https://github.com/rifqiharrys/sdb_gui/releases) or the latest source code from [sdb_gui](https://github.com/rifqiharrys/sdb_gui). If you are using the executable version, you can skip the python and packages installation steps and head to [Data Preparation](#c-data-preparation).
+You can download the latest [release](https://github.com/rifqiharrys/sdb_gui/releases) or clone the latest source code from [sdb_gui](https://github.com/rifqiharrys/sdb_gui). If you are using the executable version, you can skip the python and packages installation steps and head to [Data Preparation](#c-data-preparation).
 
 ### b. Python and packages installation
 
-If you're downloading the source code, you need to have the packages from the table listed above installed. You can use `environment.yaml` file to help create new environment and install the library dependancies easily using `conda` or `mamba`. To use `conda` or `mamba`, you can use [Miniconda](https://docs.anaconda.com/miniconda/) or [Miniforge](https://github.com/conda-forge/miniforge). After one of them is installed, move to the root folder of the sdb_gui repo and run
+If you're downloading the source code, you need to have the packages from the table listed above installed. You can use `environment.yaml` file to help create new environment and install the library dependancies easily using `conda` or `mamba`. To use `conda` or `mamba`, you can use [Miniconda](https://docs.anaconda.com/miniconda/) or [Miniforge](https://github.com/conda-forge/miniforge). After one of them is installed, move to the root folder of the sdb_gui repo and run the command below.
 
 ```bash
 conda env create -f environment.yaml
 ```
 
-to use `conda` or run
+Or, if you prefer to use mamba. Replace `conda` with `mamba` from the same command line above. If you prefer using a python virtual environment or venv, you can install the dependancies using `requirements.txt` by running command below.
 
 ```bash
-mamba env create -f environment.yaml
+pip install -r requirements.txt
 ```
 
-to use `mamba`.
-
-When it's done, a new environment called `sdb-gui` will be available and you can call or activate it using
-
-```bash
-conda activate sdb-gui
-```
+> Please note that using `conda` or `mamba` is highly recommended and preferred to avoid any issues, unless you know what you're doing.
 
 ### c. Data preparation
 
@@ -126,11 +122,22 @@ After depth prediction was generated, you can save it into a Geotiff or XYZ file
 
 To have a better understanding about the new SDB processing workflow in SDB GUI project, you could read the [Jupyter Notebook](./docs/) in this repository. There are two notebooks in this repository, which are `sdb-how-to-xarray-workflow.ipynb` and `sdb-module-how-to.ipynb`. Both notebooks contain a simple SDB processing workflow without GUI using Random Forest Regression.  The workflow of the first notebook might be a bit different from the recent SDB GUI, the basic idea is the same and this notebook is a prototype to the recent update (v4) of SDB GUI. The second notebook contain SDB processing using SDB module.
 
+## Known Issues
+
+Some issues that might occur based on user reports and personal testing are:
+
+- incorrect depth data header selection
+- incorrect selection of depth direction
+
+SDB GUI might close unexpectedly due to issues above or other issues. The error messages might logged in `sdb_gui_error.log` or only shown in the terminal because exceptions are not handled properly. If you're running it using the excecutable version, it might help to run it using terminal to prevent the console from closing immediately after an error occurs.
+
 ## Help and Support
 
-If you have any questions, issues, or suggestions, please open an issue or a discussion in this repository or contact me via email at [@rifqiharrys](mailto:rifqi.m.h@gmail.com) or what is displayed in my [GitHub profile](https://github.com/rifqiharrys/).
+If you have any questions, issues, or suggestions, please open an issue or a discussion in this repository or contact me via email at [@rifqi.m.h](mailto:rifqi.m.h@gmail.com), [@rifqiharrys](mailto:rifqiharrys@proton.me) or what is displayed in my [GitHub profile](https://github.com/rifqiharrys/).
 
-If you find this project useful, please consider giving a star to this repository. It will help me to keep this project alive and improve it in the future.
+## Citation
+
+Please cite this project if you find this useful for your work or research using the metadata in the [CITATION](./CITATION.cff) file.
 
 ## Releases
 
@@ -139,7 +146,3 @@ See [RELEASES](https://github.com/rifqiharrys/sdb_gui/releases)
 ## License
 
 See [LICENSE](./LICENSE)
-
-## Citation
-
-See [DOI](https://zenodo.org/doi/10.5281/zenodo.8220196)

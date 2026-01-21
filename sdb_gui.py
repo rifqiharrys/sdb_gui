@@ -1,28 +1,3 @@
-"""
-MIT License
-
-Copyright (c) 2020-present Rifqi Muhammad Harrys
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-"""
-
 import datetime
 import logging
 import pprint
@@ -627,7 +602,7 @@ class SDBWidget(QWidget):
             else:
                 raw = sample_raw.copy()
 
-                if self.showCheckBox.isChecked() == True:
+                if self.showCheckBox.isChecked():
                     data = raw
                 else:
                     data = raw.head(100)
@@ -1007,13 +982,13 @@ class SDBWidget(QWidget):
         Counting runtimes using saved time values and printing result info.
         """
 
-        if EVALUATION_TYPES[proc_op_dict['current_eval']] == True:
+        if EVALUATION_TYPES[proc_op_dict['current_eval']]:
             print_eval_type = (
                 'Evaluated using predicted values that was generated from '
                 'recalculation of depth prediction using the existing model'
                 ' and test data'
             )
-        elif EVALUATION_TYPES[proc_op_dict['current_eval']] == False:
+        elif not EVALUATION_TYPES[proc_op_dict['current_eval']]:
             print_eval_type = (
                 'Evaluated using predicted values that was generated from '
                 'point samples of the existing predicted values'
@@ -1048,7 +1023,7 @@ class SDBWidget(QWidget):
             end_results['train'].shape[0] + end_results['test'].shape[0]
         )
 
-        if self.limitCheckBox.isChecked() == False:
+        if not self.limitCheckBox.isChecked():
             print_limit = (
                 f'Depth Limit:\t\tfrom {self.limitADSB.value():.1f} m '
                 f'to {self.limitBDSB.value():.1f} m'
@@ -1390,7 +1365,7 @@ class SDBWidget(QWidget):
         try:
             daz_filtered = end_results['daz_predict'].copy()
 
-            if self.medianFilterCheckBox.isChecked() == False:
+            if not self.medianFilterCheckBox.isChecked():
                 print_filter_info = (
                     f'Median Filter Size:\t{self.medianFilterSB.value()}'
                 )
@@ -1422,7 +1397,7 @@ class SDBWidget(QWidget):
                 raise ValueError('empty save location')
 
             save_loc = Path(self.savelocList.toPlainText())
-            if self.saveDEMCheckBox.isChecked() == True:
+            if self.saveDEMCheckBox.isChecked():
                 sdb.write_geotiff(
                     daz_filtered,
                     save_loc
@@ -1437,12 +1412,12 @@ class SDBWidget(QWidget):
                     f'DEM with the size of {new_img_size} B has been saved'
                 )
                 logger.debug(f'DEM location: {save_loc}')
-            elif self.saveDEMCheckBox.isChecked() == False:
+            elif not self.saveDEMCheckBox.isChecked():
                 print_dem_info = (
                     'DEM Output:\t\tNot Saved\n'
                 )
 
-            if self.trainTestDataCheckBox.isChecked() == True:
+            if self.trainTestDataCheckBox.isChecked():
                 print_train_test_info = self.trainTestSave(
                     train_data=train_df_copy,
                     test_data=test_df_copy,
@@ -1456,12 +1431,12 @@ class SDBWidget(QWidget):
                         self.trainTestFormatCB.currentText()
                     } format has been saved'
                 )
-            elif self.trainTestDataCheckBox.isChecked() == False:
+            elif not self.trainTestDataCheckBox.isChecked():
                 print_train_test_info = (
                     'Train dna Test Data Output:\tNot Saved\n'
                 )
 
-            if self.scatterPlotCheckBox.isChecked() == True:
+            if self.scatterPlotCheckBox.isChecked():
                 scatter_plot_loc = Path(save_loc).with_name(
                     f'{Path(save_loc).stem}_scatter_plot.png'
                 )
@@ -1478,16 +1453,16 @@ class SDBWidget(QWidget):
                     f'Scatter Plot:\t{scatter_plot_loc} '
                     f'({round(scatter_plot_size / 2**10, 2)} KiB)\n'
                 )
-                logger.info(f'scatter plot has been saved')
+                logger.info('scatter plot has been saved')
                 logger.debug(f'scatter plot location: {scatter_plot_loc}')
-            elif self.scatterPlotCheckBox.isChecked() == False:
+            elif not self.scatterPlotCheckBox.isChecked():
                 print_scatter_plot_info = 'Scatter Plot:\t\tNotSaved\n'
 
             self.resultText.append(print_dem_info)
             self.resultText.append(print_train_test_info)
             self.resultText.append(print_scatter_plot_info)
 
-            if self.reportCheckBox.isChecked() == True:
+            if self.reportCheckBox.isChecked():
                 report_save_loc = Path(save_loc).with_name(
                     f'{Path(save_loc).stem}_report.txt'
                 )
@@ -1788,7 +1763,7 @@ class Process(QThread):
                 f'{to_title(key)}:\t\t{value}\n'
             )
 
-        if EVALUATION_TYPES[self.eval_type] == True:
+        if EVALUATION_TYPES[self.eval_type]:
             logger.debug('recalculate prediction using test data')
             f_test = results['f_test'].drop(columns=['x', 'y'])
         else:
@@ -1852,7 +1827,7 @@ class Process(QThread):
                 band_name=('band', ['original'])
             )
 
-            if EVALUATION_TYPES[self.eval_type] == False:
+            if not EVALUATION_TYPES[self.eval_type]:
                 logger.debug('sampling prediction based on test data coordinates')
                 dfz_predict = sdb.point_sampling(
                     daz_predict,
@@ -2050,7 +2025,8 @@ def resource_path(relative_path):
         # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS # type: ignore
     except Exception:
-        base_path = Path.cwd()
+        # Use the script's directory, not the current working directory
+        base_path = Path(__file__).parent.resolve()
     return str(Path(base_path) / relative_path)
 
 

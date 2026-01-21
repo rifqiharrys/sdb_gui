@@ -1,0 +1,30 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: SDB GUI
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Rifqi Muhammad
+    family-names: Harrys
+    email: rifqiharrys@proton.me
+    orcid: 'https://orcid.org/0009-0000-8254-2492'
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.8220196
+  - type: url
+    value: 'https://zenodo.org/doi/10.5281/zenodo.8220196'
+repository-code: 'https://github.com/rifqiharrys/sdb_gui'
+abstract: >-
+  Python based GUI for Satellite Derived Bathymetry
+  processing.
+keywords:
+  - Satellite Derived Bathymetry
+  - SDB
+  - shallow water depth prediction
+  - satellite depth prediction
+license: MIT
+version: 4.1.0
