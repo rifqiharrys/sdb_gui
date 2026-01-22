@@ -404,8 +404,16 @@ class SDBWidget(QWidget):
         )
 
         if fname[0]:
-            text_browser.setText(fname[0])
-            self.dir_path = Path(fname[0]).parent
+            selected_path = Path(fname[0])
+
+            # For save dialogs, ensure the extension matches the selected filter
+            if 'Save' in window_text and file_type in DEM_FORMATS:
+                extension = self._getDEMExtension(file_type)
+                if selected_path.suffix.lower() != extension.lower():
+                    selected_path = selected_path.with_suffix(extension)
+
+            text_browser.setText(str(selected_path))
+            self.dir_path = selected_path.parent
             self.settings.setValue('last_directory', self.dir_path)
 
 
@@ -1397,6 +1405,7 @@ class SDBWidget(QWidget):
                 raise ValueError('empty save location')
 
             save_loc = Path(self.savelocList.toPlainText())
+
             if self.saveDEMCheckBox.isChecked():
                 sdb.write_geotiff(
                     daz_filtered,
@@ -1570,6 +1579,16 @@ class SDBWidget(QWidget):
             logger.debug(f'train & test data location: {merge_data_loc}')
 
         return print_info
+
+
+    def _getDEMExtension(self, text: str) -> str:
+        """
+        Get file extension from filetype text
+        """
+        match = re.search(r'\(\*(\.\w+)\)', text)
+        if match:
+            return match.group(1)
+        raise ValueError(f'Could not extract extension from: {text}')
 
 
     def licensesDialog(self):
