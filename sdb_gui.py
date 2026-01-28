@@ -20,6 +20,7 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDialog,
                              QWidget)
 
 import sdb
+from sdb.gui_utils import acronym, str2bool, to_title
 
 ## CONSTANTS ##
 SDB_GUI_VERSION: str = '4.1.0'
@@ -356,14 +357,6 @@ class SDBWidget(QWidget):
             )
             complete.setWindowModality(Qt.ApplicationModal)
             complete.exec_()
-
-
-    def str2bool(self, v: str) -> bool:
-        """
-        Transform string True or False to boolean type
-        """
-
-        return v in ('True')
 
 
     def fileDialog(
@@ -714,7 +707,7 @@ class SDBWidget(QWidget):
 
         for param, widget in self.option_widgets.items():
             if isinstance(widget, QComboBox):
-                value = (self.str2bool(widget.currentText()) 
+                value = (str2bool(widget.currentText())
                         if widget.currentText() in ('True', 'False')
                         else widget.currentText())
             else:
@@ -2044,25 +2037,6 @@ def resource_path(relative_path):
         # Use the script's directory, not the current working directory
         base_path = Path(__file__).parent.resolve()
     return str(Path(base_path) / relative_path)
-
-
-def acronym(phrase: str) -> str:
-    """
-    Generate an acronym from a phrase by taking the first letter of each word
-    and converting it to uppercase.
-    """
-
-    words = re.split(r'[\s\-]+', phrase)
-    return ''.join(word[0].upper() for word in words if word and word[0].isalpha())
-
-
-def to_title(phrase: str) -> str:
-    """
-    Convert a variable like phrase to a title case string.
-    Change underscores to spaces and capitalize the first letter of each word.
-    """
-
-    return phrase.replace('_', ' ').title()
 
 
 def get_log_level() -> int:
