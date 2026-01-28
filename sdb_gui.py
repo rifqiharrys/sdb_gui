@@ -65,7 +65,7 @@ class SDBWidget(QWidget):
         super(SDBWidget, self).__init__()
 
         self.settings = QSettings('SDB', 'SDB GUI')
-        self.assignSettings()
+        self._assignSettings()
         logger.debug(
             f'initial options: \n{pprint.pformat(option_pool, width=200)}'
         )
@@ -177,12 +177,12 @@ class SDBWidget(QWidget):
 
         self.optionsButton = QPushButton('Method Options')
         self.optionsButton.clicked.connect(
-            lambda: self.methodOptionWindow()
+            lambda: self._methodOptionWindow()
         )
         grid3.addWidget(self.optionsButton, row_grid3, 3, 1, 1)
 
         processingOptionsButton = QPushButton('Processing Options')
-        processingOptionsButton.clicked.connect(self.processingOptionWindow)
+        processingOptionsButton.clicked.connect(self._processingOptionWindow)
         grid3.addWidget(processingOptionsButton, row_grid3, 4, 1, 1)
 
         mainLayout.addLayout(grid3)
@@ -190,7 +190,7 @@ class SDBWidget(QWidget):
         grid4 = QGridLayout()
         row_grid4 = 1
         makePredictionButton = QPushButton('Generate Prediction')
-        makePredictionButton.clicked.connect(self.predict)
+        makePredictionButton.clicked.connect(self._predict)
         grid4.addWidget(makePredictionButton, row_grid4, 1, 1, 2)
 
         resetSettingsButton = QPushButton('Reset Settings')
@@ -199,11 +199,11 @@ class SDBWidget(QWidget):
 
         row_grid4 += 1
         stopProcessingButton = QPushButton('Stop Processing')
-        stopProcessingButton.clicked.connect(self.stopProcess)
+        stopProcessingButton.clicked.connect(self._stopProcess)
         grid4.addWidget(stopProcessingButton, row_grid4, 1, 1, 2)
 
         saveFileButton = QPushButton('Save Into File')
-        saveFileButton.clicked.connect(self.saveOptionWindow)
+        saveFileButton.clicked.connect(self._saveOptionWindow)
         grid4.addWidget(saveFileButton, row_grid4, 3, 1, 2)
 
         row_grid4 += 1
@@ -275,7 +275,7 @@ class SDBWidget(QWidget):
             return default_values()
 
 
-    def assignSettings(self) -> None:
+    def _assignSettings(self) -> None:
         """
         Assign loaded settings to global variables
         """
@@ -333,7 +333,7 @@ class SDBWidget(QWidget):
 
         if reply == QMessageBox.Yes:
             self.settings.clear()
-            self.assignSettings()
+            self._assignSettings()
 
             self.depthDirectionCB.setCurrentText(main_set['direction'])
             self.limitCheckBox.setChecked(main_set['depth_limit']['disable'])
@@ -444,7 +444,7 @@ class SDBWidget(QWidget):
 
         row += 10
         loadButton = QPushButton('Load')
-        loadButton.clicked.connect(self.loadImageAction)
+        loadButton.clicked.connect(self._loadImageAction)
         loadButton.clicked.connect(self.loadImageDialog.close)
         grid.addWidget(loadButton, 15, 3, 1, 1)
 
@@ -457,7 +457,7 @@ class SDBWidget(QWidget):
         self.loadImageDialog.exec_()
 
 
-    def loadImageAction(self):
+    def _loadImageAction(self):
         """
         Loading selected image and retrieve some metadata such as file size,
         band quantity, array size, pixel size, etc. Then, recreate image 3D
@@ -488,7 +488,7 @@ class SDBWidget(QWidget):
         except ValueError as e:
             if 'empty file path' in str(e):
                 self.loadImageDialog.close()
-                self.warningWithClear(
+                self._warningWithClear(
                     'No data loaded. Please load your data!'
                 )
                 self.loadImageWindow()
@@ -532,7 +532,7 @@ class SDBWidget(QWidget):
         grid.addWidget(self.showCheckBox, row, 1, 1, 2)
 
         loadButton = QPushButton('Load')
-        loadButton.clicked.connect(self.loadSampleAction)
+        loadButton.clicked.connect(self._loadSampleAction)
         loadButton.clicked.connect(self.loadSampleDialog.close)
         grid.addWidget(loadButton, row, 3, 1, 1)
 
@@ -545,7 +545,7 @@ class SDBWidget(QWidget):
         self.loadSampleDialog.exec_()
 
 
-    def loadSampleAction(self):
+    def _loadSampleAction(self):
         """
         Loading selected sample and retrieve file size.
         Then, some or all data on selected sample to the widget.
@@ -596,7 +596,7 @@ class SDBWidget(QWidget):
                 self.table.clearContents()
 
                 self.loadSampleDialog.close()
-                self.warningWithoutClear(
+                self._warningWithoutClear(
                     'Your data is not Point type. Please load another data!'
                 )
                 self.loadSampleWindow()
@@ -635,13 +635,13 @@ class SDBWidget(QWidget):
         except ValueError as e:
             if 'empty file path' in str(e):
                 self.loadSampleDialog.close()
-                self.warningWithClear(
+                self._warningWithClear(
                     'No data loaded. Please load your data!'
                 )
                 self.loadSampleWindow()
 
 
-    def methodOptionWindow(self):
+    def _methodOptionWindow(self):
         """
         Generic method option window
         """
@@ -686,7 +686,7 @@ class SDBWidget(QWidget):
             row += 1
 
         loadButton = QPushButton('Load')
-        loadButton.clicked.connect(self.loadMethodOptionAction)
+        loadButton.clicked.connect(self._loadMethodOptionAction)
         loadButton.clicked.connect(optionDialog.close)
         grid.addWidget(loadButton, row, 3, 1, 1)
 
@@ -698,7 +698,7 @@ class SDBWidget(QWidget):
         optionDialog.exec_()
 
 
-    def loadMethodOptionAction(self) -> None:
+    def _loadMethodOptionAction(self) -> None:
         """
         Update settings for any method and save them
         """
@@ -719,7 +719,7 @@ class SDBWidget(QWidget):
         self.saveSettings()
 
 
-    def processingOptionWindow(self):
+    def _processingOptionWindow(self):
         """
         Processing option User Interface
         """
@@ -767,19 +767,19 @@ class SDBWidget(QWidget):
         selection_list = list(proc_op_dict['selection'].keys())
         self.trainSelectCB.addItems(selection_list)
         self.trainSelectCB.setCurrentText(proc_op_dict['current_selection'])
-        self.trainSelectCB.currentTextChanged.connect(self.updateTrainSelection)
+        self.trainSelectCB.currentTextChanged.connect(self._updateTrainSelection)
         grid.addWidget(self.trainSelectCB, row, 3, 1, 2)
 
         row += 1
         self.dynamicContainer = QWidget()
         self.dynamicLayout = QGridLayout()
         self.dynamicContainer.setLayout(self.dynamicLayout)
-        self.updateTrainSelection(self.trainSelectCB.currentText())
+        self._updateTrainSelection(self.trainSelectCB.currentText())
         grid.addWidget(self.dynamicContainer, row, 1, 1, 4)
 
         row += 1
         loadButton = QPushButton('Load')
-        loadButton.clicked.connect(self.loadProcessingOptionAction)
+        loadButton.clicked.connect(self._loadProcessingOptionAction)
         loadButton.clicked.connect(self.processingOptionDialog.close)
         grid.addWidget(loadButton, row, 3, 1, 1)
 
@@ -792,17 +792,17 @@ class SDBWidget(QWidget):
         self.processingOptionDialog.exec_()
 
 
-    def loadProcessingOptionAction(self):
+    def _loadProcessingOptionAction(self):
         """
         Loading defined processing option input
         """
 
         if self.njobsSB.value() == 0:
             self.processingOptionDialog.close()
-            self.warningWithoutClear(
+            self._warningWithoutClear(
                 'Do not insert zero on Processing Cores!'
             )
-            self.processingOptionWindow()
+            self._processingOptionWindow()
             return
 
         proc_op_dict['backend'] = self.backendCB.currentText()
@@ -826,7 +826,7 @@ class SDBWidget(QWidget):
         self.saveSettings()
 
 
-    def updateTrainSelection(self, selection: str) -> None:
+    def _updateTrainSelection(self, selection: str) -> None:
         """
         Update dynamic UI based on train selection type
         """
@@ -863,7 +863,7 @@ class SDBWidget(QWidget):
                     if param == 'header':
                         object_only = sample_raw.select_dtypes(include=['object'])
                         widget.addItems(object_only.columns)
-                        widget.activated.connect(self.updateGroupSelection)
+                        widget.activated.connect(self._updateGroupSelection)
                         if value:
                             widget.setCurrentText(value)
                             header = self.currentSelection['parameters']['header']
@@ -883,12 +883,12 @@ class SDBWidget(QWidget):
                 row += 1
         except NameError:
             self.trainSelectCB.setCurrentText(SELECTION_TYPES['RANDOM'])
-            self.warningWithClear(
+            self._warningWithClear(
                 'No depth sample loaded. Please load your depth sample!'
             )
 
 
-    def updateGroupSelection(self):
+    def _updateGroupSelection(self):
         """
         Update list in group selection when header selection changes
         """
@@ -916,7 +916,7 @@ class SDBWidget(QWidget):
             logger.error(f'failed to update groups: {e}')
 
 
-    def predict(self):
+    def _predict(self):
         """
         Sending parameters and inputs from widget to Process Class
         """
@@ -949,20 +949,20 @@ class SDBWidget(QWidget):
                 self.widget_signal.connect(self.sdbProcess.inputs)
                 self.widget_signal.emit(init_input)
                 self.sdbProcess.start()
-                self.sdbProcess.time_signal.connect(self.timeCounting)
-                self.sdbProcess.thread_signal.connect(self.results)
-                self.sdbProcess.warning_with_clear.connect(self.warningWithClear)
+                self.sdbProcess.time_signal.connect(self._timeCounting)
+                self.sdbProcess.thread_signal.connect(self._results)
+                self.sdbProcess.warning_with_clear.connect(self._warningWithClear)
             else:
-                self.warningWithClear(
+                self._warningWithClear(
                     'Please select headers correctly!'
                 )
         except NameError:
-            self.warningWithClear(
+            self._warningWithClear(
                 'No depth sample loaded. Please load your depth sample!'
             )
 
 
-    def timeCounting(self, time_text: List[Union[datetime.datetime, str]]) -> None:
+    def _timeCounting(self, time_text: List[Union[datetime.datetime, str]]) -> None:
         """
         Receive time value on every step and its corresponding processing
         text to show in result text browser and increase progress bar.
@@ -973,10 +973,10 @@ class SDBWidget(QWidget):
         self.progressBar.setValue(self.progressBar.value() + 1)
 
         if self.progressBar.value() == self.progressBar.maximum():
-            self.completeDialog()
+            self._completeDialog()
 
 
-    def results(self, result_dict: Dict[str, Any]) -> None:
+    def _results(self, result_dict: Dict[str, Any]) -> None:
         """
         Recieve processing results and filter the predicted value to depth
         limit window (if enabled).
@@ -1084,7 +1084,7 @@ class SDBWidget(QWidget):
         self.resultText.setText(print_result_info)
 
 
-    def stopProcess(self):
+    def _stopProcess(self):
         """
         Stop processing and clear result info and progress bar
         """
@@ -1097,7 +1097,7 @@ class SDBWidget(QWidget):
             self.resultText.setText('Processing has been stopped!')
 
 
-    def copyLogFile(self):
+    def _copyLogFile(self):
         """
         Copy the original log file to the save location
         """
@@ -1128,11 +1128,11 @@ class SDBWidget(QWidget):
             self.sdbProcess.stop()
             self.sdbProcess.wait()
 
-        self.copyLogFile()
+        self._copyLogFile()
         event.accept()
 
 
-    def warningWithClear(self, warning_text):
+    def _warningWithClear(self, warning_text):
         """
         Show warning dialog and customized warning text
         and then clear result info and progress bar after closing
@@ -1151,7 +1151,7 @@ class SDBWidget(QWidget):
         self.progressBar.setValue(0)
 
 
-    def warningWithoutClear(self, warning_text):
+    def _warningWithoutClear(self, warning_text):
         """
         Show warning dialog and customized warning text
         without clearing result info and progress bar after closing
@@ -1168,7 +1168,7 @@ class SDBWidget(QWidget):
         warning.exec_()
 
 
-    def completeDialog(self):
+    def _completeDialog(self):
         """
         Showing complete pop up dialog
         """
@@ -1195,7 +1195,7 @@ class SDBWidget(QWidget):
         complete.exec_()
 
 
-    def saveOptionWindow(self):
+    def _saveOptionWindow(self):
         """
         Saving option window
         """
@@ -1341,7 +1341,7 @@ class SDBWidget(QWidget):
         grid.addWidget(self.reportCheckBox, row, 2, 1, 1)
 
         saveButton = QPushButton('Save')
-        saveButton.clicked.connect(self.saveAction)
+        saveButton.clicked.connect(self._saveAction)
         saveButton.clicked.connect(self.saveOptionDialog.close)
         grid.addWidget(saveButton, row, 3, 1, 1)
 
@@ -1354,7 +1354,7 @@ class SDBWidget(QWidget):
         self.saveOptionDialog.exec_()
 
 
-    def saveAction(self):
+    def _saveAction(self):
         """
         Saving predicted depth, training and testing data, and/or report into file.
         Applying median filter (or not) to the predicted depth array before saving.
@@ -1417,7 +1417,7 @@ class SDBWidget(QWidget):
                 )
 
             if self.trainTestDataCheckBox.isChecked():
-                print_train_test_info = self.trainTestSave(
+                print_train_test_info = self._trainTestSave(
                     train_data=train_df_copy,
                     test_data=test_df_copy,
                     save_location=save_loc,
@@ -1478,19 +1478,19 @@ class SDBWidget(QWidget):
         except ValueError as e:
             if 'Allowed value: >= 3 or odd numbers' in str(e):
                 self.saveOptionDialog.close()
-                self.warningWithoutClear(
+                self._warningWithoutClear(
                     'Please insert odd number on filter size!'
                 )
-                self.saveOptionWindow()
+                self._saveOptionWindow()
             elif 'empty save location' in str(e):
                 self.saveOptionDialog.close()
-                self.warningWithoutClear(
+                self._warningWithoutClear(
                     'Please insert save location!'
                 )
-                self.saveOptionWindow()
+                self._saveOptionWindow()
 
 
-    def trainTestSave(
+    def _trainTestSave(
         self,
         train_data: pd.DataFrame,
         test_data: pd.DataFrame,
@@ -1608,7 +1608,7 @@ class SDBWidget(QWidget):
         licenseCB = QComboBox()
         licenseCB.addItems(list(license_dict))
         licenseCB.activated.connect(
-            lambda: self.licenseSelection(
+            lambda: self._licenseSelection(
                 location=license_dict[licenseCB.currentText()]
             )
         )
@@ -1628,7 +1628,7 @@ class SDBWidget(QWidget):
         licenses.exec_()
 
 
-    def licenseSelection(self, location):
+    def _licenseSelection(self, location):
         """
         Selecting license file location
         """
