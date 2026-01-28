@@ -48,6 +48,26 @@ TRAIN_TEST_SAVE: Dict[str, bool] = {
     '.shp': True,
     '.gpkg': False,
 }
+FILES: Dict[str, Dict[str, str]] = {
+    'icons': {
+        'main': 'icons/satellite.png',
+        'load': 'icons/load-pngrepo-com.png',
+        'setting': 'icons/setting-tool-pngrepo-com.png',
+        'warning': 'icons/warning-pngrepo-com.png',
+        'info': 'icons/information-pngrepo-com.png',
+        'complete':'icons/complete-pngrepo-com.png',
+    },
+    'licenses': {
+        'SDB GUI': 'LICENSE',
+        'NumPy': 'licenses/numpy_license',
+        'Scipy': 'licenses/scipy_license',
+        'Pandas': 'licenses/pandas_license',
+        'Xarray': 'licenses/xarray_license',
+        'Rioxarray': 'licenses/rioxarray_license',
+        'GeoPandas': 'licenses/geopandas_license',
+        'Scikit Learn': 'licenses/scikit-learn_license',
+    }
+}
 
 
 class SDBWidget(QWidget):
@@ -81,7 +101,7 @@ class SDBWidget(QWidget):
 
         self.setGeometry(300, 100, 480, 640)
         self.setWindowTitle(f'Satellite Derived Bathymetry v{SDB_GUI_VERSION}')
-        self.setWindowIcon(QIcon(resource_path('icons/satellite.png')))
+        self.setWindowIcon(QIcon(resource_path(FILES['icons']['main'])))
 
         mainLayout = QVBoxLayout()
 
@@ -326,7 +346,7 @@ class SDBWidget(QWidget):
         resetWindow.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         resetWindow.setDefaultButton(QMessageBox.No)
         resetWindow.setWindowIcon(
-            QIcon(resource_path('icons/warning-pngrepo-com.png'))
+            QIcon(resource_path(FILES['icons']['warning']))
         )
 
         reply = resetWindow.exec_()
@@ -353,7 +373,7 @@ class SDBWidget(QWidget):
             complete.setWindowTitle('Settings Reset')
             complete.setText('All settings have been reset to default values.')
             complete.setWindowIcon(
-                QIcon(resource_path('icons/complete-pngrepo-com.png'))
+                QIcon(resource_path(FILES['icons']['complete']))
             )
             complete.setWindowModality(Qt.ApplicationModal)
             complete.exec_()
@@ -418,7 +438,7 @@ class SDBWidget(QWidget):
         self.loadImageDialog = QDialog()
         self.loadImageDialog.setWindowTitle('Load Image')
         self.loadImageDialog.setWindowIcon(
-            QIcon(resource_path('icons/load-pngrepo-com.png'))
+            QIcon(resource_path(FILES['icons']['load']))
         )
 
         grid = QGridLayout()
@@ -502,7 +522,7 @@ class SDBWidget(QWidget):
         self.loadSampleDialog = QDialog()
         self.loadSampleDialog.setWindowTitle('Load Sample')
         self.loadSampleDialog.setWindowIcon(
-            QIcon(resource_path('icons/load-pngrepo-com.png'))
+            QIcon(resource_path(FILES['icons']['load']))
         )
 
         grid = QGridLayout()
@@ -652,7 +672,7 @@ class SDBWidget(QWidget):
         optionDialog = QDialog()
         optionDialog.setWindowTitle(f'Options ({acronym(method)})')
         optionDialog.setWindowIcon(
-            QIcon(resource_path('icons/setting-tool-pngrepo-com.png'))
+            QIcon(resource_path(FILES['icons']['setting']))
         )
 
         grid = QGridLayout()
@@ -727,7 +747,7 @@ class SDBWidget(QWidget):
         self.processingOptionDialog = QDialog()
         self.processingOptionDialog.setWindowTitle('Processing Options')
         self.processingOptionDialog.setWindowIcon(
-            QIcon(resource_path('icons/setting-tool-pngrepo-com.png'))
+            QIcon(resource_path(FILES['icons']['setting']))
         )
 
         grid = QGridLayout()
@@ -1141,7 +1161,7 @@ class SDBWidget(QWidget):
         warning = QErrorMessage()
         warning.setWindowTitle('WARNING')
         warning.setWindowIcon(
-            QIcon(resource_path('icons/warning-pngrepo-com.png'))
+            QIcon(resource_path(FILES['icons']['warning']))
         )
         warning.setWindowModality(Qt.ApplicationModal)
         warning.showMessage(warning_text)
@@ -1160,7 +1180,7 @@ class SDBWidget(QWidget):
         warning = QErrorMessage()
         warning.setWindowTitle('WARNING')
         warning.setWindowIcon(
-            QIcon(resource_path('icons/warning-pngrepo-com.png'))
+            QIcon(resource_path(FILES['icons']['warning']))
         )
         warning.setWindowModality(Qt.ApplicationModal)
         warning.showMessage(warning_text)
@@ -1176,7 +1196,7 @@ class SDBWidget(QWidget):
         complete = QDialog()
         complete.setWindowTitle('Complete')
         complete.setWindowIcon(
-            QIcon(resource_path('icons/complete-pngrepo-com.png'))
+            QIcon(resource_path(FILES['icons']['complete']))
         )
         complete.setWindowModality(Qt.ApplicationModal)
         complete.resize(180,30)
@@ -1203,7 +1223,7 @@ class SDBWidget(QWidget):
         self.saveOptionDialog = QDialog()
         self.saveOptionDialog.setWindowTitle('Save Options')
         self.saveOptionDialog.setWindowIcon(
-            QIcon(resource_path('icons/load-pngrepo-com.png'))
+            QIcon(resource_path(FILES['icons']['load']))
         )
 
         def dialogCloseEvent(event):
@@ -1589,20 +1609,11 @@ class SDBWidget(QWidget):
         licenses = QDialog()
         licenses.setWindowTitle('Licenses')
         licenses.setWindowIcon(
-            QIcon(resource_path('icons/information-pngrepo-com.png'))
+            QIcon(resource_path(FILES['icons']['info']))
         )
         licenses.resize(600, 380)
 
-        license_dict = {
-            'SDB GUI': 'LICENSE',
-            'NumPy': 'licenses/numpy_license',
-            'Scipy': 'licenses/scipy_license',
-            'Pandas': 'licenses/pandas_license',
-            'Xarray': 'licenses/xarray_license',
-            'Rioxarray': 'licenses/rioxarray_license',
-            'GeoPandas': 'licenses/geopandas_license',
-            'Scikit Learn': 'licenses/scikit-learn_license'
-        }
+        license_dict = FILES['licenses']
 
         grid = QGridLayout()
         licenseCB = QComboBox()
@@ -1615,7 +1626,9 @@ class SDBWidget(QWidget):
         grid.addWidget(licenseCB, 1, 1, 1, 4)
 
         self.licenseText = QTextBrowser()
-        license_file = open(resource_path('LICENSE'), 'r')
+        license_name = licenseCB.currentText()
+        license_location = license_dict[license_name]
+        license_file = open(resource_path(license_location), 'r')
         self.licenseText.setText(license_file.read())
         grid.addWidget(self.licenseText, 2, 1, 1, 4)
 
