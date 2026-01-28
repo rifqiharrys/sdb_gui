@@ -20,55 +20,21 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDialog,
                              QWidget)
 
 import sdb
-from sdb.gui_utils import acronym, str2bool, to_title
+from sdb.gui_utils import acronym, resource_path, str2bool, to_title
+from sdb.gui_config_loader import CONSTANTS
 
 ## CONSTANTS ##
-SDB_GUI_VERSION: str = '4.1.0'
-LOG_NAME: str = 'sdb_gui.log'
-PROGRESS_STEP: int = 6
+SDB_GUI_VERSION: str = CONSTANTS['app']['version']
+LOG_NAME: str = CONSTANTS['app']['log_name']
+PROGRESS_STEP: int = CONSTANTS['progress']['step']
 DEPTH_DIRECTION: Dict[str, Tuple[str, bool]] = {
-    'Positive Up': ('up', False),
-    'Positive Down': ('down', True),
+    k: tuple(v) for k, v in CONSTANTS['depth_direction'].items()
 }
-SELECTION_TYPES: Dict[str, str] = {
-    'RANDOM': 'Random Selection',
-    'ATTRIBUTE': 'Attribute Selection'
-}
-EVALUATION_TYPES: Dict[str, bool] = {
-    'Use Current Prediction': False,
-    'Recalculate from Test Data': True,
-}
-DEM_FORMATS: List[str] = [
-    'GeoTIFF (*.tif)',
-    'ASCII Gridded XYZ (*.xyz)',
-]
-DEM_FORMATS.sort()
-TRAIN_TEST_SAVE: Dict[str, bool] = {
-    '.csv': True,
-    '.shp': True,
-    '.gpkg': False,
-}
-FILES: Dict[str, Dict[str, str]] = {
-    'icons': {
-        'main': 'icons/satellite.png',
-        'load': 'icons/load-pngrepo-com.png',
-        'setting': 'icons/setting-tool-pngrepo-com.png',
-        'warning': 'icons/warning-pngrepo-com.png',
-        'info': 'icons/information-pngrepo-com.png',
-        'complete':'icons/complete-pngrepo-com.png',
-    },
-    'licenses': {
-        'SDB GUI': 'LICENSE',
-        'NumPy': 'licenses/numpy_license',
-        'Scipy': 'licenses/scipy_license',
-        'Pandas': 'licenses/pandas_license',
-        'Xarray': 'licenses/xarray_license',
-        'Rioxarray': 'licenses/rioxarray_license',
-        'GeoPandas': 'licenses/geopandas_license',
-        'Scikit Learn': 'licenses/scikit-learn_license',
-    }
-}
-
+SELECTION_TYPES: Dict[str, str] = CONSTANTS['selection_types']
+EVALUATION_TYPES: Dict[str, bool] = CONSTANTS['evaluation_types']
+DEM_FORMATS: List[str] = sorted(CONSTANTS['dem_formats'])
+TRAIN_TEST_SAVE: Dict[str, bool] = CONSTANTS['train_test_save']
+FILES: Dict[str, Dict[str, str]] = CONSTANTS['files']
 
 class SDBWidget(QWidget):
     """
@@ -2038,18 +2004,18 @@ def default_values():
     return default_dict
 
 
-def resource_path(relative_path):
-    """
-    Get the absolute path to the resource, works for dev and for PyInstaller
-    """
+# def resource_path(relative_path):
+#     """
+#     Get the absolute path to the resource, works for dev and for PyInstaller
+#     """
 
-    try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
-        base_path = sys._MEIPASS # type: ignore
-    except Exception:
-        # Use the script's directory, not the current working directory
-        base_path = Path(__file__).parent.resolve()
-    return str(Path(base_path) / relative_path)
+#     try:
+#         # PyInstaller creates a temp folder and stores path in _MEIPASS
+#         base_path = sys._MEIPASS # type: ignore
+#     except Exception:
+#         # Use the script's directory, not the current working directory
+#         base_path = Path(__file__).parent.resolve()
+#     return str(Path(base_path) / relative_path)
 
 
 def get_log_level() -> int:
