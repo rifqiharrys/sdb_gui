@@ -1,0 +1,47 @@
+# Application Constants
+app:
+  version: '4.1.0'
+  log_name: 'sdb_gui.log'
+
+# UI Constants
+progress:
+  step: 6
+
+depth_direction:
+  'Positive Up': ['up', false]
+  'Positive Down': ['down', true]
+
+selection_types:
+  RANDOM: 'Random Selection'
+  ATTRIBUTE: 'Attribute Selection'
+
+evaluation_types:
+  'Use Current Prediction': false
+  'Recalculate from Test Data': true
+
+dem_formats:
+  - 'ASCII Gridded XYZ (*.xyz)'
+  - 'GeoTIFF (*.tif)'
+
+train_test_save:
+  '.csv': true
+  '.gpkg': false
+  '.shp': true
+
+files:
+  icons:
+    complete: 'icons/complete-pngrepo-com.png'
+    info: 'icons/information-pngrepo-com.png'
+    load: 'icons/load-pngrepo-com.png'
+    main: 'icons/satellite.png'
+    setting: 'icons/setting-tool-pngrepo-com.png'
+    warning: 'icons/warning-pngrepo-com.png'
+  licenses:
+    'SDB GUI': 'LICENSE'
+    'GeoPandas': 'licenses/geopandas_license'
+    'NumPy': 'licenses/numpy_license'
+    'Pandas': 'licenses/pandas_license'
+    'Rioxarray': 'licenses/rioxarray_license'
+    'Scikit Learn': 'licenses/scikit-learn_license'
+    'Scipy': 'licenses/scipy_license'
+    'Xarray': 'licenses/xarray_license'
