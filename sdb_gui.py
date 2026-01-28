@@ -1111,9 +1111,6 @@ class SDBWidget(QWidget):
 
         if hasattr(self, 'savelocList') and self.savelocList.toPlainText():
             try:
-                # save_path = f'{
-                #     os.path.splitext(self.savelocList.toPlainText())[0]
-                # }.log'
                 save_path = Path(
                     self.savelocList.toPlainText()
                 ).with_suffix('.log')
