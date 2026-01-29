@@ -11,10 +11,6 @@ depth_direction:
   'Positive Up': ['up', false]
   'Positive Down': ['down', true]
 
-selection_types:
-  RANDOM: 'Random Selection'
-  ATTRIBUTE: 'Attribute Selection'
-
 evaluation_types:
   'Use Current Prediction': false
   'Recalculate from Test Data': true
