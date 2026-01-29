@@ -16,5 +16,7 @@ These are the important steps:
       2. pyogrio._geometry
       3. fiona
    2. add runtime hook and select `hook-gdal.py`.
+   3. add exclude module.
+      1. PySide6
 7. Go to Settings options and specify your output directory.
 8. CONVERT .PY TO .EXE
