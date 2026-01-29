@@ -1,0 +1,76 @@
+# Default/reset values for application state
+
+main:
+  method: 'K-Nearest Neighbors'
+  direction: 'Positive Up'
+  depth_limit:
+    disable: false
+    upper: 2.0
+    lower: -15.0
+
+processing:
+  backend: 'threading'
+  backend_set:
+  - 'loky'
+  - 'threading'
+  - 'multiprocessing'
+  n_jobs: -2
+  current_eval: 'Use Current Prediction'
+  current_selection: 'Random Selection'
+  selection:
+    'Random Selection':
+      parameters:
+        train_size: 0.75
+        random_state: 0
+    'Attribute Selection':
+      parameters:
+        header: ''
+        group: ''
+
+save:
+  type: 'GeoTIFF (*.tif)'
+  direction: 'Positive Up'
+  depth_limit:
+    upper: 2.0
+    lower: -15.0
+  filter:
+    disable: false
+    size: 3
+  scatter_plot: false
+  train_test:
+    save: false
+    format: '.csv'
+  dem: true
+  report: true
+
+method:
+  'K-Nearest Neighbors':
+    model_parameters:
+      n_neighbors: 5
+      weights: 'distance'
+      algorithm: 'auto'
+      leaf_size: 30
+    weights_set:
+      - 'uniform'
+      - 'distance'
+    algorithm_set:
+      - 'auto'
+      - 'ball_tree'
+      - 'kd_tree'
+      - 'brute'
+  
+  'Multiple Linear Regression':
+    model_parameters:
+      fit_intercept: true
+      copy_X: true
+  
+  'Random Forest':
+    model_parameters:
+      n_estimators: 300
+      criterion: 'squared_error'
+      bootstrap: true
+    criterion_set:
+      - 'squared_error'
+      - 'absolute_error'
+      - 'poisson'
+      - 'friedman_mse'

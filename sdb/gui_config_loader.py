@@ -5,7 +5,7 @@ import yaml
 from .gui_utils import resource_path
 
 
-def load_constants(config_path: str = 'config/constants.yaml') -> Dict[str, Any]:
+def load_config(config_path: str) -> Dict[str, Any]:
     """
     Load GUI constants from a YAML configuration file.
     """
@@ -19,4 +19,5 @@ def load_constants(config_path: str = 'config/constants.yaml') -> Dict[str, Any]
         raise RuntimeError(f'Error parsing YAML file: {e}')
 
 
-CONSTANTS = load_constants()
+CONSTANTS = load_config('config/constants.yaml')
+DEFAULTS = load_config('config/defaults.yaml')
