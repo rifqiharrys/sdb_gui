@@ -29,7 +29,9 @@ PROGRESS_STEP: int = CONSTANTS['progress']['step']
 DEPTH_DIRECTION: Dict[str, Tuple[str, bool]] = {
     k: tuple(v) for k, v in CONSTANTS['depth_direction'].items()
 }
-SELECTION_TYPES: Dict[str, str] = CONSTANTS['selection_types']
+SELECTION_TYPES: Dict[str, str] = {
+    v['alias'].upper(): k for k, v in DEFAULTS['processing']['selection'].items()
+}
 EVALUATION_TYPES: Dict[str, bool] = CONSTANTS['evaluation_types']
 DEM_FORMATS: List[str] = sorted(CONSTANTS['dem_formats'])
 TRAIN_TEST_SAVE: Dict[str, bool] = CONSTANTS['train_test_save']
@@ -554,7 +556,7 @@ class SDBWidget(QWidget):
             sample_raw = sdb.read_shapefile(self.samplelocList.toPlainText())
 
             proc_op_dict.update({
-                'current_selection': SELECTION_TYPES['RANDOM']
+                'current_selection': DEFAULTS['processing']['current_selection']
             })
             proc_op_dict[
                 'selection'
@@ -1695,16 +1697,14 @@ class Process(QThread):
         depth_filter_list = [time_depth_filter, 'Split Train and Test...\n']
         self.time_signal.emit(depth_filter_list)
         logger.info(f'split depth sample by {self.train_select}: {self.selection}')
-        split_type = proc_op_dict['selection'][self.train_select]['alias']
         logger.debug(
-            f'splitting type: {split_type} - '
-            f'selection parameters: {self.selection}'
+            f'splitting type: {self.train_select}: {self.selection}'
         )
         f_train, f_test, z_train, z_test = sdb.split_data(
             raster=image_raw,
             vector=depth_filtered_sample,
             depth_header=self.depth_label,
-            split_type=split_type,
+            split_type=self.train_select,
             **self.selection,
         )
 
@@ -1860,10 +1860,10 @@ class Process(QThread):
             self.warning_with_clear.emit(
                 'Depth sample is out of image boundary'
             )
-        # except KeyError:
-        #     self.warning_with_clear.emit(
-        #         'Please select attribute header and group in Processing Options'
-        #     )
+        except KeyError:
+            self.warning_with_clear.emit(
+                'Please select attribute header and group in Processing Options'
+            )
 
 
     def stop(self):
