@@ -19,10 +19,12 @@ processing:
   current_selection: 'Random Selection'
   selection:
     'Random Selection':
+      alias: 'random'
       parameters:
         train_size: 0.75
         random_state: 0
     'Attribute Selection':
+      alias: 'attribute'
       parameters:
         header: ''
         group: ''
