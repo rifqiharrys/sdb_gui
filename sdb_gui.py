@@ -4,7 +4,6 @@ import pprint
 import re
 import sys
 import webbrowser
-from collections import OrderedDict
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Tuple, Union
 
@@ -21,7 +20,7 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDialog,
 
 import sdb
 from sdb.gui_utils import acronym, resource_path, str2bool, to_title
-from sdb.gui_config_loader import CONSTANTS
+from sdb.gui_config_loader import CONSTANTS, DEFAULTS
 
 ## CONSTANTS ##
 SDB_GUI_VERSION: str = CONSTANTS['app']['version']
@@ -253,12 +252,12 @@ class SDBWidget(QWidget):
                     return saved_settings
                 except KeyError as e:
                     logger.warning(f'Missing or invalid settings structure: {e}, loading defaults')
-                    return default_values()
+                    return DEFAULTS
 
-            return default_values()
+            return DEFAULTS
         except Exception as e:
             logger.error(f'Error loading settings: {e}')
-            return default_values()
+            return DEFAULTS
 
 
     def _assignSettings(self) -> None:
@@ -1883,139 +1882,6 @@ def main():
     global sdb_gui
     sdb_gui = SDBWidget()
     sdb_gui.show()
-
-
-def default_values():
-    """
-    Default values container
-    """
-
-    random_selection = {
-        'name': SELECTION_TYPES['RANDOM'],
-        'parameters': OrderedDict([
-            ('train_size', 0.75),
-            ('random_state', 0)
-        ])
-    }
-
-    attribute_selection = {
-        'name': SELECTION_TYPES['ATTRIBUTE'],
-        'parameters': OrderedDict([
-            ('header', ''),
-            ('group', '')
-        ])
-    }
-
-    proc_op_dict = {
-        'saved_depth': {
-            'upper': 2.0,
-            'lower': -15.0
-        },
-        'backend': 'threading',
-        'n_jobs': -2,
-        'current_eval': 'Use Current Prediction',
-        'selection' : OrderedDict([
-            (random_selection['name'], random_selection),
-            (attribute_selection['name'], attribute_selection)
-        ]),
-        'current_selection': random_selection['name'],
-        'backend_set': (
-            'loky', 'threading', 'multiprocessing'
-        )
-    }
-
-    knn_op_dict = {
-        'name': 'K-Nearest Neighbors',
-        'model_parameters': OrderedDict([
-            ('n_neighbors', 5),
-            ('weights', 'distance'),
-            ('algorithm', 'auto'),
-            ('leaf_size', 30)
-        ]),
-        'weights_set': (
-            'uniform', 'distance'
-        ),
-        'algorithm_set': (
-            'auto', 'ball_tree', 'kd_tree', 'brute'
-        )
-    }
-
-    mlr_op_dict = {
-        'name': 'Multiple Linear Regression',
-        'model_parameters': OrderedDict([
-            ('fit_intercept', True),
-            ('copy_X', True)
-        ])
-    }
-
-    rf_op_dict = {
-        'name': 'Random Forest',
-        'model_parameters': OrderedDict([
-            ('n_estimators', 300),
-            ('criterion', 'squared_error'),
-            ('bootstrap', True)
-        ]),
-        'criterion_set': (
-            'squared_error', 'absolute_error', 'poisson', 'friedman_mse'
-        )
-    }
-
-    main_dict = {
-        'method': knn_op_dict['name'],
-        'direction': list(DEPTH_DIRECTION.keys())[0],
-        'depth_limit': {
-            'disable': False,
-            'upper': 2.0,
-            'lower': -15.0
-        },
-    }
-
-    save_dict = {
-        'type': 'GeoTIFF (*.tif)',
-        'direction': list(DEPTH_DIRECTION.keys())[0],
-        'depth_limit': {
-            'upper': 2.0,
-            'lower': -15.0
-        },
-        'filter': {
-            'disable': False,
-            'size': 3,
-        },
-        'scatter_plot': False,
-        'train_test': {
-            'save': False,
-            'format': list(TRAIN_TEST_SAVE.keys())[0],
-        },
-        'dem': True,
-        'report': True,
-    }
-
-    default_dict = {
-        'main': main_dict,
-        'processing': proc_op_dict,
-        'method': {
-            knn_op_dict['name']: knn_op_dict,
-            mlr_op_dict['name']: mlr_op_dict,
-            rf_op_dict['name']: rf_op_dict
-        },
-        'save': save_dict
-    }
-
-    return default_dict
-
-
-# def resource_path(relative_path):
-#     """
-#     Get the absolute path to the resource, works for dev and for PyInstaller
-#     """
-
-#     try:
-#         # PyInstaller creates a temp folder and stores path in _MEIPASS
-#         base_path = sys._MEIPASS # type: ignore
-#     except Exception:
-#         # Use the script's directory, not the current working directory
-#         base_path = Path(__file__).parent.resolve()
-#     return str(Path(base_path) / relative_path)
 
 
 def get_log_level() -> int:
