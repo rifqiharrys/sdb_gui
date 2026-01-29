@@ -372,6 +372,11 @@ def split_data(
 
     split_type = split_type.lower()
 
+    if 'random' in split_type:
+        split_type = 'random'
+    elif 'attribute' in split_type:
+        split_type = 'attribute'
+
     allowed_split_type = {'random', 'attribute'}
     if split_type not in allowed_split_type:
         raise ValueError(
