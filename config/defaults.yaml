@@ -26,7 +26,7 @@ processing:
     'Attribute Selection':
       alias: 'attribute'
       parameters:
-        header: ''
+        split_header: ''
         group: ''
 
 save:

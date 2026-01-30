@@ -565,7 +565,7 @@ class SDBWidget(QWidget):
             ][
                 'parameters'
             ].update({
-                'header': '',
+                'split_header': '',
                 'group': ''
             })
 
@@ -827,11 +827,11 @@ class SDBWidget(QWidget):
                 if widget:
                     widget.setParent(None)
 
-            self.currentSelection = proc_op_dict['selection'][selection]
+            current_parameters = proc_op_dict['selection'][selection]['parameters']
             self.selection_widgets = {}
             
             row = 0
-            for param, value in self.currentSelection['parameters'].items():
+            for param, value in current_parameters.items():
                 label = QLabel(to_title(param) + ':')
                 self.dynamicLayout.addWidget(label, row, 1, 1, 2)
 
@@ -848,15 +848,15 @@ class SDBWidget(QWidget):
                     widget.setRange(0, 1000)
                     widget.setValue(value)
                     widget.setAlignment(Qt.AlignRight)
-                elif param in ('header', 'group'):
+                elif param in ('split_header', 'group'):
                     widget = QComboBox()
-                    if param == 'header':
+                    if param == 'split_header':
                         object_only = sample_raw.select_dtypes(include=['object'])
                         widget.addItems(object_only.columns)
                         widget.activated.connect(self._updateGroupSelection)
                         if value:
                             widget.setCurrentText(value)
-                            header = self.currentSelection['parameters']['header']
+                            header = current_parameters['split_header']
                         else:
                             widget.setCurrentText(widget.itemText(0))
                             header = widget.currentText()
@@ -884,7 +884,7 @@ class SDBWidget(QWidget):
         """
 
         try:
-            selected_header = self.selection_widgets['header'].currentText()
+            selected_header = self.selection_widgets['split_header'].currentText()
 
             if selected_header:
                 object_only = sample_raw.select_dtypes(include=['object'])
