@@ -25,7 +25,6 @@ from sdb.gui_config_loader import CONSTANTS, DEFAULTS
 ## CONSTANTS ##
 SDB_GUI_VERSION: str = CONSTANTS['app']['version']
 LOG_NAME: str = CONSTANTS['app']['log_name']
-DEPTH_DIRECTION: dict[str, bool] = CONSTANTS['depth_direction']
 EVALUATION_TYPES: dict[str, bool] = CONSTANTS['evaluation_types']
 DEM_FORMATS: list[str] = sorted(CONSTANTS['dem_formats'])
 TRAIN_TEST_SAVE: dict[str, bool] = CONSTANTS['train_test_save']
@@ -98,7 +97,7 @@ class SDBWidget(QWidget):
         grid1.addWidget(depthDirectionLabel, row_grid1, 3, 1, 1)
 
         self.depthDirectionCB = QComboBox()
-        direction_list = list(DEPTH_DIRECTION.keys())
+        direction_list = list(CONSTANTS['depth_direction'].keys())
         self.depthDirectionCB.addItems(direction_list)
         self.depthDirectionCB.setCurrentText(main_set['direction'])
         grid1.addWidget(self.depthDirectionCB, row_grid1, 4, 1, 1)
@@ -1231,7 +1230,7 @@ class SDBWidget(QWidget):
         grid.addWidget(depthDirectionSaveLabel, row, 1, 1, 1)
 
         self.depthDirectionSaveCB = QComboBox()
-        direction_list = list(DEPTH_DIRECTION.keys())
+        direction_list = list(CONSTANTS['depth_direction'].keys())
         self.depthDirectionSaveCB.addItems(direction_list)
         self.depthDirectionSaveCB.setCurrentText(save_set['direction'])
         grid.addWidget(self.depthDirectionSaveCB, row, 2, 1, 3)
@@ -1366,7 +1365,9 @@ class SDBWidget(QWidget):
             train_df_copy = end_results['train'].copy()
             test_df_copy = end_results['test'].copy()
 
-            if DEPTH_DIRECTION[self.depthDirectionSaveCB.currentText()]:
+            if CONSTANTS['depth_direction'][
+                self.depthDirectionSaveCB.currentText()
+            ]:
                 daz_filtered.values[0] *=-1
                 test_df_copy['z'] *=-1
                 test_df_copy['z_validate'] *=-1
