@@ -25,10 +25,7 @@ from sdb.gui_config_loader import CONSTANTS, DEFAULTS
 ## CONSTANTS ##
 SDB_GUI_VERSION: str = CONSTANTS['app']['version']
 LOG_NAME: str = CONSTANTS['app']['log_name']
-PROGRESS_STEP: int = CONSTANTS['progress']['step']
-DEPTH_DIRECTION: Dict[str, Tuple[str, bool]] = {
-    k: tuple(v) for k, v in CONSTANTS['depth_direction'].items()
-}
+DEPTH_DIRECTION: Dict[str, bool] = CONSTANTS['depth_direction']
 EVALUATION_TYPES: Dict[str, bool] = CONSTANTS['evaluation_types']
 DEM_FORMATS: List[str] = sorted(CONSTANTS['dem_formats'])
 TRAIN_TEST_SAVE: Dict[str, bool] = CONSTANTS['train_test_save']
@@ -203,7 +200,7 @@ class SDBWidget(QWidget):
         self.progressBar = QProgressBar()
         self.progressBar.setFormat('%p%')
         self.progressBar.setMinimum(0)
-        self.progressBar.setMaximum(PROGRESS_STEP)
+        self.progressBar.setMaximum(CONSTANTS['progress']['step'])
         grid4.addWidget(self.progressBar, row_grid4, 1, 1, 4)
 
         row_grid4 += 1
@@ -1369,7 +1366,7 @@ class SDBWidget(QWidget):
             train_df_copy = end_results['train'].copy()
             test_df_copy = end_results['test'].copy()
 
-            if DEPTH_DIRECTION[self.depthDirectionSaveCB.currentText()][1]:
+            if DEPTH_DIRECTION[self.depthDirectionSaveCB.currentText()]:
                 daz_filtered.values[0] *=-1
                 test_df_copy['z'] *=-1
                 test_df_copy['z_validate'] *=-1
@@ -1678,7 +1675,7 @@ class Process(QThread):
         depth_filtered_sample = sdb.in_depth_filter(
             vector=clipped_sample,
             header=self.depth_label,
-            depth_direction=DEPTH_DIRECTION[self.depth_direction][0],
+            depth_direction=self.depth_direction,
             disable_depth_filter=self.limit_state,
             upper_limit=self.limit_a_value,
             lower_limit=self.limit_b_value
