@@ -245,7 +245,10 @@ class SDBWidget(QWidget):
 
                     return saved_settings
                 except KeyError as e:
-                    logger.warning(f'Missing or invalid settings structure: {e}, loading defaults')
+                    logger.warning(
+                        f'Missing or invalid settings structure: {e},'
+                        ' loading defaults'
+                    )
                     return DEFAULTS
 
             return DEFAULTS
@@ -325,7 +328,8 @@ class SDBWidget(QWidget):
             self.settings.setValue('last_directory', home_dir)
             logger.info('last directory and options reset to default')
             logger.debug(
-                f'reset to default options: \n{pprint.pformat(option_pool, width=200)}'
+                'reset to default options:'
+                f'\n{pprint.pformat(option_pool, width=200)}'
             )
 
             complete = QMessageBox()
@@ -816,7 +820,7 @@ class SDBWidget(QWidget):
 
             current_parameters = proc_op_dict['selection'][selection]['parameters']
             self.selection_widgets = {}
-            
+
             row = 0
             for param, value in current_parameters.items():
                 label = QLabel(to_title(param) + ':')
@@ -1688,9 +1692,7 @@ class Process(QThread):
         depth_filter_list = [time_depth_filter, 'Split Train and Test...\n']
         self.time_signal.emit(depth_filter_list)
         logger.info(f'split depth sample by {self.train_select}: {self.selection}')
-        logger.debug(
-            f'splitting type: {self.train_select}: {self.selection}'
-        )
+        logger.debug(f'splitting type: {self.train_select}: {self.selection}')
         f_train, f_test, z_train, z_test = sdb.split_data(
             raster=image_raw,
             vector=depth_filtered_sample,
