@@ -5,7 +5,7 @@ import re
 import sys
 import webbrowser
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Tuple, Union
+from typing import Any, Callable
 
 import numpy as np
 import pandas as pd
@@ -25,11 +25,11 @@ from sdb.gui_config_loader import CONSTANTS, DEFAULTS
 ## CONSTANTS ##
 SDB_GUI_VERSION: str = CONSTANTS['app']['version']
 LOG_NAME: str = CONSTANTS['app']['log_name']
-DEPTH_DIRECTION: Dict[str, bool] = CONSTANTS['depth_direction']
-EVALUATION_TYPES: Dict[str, bool] = CONSTANTS['evaluation_types']
-DEM_FORMATS: List[str] = sorted(CONSTANTS['dem_formats'])
-TRAIN_TEST_SAVE: Dict[str, bool] = CONSTANTS['train_test_save']
-FILES: Dict[str, Dict[str, str]] = CONSTANTS['files']
+DEPTH_DIRECTION: dict[str, bool] = CONSTANTS['depth_direction']
+EVALUATION_TYPES: dict[str, bool] = CONSTANTS['evaluation_types']
+DEM_FORMATS: list[str] = sorted(CONSTANTS['dem_formats'])
+TRAIN_TEST_SAVE: dict[str, bool] = CONSTANTS['train_test_save']
+FILES: dict[str, dict[str, str]] = CONSTANTS['files']
 
 class SDBWidget(QWidget):
     """
@@ -943,7 +943,7 @@ class SDBWidget(QWidget):
             )
 
 
-    def _timeCounting(self, time_text: List[Union[datetime.datetime, str]]) -> None:
+    def _timeCounting(self, time_text: list[datetime.datetime | str]) -> None:
         """
         Receive time value on every step and its corresponding processing
         text to show in result text browser and increase progress bar.
@@ -957,7 +957,7 @@ class SDBWidget(QWidget):
             self._completeDialog()
 
 
-    def _results(self, result_dict: Dict[str, Any]) -> None:
+    def _results(self, result_dict: dict[str, Any]) -> None:
         """
         Recieve processing results and filter the predicted value to depth
         limit window (if enabled).
