@@ -29,9 +29,6 @@ PROGRESS_STEP: int = CONSTANTS['progress']['step']
 DEPTH_DIRECTION: Dict[str, Tuple[str, bool]] = {
     k: tuple(v) for k, v in CONSTANTS['depth_direction'].items()
 }
-SELECTION_TYPES: Dict[str, str] = {
-    v['alias'].upper(): k for k, v in DEFAULTS['processing']['selection'].items()
-}
 EVALUATION_TYPES: Dict[str, bool] = CONSTANTS['evaluation_types']
 DEM_FORMATS: List[str] = sorted(CONSTANTS['dem_formats'])
 TRAIN_TEST_SAVE: Dict[str, bool] = CONSTANTS['train_test_save']
@@ -558,15 +555,10 @@ class SDBWidget(QWidget):
             proc_op_dict.update({
                 'current_selection': DEFAULTS['processing']['current_selection']
             })
-            proc_op_dict[
-                'selection'
-            ][
-                SELECTION_TYPES['ATTRIBUTE']
-            ][
-                'parameters'
-            ].update({
-                'split_header': '',
-                'group': ''
+            proc_op_dict['selection']['Attribute Selection'].update({
+                'parameters': DEFAULTS['processing']['selection'][
+                    'Attribute Selection'
+                ]['parameters']
             })
 
             logger.debug('reset attribute selection parameters for new dataset')
@@ -872,7 +864,9 @@ class SDBWidget(QWidget):
                 self.dynamicLayout.addWidget(widget, row, 3, 1, 2)
                 row += 1
         except NameError:
-            self.trainSelectCB.setCurrentText(SELECTION_TYPES['RANDOM'])
+            self.trainSelectCB.setCurrentText(
+                DEFAULTS['processing']['current_selection']
+            )
             self._warningWithClear(
                 'No depth sample loaded. Please load your depth sample!'
             )
