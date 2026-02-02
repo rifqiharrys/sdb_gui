@@ -1,7 +1,7 @@
 # Application Constants
 app:
   version: '4.1.0'
-  log_name: 'sdb_gui.log'
+  log: 'sdb_gui.log'
 
 # UI Constants
 progress:

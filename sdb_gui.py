@@ -23,8 +23,7 @@ from sdb.gui_utils import acronym, resource_path, str2bool, to_title
 from sdb.gui_config_loader import CONSTANTS, DEFAULTS
 
 ## CONSTANTS ##
-SDB_GUI_VERSION: str = CONSTANTS['app']['version']
-LOG_NAME: str = CONSTANTS['app']['log_name']
+APP: dict[str, str] = CONSTANTS['app']
 EVALUATION_TYPES: dict[str, bool] = CONSTANTS['evaluation_types']
 DEM_FORMATS: list[str] = sorted(CONSTANTS['dem_formats'])
 TRAIN_TEST_SAVE: dict[str, bool] = CONSTANTS['train_test_save']
@@ -60,7 +59,7 @@ class SDBWidget(QWidget):
         """
 
         self.setGeometry(300, 100, 480, 640)
-        self.setWindowTitle(f'Satellite Derived Bathymetry v{SDB_GUI_VERSION}')
+        self.setWindowTitle(f'Satellite Derived Bathymetry v{APP['version']}')
         self.setWindowIcon(QIcon(resource_path(FILES['icons']['main'])))
 
         mainLayout = QVBoxLayout()
@@ -1020,7 +1019,7 @@ class SDBWidget(QWidget):
 
         global print_result_info
         print_result_info = (
-            f'Software Version:\t{SDB_GUI_VERSION}\n\n'
+            f'Software Version:\t{APP['version']}\n\n'
             f'Image Input:\t\t{Path(self.imglocList.toPlainText())} '
             f'({round(self.img_size / 2**20, 2)} MiB)\n'
             f'Sample Data:\t\t{Path(self.samplelocList.toPlainText())} '
@@ -1088,8 +1087,8 @@ class SDBWidget(QWidget):
                     self.savelocList.toPlainText()
                 ).with_suffix('.log')
 
-                with open(LOG_NAME, 'r') as source, open(save_path, 'w') as target:
-                    target.write(source.read())
+                with open(APP['log'], 'r') as src, open(save_path, 'w') as target:
+                    target.write(src.read())
                 logger.info(f'log file copied to: {save_path}')
             except Exception as e:
                 logger.error(f'failed to copy log file: {e}')
@@ -1102,7 +1101,7 @@ class SDBWidget(QWidget):
 
         self.saveSettings()
 
-        logger.info(f'SDB GUI {SDB_GUI_VERSION} is closing')
+        logger.info(f'SDB GUI {APP['version']} is closing')
         if hasattr(self, 'sdbProcess') and self.sdbProcess.isRunning():
             logger.info('stopping running process')
             self.sdbProcess.stop()
@@ -1892,7 +1891,7 @@ logging.basicConfig(
     level=get_log_level(),
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler(LOG_NAME, mode='w'),
+        logging.FileHandler(APP['log'], mode='w'),
         logging.StreamHandler()
     ]
 )
@@ -1904,8 +1903,8 @@ logger.info(
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    logger.info(f'SDB GUI {SDB_GUI_VERSION} started')
+    logger.info(f'SDB GUI {APP['version']} started')
     main()
     exit_code = app.exec_()
-    logger.info(f'SDB GUI {SDB_GUI_VERSION} exited with code {exit_code}')
+    logger.info(f'SDB GUI {APP['version']} exited with code {exit_code}')
     sys.exit(exit_code)
