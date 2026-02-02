@@ -161,9 +161,11 @@ def in_depth_filter(
         Filtered depth data.
     """
 
-    # Exchange value of upper_limit and lower_limit if top < bottom
-    if upper_limit < lower_limit:
-        upper_limit, lower_limit = lower_limit, upper_limit
+    depth_direction = depth_direction.lower()
+    if 'up' in depth_direction:
+        depth_direction = 'up'
+    elif 'down' in depth_direction:
+        depth_direction = 'down'
 
     depth_direction_dict = {
         'up': False,
@@ -180,6 +182,10 @@ def in_depth_filter(
     # Change depth data direction to positive up
     if depth_direction_dict[depth_direction]:
         vector[header] *=-1
+
+    # Exchange value of upper_limit and lower_limit if top < bottom
+    if upper_limit < lower_limit:
+        upper_limit, lower_limit = lower_limit, upper_limit
 
     if not disable_depth_filter:
         new_vector = vector[
