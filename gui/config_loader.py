@@ -3,7 +3,7 @@ from typing import Any, Dict
 
 import yaml
 
-from .gui_utils import resource_path
+from .utils import resource_path
 
 
 def load_config(config_path: str) -> Dict[str, Any]:

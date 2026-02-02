@@ -19,8 +19,8 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDialog,
                              QWidget)
 
 import sdb
-from sdb.gui_utils import acronym, resource_path, str2bool, to_title
-from sdb.gui_config_loader import CONSTANTS, DEFAULTS
+from gui.config_loader import CONSTANTS, DEFAULTS
+from gui.utils import acronym, resource_path, str2bool, to_title
 
 ## CONSTANTS ##
 APP: dict[str, str] = CONSTANTS['app']
