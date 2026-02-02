@@ -8,8 +8,8 @@ progress:
   step: 6
 
 depth_direction:
-  'Positive Up': ['up', false]
-  'Positive Down': ['down', true]
+  'Positive Up': false
+  'Positive Down': true
 
 evaluation_types:
   'Use Current Prediction': false
