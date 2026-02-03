@@ -161,9 +161,11 @@ def in_depth_filter(
         Filtered depth data.
     """
 
-    # Exchange value of upper_limit and lower_limit if top < bottom
-    if upper_limit < lower_limit:
-        upper_limit, lower_limit = lower_limit, upper_limit
+    depth_direction = depth_direction.lower()
+    if 'up' in depth_direction:
+        depth_direction = 'up'
+    elif 'down' in depth_direction:
+        depth_direction = 'down'
 
     depth_direction_dict = {
         'up': False,
@@ -180,6 +182,10 @@ def in_depth_filter(
     # Change depth data direction to positive up
     if depth_direction_dict[depth_direction]:
         vector[header] *=-1
+
+    # Exchange value of upper_limit and lower_limit if top < bottom
+    if upper_limit < lower_limit:
+        upper_limit, lower_limit = lower_limit, upper_limit
 
     if not disable_depth_filter:
         new_vector = vector[
@@ -235,7 +241,7 @@ def features_label(
 def split_random(
         raster: xr.DataArray,
         vector: gpd.GeoDataFrame,
-        header: str,
+        depth_header: str,
         train_size: float = 0.75,
         random_state: int = 0
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
@@ -252,7 +258,7 @@ def split_random(
         DataArray from rioxarray.
     vector : gpd.GeoDataFrame
         Vector data of depth points in GeoDataFrame type.
-    header : str
+    depth_header : str
         Header name of depth data.
     train_size : float, optional
         Train data size, by default 0.75.
@@ -265,7 +271,7 @@ def split_random(
         A tuple containing (features_train, features_test, z_train, z_test).
     """
 
-    df = features_label(raster, vector, header)
+    df = features_label(raster, vector, depth_header)
     features = df.drop(columns=['z'])
     z = df['z']
 
@@ -289,7 +295,7 @@ def split_attribute(
         vector: gpd.GeoDataFrame,
         depth_header: str,
         split_header: str,
-        group_name: str
+        group: str
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
     """
     Split train and test data based on assigned attribute.
@@ -308,7 +314,7 @@ def split_attribute(
         Header name of depth data.
     split_header : str
         Header name of data that separates train and test data.
-    group_name : str
+    group : str
         Group name that identifies the data as train data.
 
     Returns
@@ -317,8 +323,8 @@ def split_attribute(
         A tuple containing (features_train, features_test, z_train, z_test).
     """
 
-    train = vector[vector[split_header] == group_name].reset_index(drop=True)
-    test = vector[vector[split_header] != group_name].reset_index(drop=True)
+    train = vector[vector[split_header] == group].reset_index(drop=True)
+    test = vector[vector[split_header] != group].reset_index(drop=True)
 
     df_train = features_label(raster, train, depth_header)
     features_train, z_train = df_train.drop(columns=['z']), df_train['z']
@@ -327,3 +333,88 @@ def split_attribute(
     features_test, z_test = df_test.drop(columns=['z']), df_test['z']
 
     return features_train, features_test, z_train, z_test
+
+
+def split_data(
+        raster: xr.DataArray,
+        vector: gpd.GeoDataFrame,
+        depth_header: str,
+        split_type: str = 'random',
+        train_size: float | None = None,
+        random_state: int | None = None,
+        split_header: str | None = None,
+        group: str | None = None,
+) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
+    """
+    Split train and test data based on selected split type.
+    This function supports random split and attribute-based split.
+
+    Parameters
+    ----------
+    raster : xr.DataArray
+        DataArray from rioxarray.
+    vector : gpd.GeoDataFrame
+        Vector data of depth points in GeoDataFrame type.
+    depth_header : str
+        Header name of depth data.
+    split_type : {'random', 'attribute'}, optional
+        Split type either random or attribute-based, by default 'random'.
+    train_size : float, optional
+        Train data size for random split, by default 0.75.
+    random_state : int, optional
+        Random state for random split, by default 0.
+    split_header : str, optional
+        Header name of data that separates train and test data for
+        attribute-based split, by default None.
+    group : str, optional
+        Group name that identifies the data as train data for
+        attribute-based split, by default None.
+
+    Returns
+    -------
+    Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]
+        A tuple containing (features_train, features_test, z_train, z_test).
+    """
+
+    split_type = split_type.lower()
+
+    if 'random' in split_type:
+        split_type = 'random'
+    elif 'attribute' in split_type:
+        split_type = 'attribute'
+
+    allowed_split_type = {'random', 'attribute'}
+    if split_type not in allowed_split_type:
+        raise ValueError(
+            f'Invalid split type: {split_type}.\n'
+            f'Allowed: {allowed_split_type}'
+        )
+
+    if split_type == 'attribute':
+        if split_header is None or group is None:
+            raise ValueError(
+                'header and group must be provided for '
+                'attribute-based split.'
+            )
+        return split_attribute(
+            raster=raster,
+            vector=vector,
+            depth_header=depth_header,
+            split_header=split_header,
+            group=group
+        )
+    elif split_type == 'random':
+        if train_size is None or random_state is None:
+            raise ValueError(
+                'train_size and random_state must be provided for '
+                'random split.'
+            )
+        return split_random(
+            raster=raster,
+            vector=vector,
+            depth_header=depth_header,
+            train_size=train_size,
+            random_state=random_state
+        )
+    else:
+        raise ValueError(f'Unknown split_type: {split_type}')

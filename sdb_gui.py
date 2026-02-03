@@ -4,9 +4,8 @@ import pprint
 import re
 import sys
 import webbrowser
-from collections import OrderedDict
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Tuple, Union
+from typing import Any, Callable
 
 import numpy as np
 import pandas as pd
@@ -20,55 +19,15 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDialog,
                              QWidget)
 
 import sdb
-from sdb.gui_utils import acronym, str2bool, to_title
+from gui.config_loader import CONSTANTS, DEFAULTS
+from gui.utils import acronym, resource_path, str2bool, to_title
 
 ## CONSTANTS ##
-SDB_GUI_VERSION: str = '4.1.0'
-LOG_NAME: str = 'sdb_gui.log'
-PROGRESS_STEP: int = 6
-DEPTH_DIRECTION: Dict[str, Tuple[str, bool]] = {
-    'Positive Up': ('up', False),
-    'Positive Down': ('down', True),
-}
-SELECTION_TYPES: Dict[str, str] = {
-    'RANDOM': 'Random Selection',
-    'ATTRIBUTE': 'Attribute Selection'
-}
-EVALUATION_TYPES: Dict[str, bool] = {
-    'Use Current Prediction': False,
-    'Recalculate from Test Data': True,
-}
-DEM_FORMATS: List[str] = [
-    'GeoTIFF (*.tif)',
-    'ASCII Gridded XYZ (*.xyz)',
-]
-DEM_FORMATS.sort()
-TRAIN_TEST_SAVE: Dict[str, bool] = {
-    '.csv': True,
-    '.shp': True,
-    '.gpkg': False,
-}
-FILES: Dict[str, Dict[str, str]] = {
-    'icons': {
-        'main': 'icons/satellite.png',
-        'load': 'icons/load-pngrepo-com.png',
-        'setting': 'icons/setting-tool-pngrepo-com.png',
-        'warning': 'icons/warning-pngrepo-com.png',
-        'info': 'icons/information-pngrepo-com.png',
-        'complete':'icons/complete-pngrepo-com.png',
-    },
-    'licenses': {
-        'SDB GUI': 'LICENSE',
-        'NumPy': 'licenses/numpy_license',
-        'Scipy': 'licenses/scipy_license',
-        'Pandas': 'licenses/pandas_license',
-        'Xarray': 'licenses/xarray_license',
-        'Rioxarray': 'licenses/rioxarray_license',
-        'GeoPandas': 'licenses/geopandas_license',
-        'Scikit Learn': 'licenses/scikit-learn_license',
-    }
-}
-
+APP: dict[str, str] = CONSTANTS['app']
+EVALUATION_TYPES: dict[str, bool] = CONSTANTS['evaluation_types']
+DEM_FORMATS: list[str] = sorted(CONSTANTS['dem_formats'])
+TRAIN_TEST_SAVE: dict[str, bool] = CONSTANTS['train_test_save']
+FILES: dict[str, dict[str, str]] = CONSTANTS['files']
 
 class SDBWidget(QWidget):
     """
@@ -100,7 +59,7 @@ class SDBWidget(QWidget):
         """
 
         self.setGeometry(300, 100, 480, 640)
-        self.setWindowTitle(f'Satellite Derived Bathymetry v{SDB_GUI_VERSION}')
+        self.setWindowTitle(f'Satellite Derived Bathymetry v{APP['version']}')
         self.setWindowIcon(QIcon(resource_path(FILES['icons']['main'])))
 
         mainLayout = QVBoxLayout()
@@ -137,7 +96,7 @@ class SDBWidget(QWidget):
         grid1.addWidget(depthDirectionLabel, row_grid1, 3, 1, 1)
 
         self.depthDirectionCB = QComboBox()
-        direction_list = list(DEPTH_DIRECTION.keys())
+        direction_list = list(CONSTANTS['depth_direction'].keys())
         self.depthDirectionCB.addItems(direction_list)
         self.depthDirectionCB.setCurrentText(main_set['direction'])
         grid1.addWidget(self.depthDirectionCB, row_grid1, 4, 1, 1)
@@ -239,7 +198,7 @@ class SDBWidget(QWidget):
         self.progressBar = QProgressBar()
         self.progressBar.setFormat('%p%')
         self.progressBar.setMinimum(0)
-        self.progressBar.setMaximum(PROGRESS_STEP)
+        self.progressBar.setMaximum(CONSTANTS['progress']['step'])
         grid4.addWidget(self.progressBar, row_grid4, 1, 1, 4)
 
         row_grid4 += 1
@@ -286,13 +245,16 @@ class SDBWidget(QWidget):
 
                     return saved_settings
                 except KeyError as e:
-                    logger.warning(f'Missing or invalid settings structure: {e}, loading defaults')
-                    return default_values()
+                    logger.warning(
+                        f'Missing or invalid settings structure: {e},'
+                        ' loading defaults'
+                    )
+                    return DEFAULTS
 
-            return default_values()
+            return DEFAULTS
         except Exception as e:
             logger.error(f'Error loading settings: {e}')
-            return default_values()
+            return DEFAULTS
 
 
     def _assignSettings(self) -> None:
@@ -366,7 +328,8 @@ class SDBWidget(QWidget):
             self.settings.setValue('last_directory', home_dir)
             logger.info('last directory and options reset to default')
             logger.debug(
-                f'reset to default options: \n{pprint.pformat(option_pool, width=200)}'
+                'reset to default options:'
+                f'\n{pprint.pformat(option_pool, width=200)}'
             )
 
             complete = QMessageBox()
@@ -589,17 +552,12 @@ class SDBWidget(QWidget):
             sample_raw = sdb.read_shapefile(self.samplelocList.toPlainText())
 
             proc_op_dict.update({
-                'current_selection': SELECTION_TYPES['RANDOM']
+                'current_selection': DEFAULTS['processing']['current_selection']
             })
-            proc_op_dict[
-                'selection'
-            ][
-                SELECTION_TYPES['ATTRIBUTE']
-            ][
-                'parameters'
-            ].update({
-                'header': '',
-                'group': ''
+            proc_op_dict['selection']['Attribute Selection'].update({
+                'parameters': DEFAULTS['processing']['selection'][
+                    'Attribute Selection'
+                ]['parameters']
             })
 
             logger.debug('reset attribute selection parameters for new dataset')
@@ -843,6 +801,9 @@ class SDBWidget(QWidget):
                 selection_params[param] = widget.currentText()
 
         logger.info('processing options updated')
+        logger.debug(
+            f'processing options: \n{pprint.pformat(proc_op_dict, width=200)}'
+        )
         self.saveSettings()
 
 
@@ -857,11 +818,11 @@ class SDBWidget(QWidget):
                 if widget:
                     widget.setParent(None)
 
-            self.currentSelection = proc_op_dict['selection'][selection]
+            current_parameters = proc_op_dict['selection'][selection]['parameters']
             self.selection_widgets = {}
-            
+
             row = 0
-            for param, value in self.currentSelection['parameters'].items():
+            for param, value in current_parameters.items():
                 label = QLabel(to_title(param) + ':')
                 self.dynamicLayout.addWidget(label, row, 1, 1, 2)
 
@@ -878,15 +839,15 @@ class SDBWidget(QWidget):
                     widget.setRange(0, 1000)
                     widget.setValue(value)
                     widget.setAlignment(Qt.AlignRight)
-                elif param in ('header', 'group'):
+                elif param in ('split_header', 'group'):
                     widget = QComboBox()
-                    if param == 'header':
+                    if param == 'split_header':
                         object_only = sample_raw.select_dtypes(include=['object'])
                         widget.addItems(object_only.columns)
                         widget.activated.connect(self._updateGroupSelection)
                         if value:
                             widget.setCurrentText(value)
-                            header = self.currentSelection['parameters']['header']
+                            header = current_parameters['split_header']
                         else:
                             widget.setCurrentText(widget.itemText(0))
                             header = widget.currentText()
@@ -902,7 +863,9 @@ class SDBWidget(QWidget):
                 self.dynamicLayout.addWidget(widget, row, 3, 1, 2)
                 row += 1
         except NameError:
-            self.trainSelectCB.setCurrentText(SELECTION_TYPES['RANDOM'])
+            self.trainSelectCB.setCurrentText(
+                DEFAULTS['processing']['current_selection']
+            )
             self._warningWithClear(
                 'No depth sample loaded. Please load your depth sample!'
             )
@@ -914,7 +877,7 @@ class SDBWidget(QWidget):
         """
 
         try:
-            selected_header = self.selection_widgets['header'].currentText()
+            selected_header = self.selection_widgets['split_header'].currentText()
 
             if selected_header:
                 object_only = sample_raw.select_dtypes(include=['object'])
@@ -982,7 +945,7 @@ class SDBWidget(QWidget):
             )
 
 
-    def _timeCounting(self, time_text: List[Union[datetime.datetime, str]]) -> None:
+    def _timeCounting(self, time_text: list[datetime.datetime | str]) -> None:
         """
         Receive time value on every step and its corresponding processing
         text to show in result text browser and increase progress bar.
@@ -996,7 +959,7 @@ class SDBWidget(QWidget):
             self._completeDialog()
 
 
-    def _results(self, result_dict: Dict[str, Any]) -> None:
+    def _results(self, result_dict: dict[str, Any]) -> None:
         """
         Recieve processing results and filter the predicted value to depth
         limit window (if enabled).
@@ -1060,7 +1023,7 @@ class SDBWidget(QWidget):
 
         global print_result_info
         print_result_info = (
-            f'Software Version:\t{SDB_GUI_VERSION}\n\n'
+            f'Software Version:\t{APP['version']}\n\n'
             f'Image Input:\t\t{Path(self.imglocList.toPlainText())} '
             f'({round(self.img_size / 2**20, 2)} MiB)\n'
             f'Sample Data:\t\t{Path(self.samplelocList.toPlainText())} '
@@ -1128,8 +1091,8 @@ class SDBWidget(QWidget):
                     self.savelocList.toPlainText()
                 ).with_suffix('.log')
 
-                with open(LOG_NAME, 'r') as source, open(save_path, 'w') as target:
-                    target.write(source.read())
+                with open(APP['log'], 'r') as src, open(save_path, 'w') as target:
+                    target.write(src.read())
                 logger.info(f'log file copied to: {save_path}')
             except Exception as e:
                 logger.error(f'failed to copy log file: {e}')
@@ -1142,7 +1105,7 @@ class SDBWidget(QWidget):
 
         self.saveSettings()
 
-        logger.info(f'SDB GUI {SDB_GUI_VERSION} is closing')
+        logger.info(f'SDB GUI {APP['version']} is closing')
         if hasattr(self, 'sdbProcess') and self.sdbProcess.isRunning():
             logger.info('stopping running process')
             self.sdbProcess.stop()
@@ -1270,7 +1233,7 @@ class SDBWidget(QWidget):
         grid.addWidget(depthDirectionSaveLabel, row, 1, 1, 1)
 
         self.depthDirectionSaveCB = QComboBox()
-        direction_list = list(DEPTH_DIRECTION.keys())
+        direction_list = list(CONSTANTS['depth_direction'].keys())
         self.depthDirectionSaveCB.addItems(direction_list)
         self.depthDirectionSaveCB.setCurrentText(save_set['direction'])
         grid.addWidget(self.depthDirectionSaveCB, row, 2, 1, 3)
@@ -1405,7 +1368,9 @@ class SDBWidget(QWidget):
             train_df_copy = end_results['train'].copy()
             test_df_copy = end_results['test'].copy()
 
-            if DEPTH_DIRECTION[self.depthDirectionSaveCB.currentText()][1]:
+            if CONSTANTS['depth_direction'][
+                self.depthDirectionSaveCB.currentText()
+            ]:
                 daz_filtered.values[0] *=-1
                 test_df_copy['z'] *=-1
                 test_df_copy['z_validate'] *=-1
@@ -1714,7 +1679,7 @@ class Process(QThread):
         depth_filtered_sample = sdb.in_depth_filter(
             vector=clipped_sample,
             header=self.depth_label,
-            depth_direction=DEPTH_DIRECTION[self.depth_direction][0],
+            depth_direction=self.depth_direction,
             disable_depth_filter=self.limit_state,
             upper_limit=self.limit_a_value,
             lower_limit=self.limit_b_value
@@ -1727,22 +1692,14 @@ class Process(QThread):
         depth_filter_list = [time_depth_filter, 'Split Train and Test...\n']
         self.time_signal.emit(depth_filter_list)
         logger.info(f'split depth sample by {self.train_select}: {self.selection}')
-        if self.train_select == SELECTION_TYPES['RANDOM']:
-            f_train, f_test, z_train, z_test = sdb.split_random(
-                raster=image_raw,
-                vector=depth_filtered_sample,
-                header=self.depth_label,
-                train_size=self.selection['train_size'],
-                random_state=self.selection['random_state']
-            )
-        elif self.train_select == SELECTION_TYPES['ATTRIBUTE']:
-            f_train, f_test, z_train, z_test = sdb.split_attribute(
-                raster=image_raw,
-                vector=depth_filtered_sample,
-                depth_header=self.depth_label,
-                split_header=self.selection['header'],
-                group_name=self.selection['group']
-            )
+        logger.debug(f'splitting type: {self.train_select}: {self.selection}')
+        f_train, f_test, z_train, z_test = sdb.split_data(
+            raster=image_raw,
+            vector=depth_filtered_sample,
+            depth_header=self.depth_label,
+            split_type=self.train_select,
+            **self.selection,
+        )
 
         results = {
             'f_train': f_train,
@@ -1919,139 +1876,6 @@ def main():
     sdb_gui.show()
 
 
-def default_values():
-    """
-    Default values container
-    """
-
-    random_selection = {
-        'name': SELECTION_TYPES['RANDOM'],
-        'parameters': OrderedDict([
-            ('train_size', 0.75),
-            ('random_state', 0)
-        ])
-    }
-
-    attribute_selection = {
-        'name': SELECTION_TYPES['ATTRIBUTE'],
-        'parameters': OrderedDict([
-            ('header', ''),
-            ('group', '')
-        ])
-    }
-
-    proc_op_dict = {
-        'saved_depth': {
-            'upper': 2.0,
-            'lower': -15.0
-        },
-        'backend': 'threading',
-        'n_jobs': -2,
-        'current_eval': 'Use Current Prediction',
-        'selection' : OrderedDict([
-            (random_selection['name'], random_selection),
-            (attribute_selection['name'], attribute_selection)
-        ]),
-        'current_selection': random_selection['name'],
-        'backend_set': (
-            'loky', 'threading', 'multiprocessing'
-        )
-    }
-
-    knn_op_dict = {
-        'name': 'K-Nearest Neighbors',
-        'model_parameters': OrderedDict([
-            ('n_neighbors', 5),
-            ('weights', 'distance'),
-            ('algorithm', 'auto'),
-            ('leaf_size', 30)
-        ]),
-        'weights_set': (
-            'uniform', 'distance'
-        ),
-        'algorithm_set': (
-            'auto', 'ball_tree', 'kd_tree', 'brute'
-        )
-    }
-
-    mlr_op_dict = {
-        'name': 'Multiple Linear Regression',
-        'model_parameters': OrderedDict([
-            ('fit_intercept', True),
-            ('copy_X', True)
-        ])
-    }
-
-    rf_op_dict = {
-        'name': 'Random Forest',
-        'model_parameters': OrderedDict([
-            ('n_estimators', 300),
-            ('criterion', 'squared_error'),
-            ('bootstrap', True)
-        ]),
-        'criterion_set': (
-            'squared_error', 'absolute_error', 'poisson', 'friedman_mse'
-        )
-    }
-
-    main_dict = {
-        'method': knn_op_dict['name'],
-        'direction': list(DEPTH_DIRECTION.keys())[0],
-        'depth_limit': {
-            'disable': False,
-            'upper': 2.0,
-            'lower': -15.0
-        },
-    }
-
-    save_dict = {
-        'type': 'GeoTIFF (*.tif)',
-        'direction': list(DEPTH_DIRECTION.keys())[0],
-        'depth_limit': {
-            'upper': 2.0,
-            'lower': -15.0
-        },
-        'filter': {
-            'disable': False,
-            'size': 3,
-        },
-        'scatter_plot': False,
-        'train_test': {
-            'save': False,
-            'format': list(TRAIN_TEST_SAVE.keys())[0],
-        },
-        'dem': True,
-        'report': True,
-    }
-
-    default_dict = {
-        'main': main_dict,
-        'processing': proc_op_dict,
-        'method': {
-            knn_op_dict['name']: knn_op_dict,
-            mlr_op_dict['name']: mlr_op_dict,
-            rf_op_dict['name']: rf_op_dict
-        },
-        'save': save_dict
-    }
-
-    return default_dict
-
-
-def resource_path(relative_path):
-    """
-    Get the absolute path to the resource, works for dev and for PyInstaller
-    """
-
-    try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
-        base_path = sys._MEIPASS # type: ignore
-    except Exception:
-        # Use the script's directory, not the current working directory
-        base_path = Path(__file__).parent.resolve()
-    return str(Path(base_path) / relative_path)
-
-
 def get_log_level() -> int:
     """
     Get logging level from command line argument.
@@ -2069,7 +1893,7 @@ logging.basicConfig(
     level=get_log_level(),
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler(LOG_NAME, mode='w'),
+        logging.FileHandler(APP['log'], mode='w'),
         logging.StreamHandler()
     ]
 )
@@ -2081,8 +1905,8 @@ logger.info(
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    logger.info(f'SDB GUI {SDB_GUI_VERSION} started')
+    logger.info(f'SDB GUI {APP['version']} started')
     main()
     exit_code = app.exec_()
-    logger.info(f'SDB GUI {SDB_GUI_VERSION} exited with code {exit_code}')
+    logger.info(f'SDB GUI {APP['version']} exited with code {exit_code}')
     sys.exit(exit_code)
