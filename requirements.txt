@@ -12,3 +12,4 @@ shapely
 pyproj
 fiona
 rasterio
+pyyaml

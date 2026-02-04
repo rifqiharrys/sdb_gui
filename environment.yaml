@@ -13,3 +13,4 @@ dependencies:
   - matplotlib
   - pyqt
   - joblib
+  - pyyaml
