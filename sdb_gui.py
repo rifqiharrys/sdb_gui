@@ -842,7 +842,9 @@ class SDBWidget(QWidget):
                 elif param in ('split_header', 'group'):
                     widget = QComboBox()
                     if param == 'split_header':
-                        object_only = sample_raw.select_dtypes(include=['object'])
+                        object_only = sample_raw.select_dtypes(
+                            include=['object', 'string']
+                        )
                         widget.addItems(object_only.columns)
                         widget.activated.connect(self._updateGroupSelection)
                         if value:
