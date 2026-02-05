@@ -1,0 +1,22 @@
+[workspace]
+authors = ["rifqiharrys <rifqiharrys@proton.me>"]
+channels = ["conda-forge"]
+name = "sdb-gui"
+platforms = ["win-64", "linux-64"]
+version = "4.1.0"
+
+[tasks]
+
+[dependencies]
+python = "3.12.*"
+numpy = "*"
+pandas = "*"
+scipy = "*"
+xarray = "*"
+rioxarray = "*"
+geopandas = "*"
+scikit-learn = "*"
+matplotlib = "*"
+pyqt = "*"
+joblib = "*"
+pyyaml = "*"

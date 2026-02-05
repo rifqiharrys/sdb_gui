@@ -132,3 +132,6 @@ dmypy.json
 .vscode/
 
 debug.log
+# pixi environments
+.pixi/*
+!.pixi/config.toml
