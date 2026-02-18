@@ -26,6 +26,7 @@ This SDB project is using python and would not work without packages listed belo
 |[joblib](https://joblib.readthedocs.io/)|A set of tools to provide lightweight pipelining in Python. It is particularly useful for running tasks in parallel and for caching the results of function calls. In this project, joblib is used to speed up the processing time by parallelizing the prediction process.|
 |[matplotlib](https://matplotlib.org/)|A plotting library for creating static, animated, and interactive visualizations in Python.|
 |[pyqt5](https://www.riverbankcomputing.com/static/Docs/PyQt5/)|Used to create the GUI of this software. It is a set of Python bindings for Nokia's Qt application framework and runs on all platforms supported by Qt including Windows, OS X, Linux, iOS and Android.|
+|[pyyaml](https://pyyaml.org/)|A YAML parser and emitter for Python. It is used to read and write YAML files, which are commonly used for configuration files. In this project, it is used to read the configuration file for the processing options.|
 
 ## Table of Contents
 
