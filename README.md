@@ -142,7 +142,7 @@ The imagery required should be a multi-band imagery (e.g. RGB, RGBN, or others) 
 
 ### a. Open SDB GUI and load data
 
-Open `sdb_gui_x.x.x_one_file.exe` if you're using the executable version or run `sdb_gui.py` if you're using the source code.
+Open `sdb_gui_x.x.x_one_file.exe` if you're using the executable version or run `sdb_gui.py` by following [these instructions](#4-using-the-environment) if you're using the source code.
 
 If you're using the executable version, you can open by double click on the file (`sdb_gui_x.x.x_one_file.exe`) or if you're using terminal, you can type `sdb_gui_x.x.x_one_file.exe` in the terminal in the same directory. If you're using the source code, run `sdb_gui.py` using python in your conda environment. Wait until SDB GUI opens and shows a window like the picture shown below. The preview of SDB GUI interface is available at [SDB GUI Preview document](./docs/sdb-gui-preview.md).
 
