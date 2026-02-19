@@ -2,7 +2,7 @@
 authors = ["rifqiharrys <rifqiharrys@proton.me>"]
 channels = ["conda-forge"]
 name = "sdb-gui"
-platforms = ["win-64", "linux-64"]
+platforms = ["win-64", "linux-64", "osx-arm64"]
 version = "4.1.0"
 
 [tasks]
