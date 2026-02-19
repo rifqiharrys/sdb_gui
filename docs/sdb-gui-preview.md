@@ -1,6 +1,6 @@
 # SDB GUI Preview
 
-This is a document that shows the SDB GUI v4.1.0 interface and a little bit about what they do. The first picture below shows the main window. Inside the main window are 11 buttons, 3 dropdown menus, 1 table field, 2 numeric input fields, 1 check box, and 1 text field. Additionally, if you are running the SDB GUI using the executable file, a console will shows up before the main GUI shows.
+This is a document that shows the SDB GUI v4.1.0 interface and a little bit about what they do. The previewed pictures were taken on Windows 11. The SDB GUI interface may look different on other operating systems, but the functionalities are the same. The first picture below shows the main window. Inside the main window are 11 buttons, 3 dropdown menus, 1 table field, 2 numeric input fields, 1 check box, and 1 text field. Additionally, if you are running the SDB GUI using the executable file, a console will shows up before the main GUI shows.
 
 ![main-window](./fig/main_window.png)
 
