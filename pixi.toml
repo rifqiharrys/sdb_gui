@@ -26,10 +26,10 @@ pyyaml = "*"
 [feature.exe-build.pypi-dependencies]
 auto-py-to-exe = "*"
 
-[feature.model-test.dependencies]
+[feature.notebook.dependencies]
 jupyterlab = "*"
 
 [environments]
 gui = ["gui"]
 exe-build = ["gui", "exe-build"]
-model-test = ["model-test"]
+notebook = ["notebook"]
