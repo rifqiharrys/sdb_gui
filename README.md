@@ -64,7 +64,7 @@ Image below is the workflow of predicting bathymetric depth using SDB GUI if you
 
 ### a. Download executable file or source code
 
-You can download the latest [release](https://github.com/rifqiharrys/sdb_gui/releases) or clone the latest source code from [sdb_gui](https://github.com/rifqiharrys/sdb_gui). If you are using the executable version, you can skip the python and packages installation steps and head to [Data Preparation](#c-data-preparation).
+You can download the latest [release](https://github.com/rifqiharrys/sdb_gui/releases) or clone the latest source code from [sdb_gui](https://github.com/rifqiharrys/sdb_gui) by following the [next instructions](#b-environment-setup). If you are using the executable version, you can skip the python and packages installation steps and head to [Data Preparation](#c-data-preparation).
 
 ### b. Environment setup
 
