@@ -91,10 +91,29 @@ Environment setup and packages installation using `conda` is easy enough by usin
 conda env create -f environment.yaml
 ```
 
-Environment setup and packages installation using `pixi` is even easier by having `pixi.yaml` file provided in this repository and running the command below.
+The `pixi.toml` file has been set up to provide 4 different environments for different purposes. The environments are:
+
+- `default` for core functionality of SDB processing without GUI
+- `gui` for SDB processing with GUI or SDB GUI
+- `notebook` for SDB processing using Jupyter Lab/Notebook
+- `exe-build` for building the executable file using auto-py-to-exe
+
+Environment setup and packages installation using `pixi` is even easier by having `pixi.toml` file provided in this repository and running the command below.
 
 ```bash
 pixi install
+```
+
+If you don't state the environment name, `pixi` will install the packages in the `default` environment. To install the packages of your desired environment, you can run the command below by replacing `<ENV_NAME>` with the name of the environment you want to install.
+
+```bash
+pixi install -e <ENV_NAME>
+```
+
+So, if you want to use SDB GUI, you can install the `gui` environment by running the command below.
+
+```bash
+pixi install -e gui
 ```
 
 #### 4) Using the environment
@@ -116,7 +135,7 @@ conda run -n sdb_gui python sdb_gui.py
 If you're using `pixi`, you can run SDB GUI by activating the environment first and then running `sdb_gui.py` using python in the terminal and deactivate the environment after you're done using the command below.
 
 ```bash
-pixi shell
+pixi shell -e gui
 python sdb_gui.py
 exit
 ```
@@ -124,7 +143,7 @@ exit
 Or you could run `sdb_gui.py` without activating the environment by using `pixi run` command as shown below.
 
 ```bash
-pixi run python sdb_gui.py
+pixi run -e gui python sdb_gui.py
 ```
 
 For more information about environment management using `conda` and `pixi`, you can refer to their documentations at [conda documentation](https://docs.conda.io/) and [pixi documentation](https://pixi.prefix.dev/latest/).
