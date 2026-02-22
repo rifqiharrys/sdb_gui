@@ -132,7 +132,7 @@ Or you could run `sdb_gui.py` without activating the environment by using `conda
 conda run -n sdb_gui python sdb_gui.py
 ```
 
-If you're using `pixi`, you can run SDB GUI by activating the environment first and then running `sdb_gui.py` using python in the terminal and deactivate the environment after you're done using the command below.
+If you're using `pixi`, you can run SDB GUI by activating the `gui` environment first, and then running `sdb_gui.py` using python in the terminal and deactivate the environment after you're done using the command below.
 
 ```bash
 pixi shell -e gui
