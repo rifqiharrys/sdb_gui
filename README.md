@@ -91,7 +91,7 @@ Environment setup and packages installation using `conda` is easy enough by usin
 conda env create -f environment.yaml
 ```
 
-The `pixi.toml` file has been set up to provide 4 different environments for different purposes. The environments are:
+Environment setup and packages installation using `pixi` is relying on the `pixi.toml` file provided in this repository. The `pixi.toml` file has been set up to provide 4 different environments for different purposes. The environments are:
 
 - `default` for core functionality of SDB processing without GUI
 - `gui` for SDB processing with GUI or SDB GUI
