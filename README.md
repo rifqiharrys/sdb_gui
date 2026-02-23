@@ -98,13 +98,13 @@ Environment setup and packages installation using `pixi` is relying on the `pixi
 - `notebook` for SDB processing using Jupyter Lab/Notebook
 - `exe-build` for building the executable file using auto-py-to-exe
 
-Environment setup and packages installation using `pixi` is even easier by having `pixi.toml` file provided in this repository and running the command below.
+To setup the `default` environment and install the packages, you can run the command below.
 
 ```bash
 pixi install
 ```
 
-If you don't state the environment name, `pixi` will install the packages in the `default` environment. To install the packages of your desired environment, you can run the command below by replacing `<ENV_NAME>` with the name of the environment you want to install.
+If you don't state the environment name just like the command above, `pixi` will install the packages of the `default` environment. To install the packages of your desired environment, you can run the command below by replacing `<ENV_NAME>` with the name of the environment you want to install.
 
 ```bash
 pixi install -e <ENV_NAME>
