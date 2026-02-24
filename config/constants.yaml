@@ -1,9 +1,3 @@
-# Application Constants
-app:
-  version: '4.1.0'
-  log: 'sdb_gui.log'
-
-# UI Constants
 progress:
   step: 6
 
