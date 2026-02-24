@@ -26,6 +26,7 @@ This SDB project is using python and would not work without packages listed belo
 |[joblib](https://joblib.readthedocs.io/)|A set of tools to provide lightweight pipelining in Python. It is particularly useful for running tasks in parallel and for caching the results of function calls. In this project, joblib is used to speed up the processing time by parallelizing the prediction process.|
 |[matplotlib](https://matplotlib.org/)|A plotting library for creating static, animated, and interactive visualizations in Python.|
 |[pyqt5](https://www.riverbankcomputing.com/static/Docs/PyQt5/)|Used to create the GUI of this software. It is a set of Python bindings for Nokia's Qt application framework and runs on all platforms supported by Qt including Windows, OS X, Linux, iOS and Android.|
+|[pyyaml](https://pyyaml.org/)|A YAML parser and emitter for Python. It is used to read and write YAML files, which are commonly used for configuration files. In this project, it is used to read the configuration file for the processing options.|
 
 ## Table of Contents
 
@@ -35,7 +36,11 @@ This SDB project is using python and would not work without packages listed belo
   - [Workflow](#workflow)
   - [1. Setup and Preparation](#1-setup-and-preparation)
     - [a. Download executable file or source code](#a-download-executable-file-or-source-code)
-    - [b. Python and packages installation](#b-python-and-packages-installation)
+    - [b. Environment setup](#b-environment-setup)
+      - [1) Install package management tool](#1-install-package-management-tool)
+      - [2) Clone the repository](#2-clone-the-repository)
+      - [3) Install packages](#3-install-packages)
+      - [4) Using the environment](#4-using-the-environment)
     - [c. Data preparation](#c-data-preparation)
   - [2. How To Use SDB GUI](#2-how-to-use-sdb-gui)
     - [a. Open SDB GUI and load data](#a-open-sdb-gui-and-load-data)
@@ -59,23 +64,89 @@ Image below is the workflow of predicting bathymetric depth using SDB GUI if you
 
 ### a. Download executable file or source code
 
-You can download the latest [release](https://github.com/rifqiharrys/sdb_gui/releases) or clone the latest source code from [sdb_gui](https://github.com/rifqiharrys/sdb_gui). If you are using the executable version, you can skip the python and packages installation steps and head to [Data Preparation](#c-data-preparation).
+You can download the latest [release](https://github.com/rifqiharrys/sdb_gui/releases) or clone the latest source code from [sdb_gui](https://github.com/rifqiharrys/sdb_gui) by following the [next instructions](#b-environment-setup). If you are using the executable version, you can skip the python and packages installation steps and head to [Data Preparation](#c-data-preparation).
 
-### b. Python and packages installation
+### b. Environment setup
 
-If you're downloading the source code, you need to have the packages from the table listed above installed. You can use `environment.yaml` file to help create new environment and install the library dependancies easily using `conda` or `mamba`. To use `conda` or `mamba`, you can use [Miniconda](https://docs.anaconda.com/miniconda/) or [Miniforge](https://github.com/conda-forge/miniforge). After one of them is installed, move to the root folder of the sdb_gui repo and run the command below.
+If you're downloading or cloning the source code, you need to have the packages from the table listed above installed in your preferred python environment.
+
+#### 1) Install package management tool
+
+Installing the packages can be a bit tricky and might cause some issues if not done properly. Therefore, it is highly recommended to use `conda` or `pixi` to set an environment and install the packages. If you want to use `conda`, you can install [Miniconda](https://docs.anaconda.com/miniconda/) or [Miniforge](https://github.com/conda-forge/miniforge). If you want to use `pixi`, you can follow the installation guide in [pixi installation guide](https://pixi.prefix.dev/latest/installation/).
+
+#### 2) Clone the repository
+
+Clone `sdb_gui` repository and move to the root folder of the repository.
+
+```bash
+git clone https://github.com/rifqiharrys/sdb_gui.git
+cd sdb_gui
+```
+
+#### 3) Install packages
+
+Environment setup and packages installation using `conda` is easy enough by using the `environment.yaml` file provided in this repository and running the command below.
 
 ```bash
 conda env create -f environment.yaml
 ```
 
-Or, if you prefer to use mamba. Replace `conda` with `mamba` from the same command line above. If you prefer using a python virtual environment or venv, you can install the dependancies using `requirements.txt` by running command below.
+Environment setup and packages installation using `pixi` is relying on the `pixi.toml` file provided in this repository. The `pixi.toml` file has been set up to provide 4 different environments for different purposes. The environments are:
+
+- `default` for core functionality of SDB processing without GUI
+- `gui` for SDB processing with GUI or SDB GUI
+- `notebook` for SDB processing using Jupyter Lab/Notebook
+- `exe-build` for building the executable file using auto-py-to-exe
+
+To setup the `default` environment and install the packages, you can run the command below.
 
 ```bash
-pip install -r requirements.txt
+pixi install
 ```
 
-> Please note that using `conda` or `mamba` is highly recommended and preferred to avoid any issues, unless you know what you're doing.
+If you don't state the environment name just like the command above, `pixi` will install the packages of the `default` environment. To install the packages of your desired environment, you can run the command below by replacing `<ENV_NAME>` with the name of the environment you want to install.
+
+```bash
+pixi install -e <ENV_NAME>
+```
+
+So, if you want to use SDB GUI, you can install the `gui` environment by running the command below.
+
+```bash
+pixi install -e gui
+```
+
+#### 4) Using the environment
+
+If you're using `conda`, you can run SDB GUI by activating the environment first and then running `sdb_gui.py` using python in the terminal and deactivate the environment after you're done using the command below.
+
+```bash
+conda activate sdb_gui
+python sdb_gui.py
+conda deactivate
+```
+
+Or you could run `sdb_gui.py` without activating the environment by using `conda run` command as shown below.
+
+```bash
+conda run -n sdb_gui python sdb_gui.py
+```
+
+If you're using `pixi`, you can run SDB GUI by activating the `gui` environment first, and then running `sdb_gui.py` using python in the terminal and deactivate the environment after you're done using the command below.
+
+```bash
+pixi shell -e gui
+python sdb_gui.py
+exit
+```
+
+Or you could run `sdb_gui.py` without activating the environment by using `pixi run` command as shown below.
+
+```bash
+pixi run -e gui python sdb_gui.py
+```
+
+For more information about environment management using `conda` and `pixi`, you can refer to their documentations at [conda documentation](https://docs.conda.io/) and [pixi documentation](https://pixi.prefix.dev/latest/).
 
 ### c. Data preparation
 
@@ -90,9 +161,9 @@ The imagery required should be a multi-band imagery (e.g. RGB, RGBN, or others) 
 
 ### a. Open SDB GUI and load data
 
-Open `sdb_gui_x.x.x_one_file.exe` if you're using the executable version or run `sdb_gui.py` if you're using the source code.
+Open `sdb_gui_x.x.x_one_file.exe` if you're using the executable version or run `sdb_gui.py` by following [these instructions](#4-using-the-environment) if you're using the source code.
 
-If you're using the executable version, you can open by double click on the file (`sdb_gui_x.x.x_one_file.exe`) or if you're using terminal, you can type `sdb_gui_x.x.x_one_file.exe` in the terminal in the same directory. If you're using the source code, run `sdb_gui.py` using python in your conda environment. Wait until SDB GUI opens and shows a window like the picture shown below. The preview of SDB GUI interface is available at [SDB GUI Preview document](./docs/sdb-gui-preview.md).
+If you're using the executable version, you can open by double click on the file (`sdb_gui_x.x.x_one_file.exe`) or if you're using terminal, you can type `sdb_gui_x.x.x_one_file.exe` in the terminal in the same directory. If you're using the source code, run `sdb_gui.py` by using your preferred method as shown in [the instructions above](#4-using-the-environment). Wait until SDB GUI opens and shows a window like the picture shown below. The preview of SDB GUI interface is available at [SDB GUI Preview document](./docs/sdb-gui-preview.md).
 
 ![main_window](./docs/fig/main_window.png)
 

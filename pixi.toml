@@ -1,0 +1,35 @@
+[workspace]
+authors = ["rifqiharrys <rifqiharrys@proton.me>"]
+channels = ["conda-forge"]
+name = "sdb-gui"
+platforms = ["win-64", "linux-64", "osx-arm64"]
+version = "4.1.0"
+
+[tasks]
+
+[dependencies]
+python = "3.12.*"
+numpy = "*"
+pandas = "*"
+scipy = "*"
+xarray = "*"
+rioxarray = "*"
+geopandas = "*"
+scikit-learn = "*"
+matplotlib = "*"
+joblib = "*"
+
+[feature.gui.dependencies]
+pyqt = "*"
+pyyaml = "*"
+
+[feature.exe-build.pypi-dependencies]
+auto-py-to-exe = "*"
+
+[feature.notebook.dependencies]
+jupyterlab = "*"
+
+[environments]
+gui = ["gui"]
+exe-build = ["gui", "exe-build"]
+notebook = ["notebook"]
