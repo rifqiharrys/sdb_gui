@@ -2,22 +2,33 @@ from collections import OrderedDict
 from typing import Any, Dict
 
 import yaml
+import tomllib
 
 from .utils import resource_path
 
 
 def load_config(config_path: str) -> Dict[str, Any]:
     """
-    Load GUI constants from a YAML configuration file.
+    Load GUI constants from a YAML or TOML configuration file.
+    File type is determined by the extension (.yaml, .yml, or .toml).
     """
     try:
         config_file = resource_path(config_path)
-        with open(config_file, 'r') as file:
-            return yaml.safe_load(file)
+        
+        if config_path.endswith(('.toml')):
+            with open(config_file, 'rb') as file:
+                return tomllib.load(file)
+        elif config_path.endswith(('.yaml', '.yml')):
+            with open(config_file, 'r') as file:
+                return yaml.safe_load(file)
+        else:
+            raise ValueError(f'Unsupported file format. Expected .yaml, .yml, or .toml but got: {config_path}')
     except FileNotFoundError:
         raise FileNotFoundError(f'Configuration file not found: {config_file}')
     except yaml.YAMLError as e:
         raise RuntimeError(f'Error parsing YAML file: {e}')
+    except Exception as e:
+        raise RuntimeError(f'Error parsing TOML file: {e}')
 
 
 def structure_defaults(defaults_dict: Dict[str, Any]) -> Dict[str, Any]:
@@ -47,5 +58,6 @@ def structure_defaults(defaults_dict: Dict[str, Any]) -> Dict[str, Any]:
     return defaults_dict
 
 
+PROJECT = load_config('pixi.toml')
 CONSTANTS = load_config('config/constants.yaml')
 DEFAULTS = structure_defaults(load_config('config/defaults.yaml'))
