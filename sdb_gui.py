@@ -1860,6 +1860,10 @@ class Process(QThread):
             self.warning_with_clear.emit(
                 'Please select attribute header and group in Processing Options'
             )
+        except ValueError as e:
+            self.warning_with_clear.emit(
+                f'{str(e)}'
+            )
 
 
     def stop(self):
