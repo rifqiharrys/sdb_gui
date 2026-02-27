@@ -19,7 +19,5 @@ There are steps to create an executable file using Auto PY To EXE. These steps a
    3. add exclude module.
       1. PySide6
       2. torch
-      3. torchvision
-      4. torchaudio
 7. Go to Settings options and specify your output directory.
 8. CONVERT .PY TO .EXE
