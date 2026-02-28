@@ -192,6 +192,16 @@ def in_depth_filter(
             (vector[header] <= upper_limit) & (vector[header] >= lower_limit)
         ].reset_index(drop=True)
 
+    # raise error if there is no data after filtering
+    if new_vector.empty:
+        raise ValueError(
+            'No data after depth filtering. '
+            'selected data range is '
+            f'{vector[header].min()} to {vector[header].max()} '
+            'while depth limit range is '
+            f'{upper_limit} to {lower_limit}'
+        )
+
     return new_vector
 
 

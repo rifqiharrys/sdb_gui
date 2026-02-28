@@ -3,14 +3,14 @@ channels:
   - conda-forge
 dependencies:
   - python=3.12
-  - numpy
-  - pandas
-  - scipy
-  - xarray
-  - rioxarray
-  - geopandas
-  - scikit-learn
-  - matplotlib
-  - pyqt
-  - joblib
-  - pyyaml
+  - numpy>=2.4
+  - pandas>=3.0
+  - scipy>=1.17
+  - xarray>=2026.1
+  - rioxarray>=0.20
+  - geopandas>=1.1
+  - scikit-learn>=1.8
+  - matplotlib>=3.10
+  - pyqt>=5.15,<6
+  - joblib>=1.5
+  - pyyaml>=6.0

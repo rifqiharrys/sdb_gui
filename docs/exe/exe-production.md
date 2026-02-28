@@ -7,7 +7,7 @@ There are steps to create an executable file using Auto PY To EXE. These steps a
 3. Use One File and Console Based.
 4. Insert `sdb_gui.ico` in icon.
 5. Insert the following additional file and directories in Additional Files:
-   1. LICENSE file --add files.
+   1. `LICENSE` and `pixi.toml` files --add files.
    2. config, gui, icons, licenses, and sdb directories --add folder.
    3. GDAL directory (usually in \your-directory\Library\share\gdal) --add folder.
 6. Go to Advanced options,
@@ -19,7 +19,5 @@ There are steps to create an executable file using Auto PY To EXE. These steps a
    3. add exclude module.
       1. PySide6
       2. torch
-      3. torchvision
-      4. torchaudio
 7. Go to Settings options and specify your output directory.
 8. CONVERT .PY TO .EXE
