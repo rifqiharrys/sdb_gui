@@ -9,25 +9,25 @@ version = "4.1.1"
 
 [dependencies]
 python = "3.12.*"
-numpy = "*"
-pandas = "*"
-scipy = "*"
-xarray = "*"
-rioxarray = "*"
-geopandas = "*"
-scikit-learn = "*"
-matplotlib = "*"
-joblib = "*"
+numpy = ">=2.4"
+pandas = ">=3.0"
+scipy = ">=1.17"
+xarray = ">=2026.1"
+rioxarray = ">=0.20"
+geopandas = ">=1.1"
+scikit-learn = ">=1.8"
+matplotlib = ">=3.10"
+joblib = ">=1.5"
 
 [feature.gui.dependencies]
-pyqt = "*"
-pyyaml = "*"
+pyqt = ">=5.15,<6"
+pyyaml = ">=6.0"
 
 [feature.exe-build.pypi-dependencies]
 auto-py-to-exe = "*"
 
 [feature.notebook.dependencies]
-jupyterlab = "*"
+jupyterlab = ">=4.5"
 
 [environments]
 gui = ["gui"]
