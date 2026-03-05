@@ -350,8 +350,8 @@ def split_data(
         vector: gpd.GeoDataFrame,
         depth_header: str,
         split_type: str = 'random',
-        train_size: float | None = None,
-        random_state: int | None = None,
+        train_size: float = 0.75,
+        random_state: int = 0,
         split_header: str | None = None,
         group: str | None = None,
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
@@ -414,11 +414,6 @@ def split_data(
             group=group
         )
     elif split_type == 'random':
-        if train_size is None or random_state is None:
-            raise ValueError(
-                'train_size and random_state must be provided for '
-                'random split.'
-            )
         return split_random(
             raster=raster,
             vector=vector,
