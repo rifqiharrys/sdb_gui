@@ -8,6 +8,9 @@ from sklearn.model_selection import train_test_split
 
 from .utils import point_sampling
 
+TRAIN_SIZE = 0.5
+RANDOM_STATE = 42
+
 
 def unravel(raster: xr.DataArray) -> pd.DataFrame:
     """
@@ -252,8 +255,8 @@ def split_random(
         raster: xr.DataArray,
         vector: gpd.GeoDataFrame,
         depth_header: str,
-        train_size: float = 0.75,
-        random_state: int = 0
+        train_size: float = TRAIN_SIZE,
+        random_state: int = RANDOM_STATE
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
     """
     Split train and test data randomly based on percentage.
@@ -271,9 +274,9 @@ def split_random(
     depth_header : str
         Header name of depth data.
     train_size : float, optional
-        Train data size, by default 0.75.
+        Train data size, by default equal to TRAIN_SIZE.
     random_state : int, optional
-        Random state, by default 0.
+        Random state, by default equal to RANDOM_STATE.
 
     Returns
     -------
@@ -350,8 +353,8 @@ def split_data(
         vector: gpd.GeoDataFrame,
         depth_header: str,
         split_type: str = 'random',
-        train_size: float = 0.75,
-        random_state: int = 0,
+        train_size: float = TRAIN_SIZE,
+        random_state: int = RANDOM_STATE,
         split_header: str | None = None,
         group: str | None = None,
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
@@ -370,9 +373,9 @@ def split_data(
     split_type : {'random', 'attribute'}, optional
         Split type either random or attribute-based, by default 'random'.
     train_size : float, optional
-        Train data size for random split, by default 0.75.
+        Train data size for random split, by default equal to TRAIN_SIZE.
     random_state : int, optional
-        Random state for random split, by default 0.
+        Random state for random split, by default equal to RANDOM_STATE.
     split_header : str, optional
         Header name of data that separates train and test data for
         attribute-based split, by default None.
