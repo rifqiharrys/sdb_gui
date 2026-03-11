@@ -94,6 +94,8 @@ def write_geotiff(
 
     raster.rio.to_raster(raster_loc, **params)
 
+    print(f'Raster data saved to {raster_loc}')
+
 
 def write_shapefile(
         table: pd.DataFrame,
@@ -145,3 +147,5 @@ def write_shapefile(
     )
 
     gdf.to_file(vector_loc, **params)
+
+    print(f'Vector data saved to {vector_loc}')
