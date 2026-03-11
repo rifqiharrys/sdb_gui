@@ -65,6 +65,7 @@ def write_geotiff(
         raster: xr.DataArray,
         raster_loc: Path | str,
         to_tif: bool = False,
+        printout: bool = True,
         **params: Any,
 ) -> None:
     """
@@ -81,6 +82,8 @@ def write_geotiff(
         The raster will be written as Geotiff file if True,
         otherwise it will be saved with the provided extension.
         Default is False.
+    printout : bool, optional
+        Whether to print a message after saving the raster data, by default True.
     **params : Any
         Additional parameters passed to rioxarray.DataArray.rio.to_raster()
 
@@ -94,7 +97,8 @@ def write_geotiff(
 
     raster.rio.to_raster(raster_loc, **params)
 
-    print(f'Raster data saved to {raster_loc}')
+    if printout:
+        print(f'Raster data saved to {raster_loc}')
 
 
 def write_shapefile(
@@ -104,6 +108,7 @@ def write_shapefile(
         y_col_name: str,
         crs: CRS | str | dict[str, Any],
         z_col_name: str | None = None,
+        printout: bool = True,
         **params: Any,
 ) -> None:
     """
@@ -123,6 +128,8 @@ def write_shapefile(
         Coordinate Reference System as CRS object, string, or dictionary.
     z_col_name : str, optional
         Z coordinates column name, by default None.
+    printout : bool, optional
+        Whether to print a message after saving the vector data, by default True.
     **params : Any
         Additional parameters passed to geopandas.GeoDataFrame.to_file()
 
@@ -148,4 +155,5 @@ def write_shapefile(
 
     gdf.to_file(vector_loc, **params)
 
-    print(f'Vector data saved to {vector_loc}')
+    if printout:
+        print(f'Vector data saved to {vector_loc}')
