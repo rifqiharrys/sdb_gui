@@ -34,7 +34,7 @@ If you use `pixi`, there is a dedicated environment called `notebook` written in
 
 ### 4. Run the notebook
 
-After installing the packages, you can run the notebook by running the following command.
+After installing the packages, activate the environment and you can run the notebook by running the following command.
 
 ```bash
     jupyter lab
