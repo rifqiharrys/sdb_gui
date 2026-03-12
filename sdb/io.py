@@ -69,7 +69,9 @@ def write_geotiff(
         **params: Any,
 ) -> None:
     """
-    Write dataarray to Geotiff.
+    Write dataarray to raster format using `rioxarray.DataArray.rio.to_raster`.
+    See rioxarray documentation for supported formats.
+    Geotiff is recommended for raster data.
 
     Parameters
     ----------
@@ -85,7 +87,7 @@ def write_geotiff(
     printout : bool, optional
         Whether to print a message after saving the raster data, by default True.
     **params : Any
-        Additional parameters passed to rioxarray.DataArray.rio.to_raster()
+        Additional parameters passed to `rioxarray.DataArray.rio.to_raster()`
 
     Returns
     -------
@@ -112,7 +114,9 @@ def write_shapefile(
         **params: Any,
 ) -> None:
     """
-    Write dataframe to ESRI Shapefile.
+    Write dataframe to vector format using `geopandas.GeoDataFrame.to_file`.
+    See Geopandas documentation for supported formats.
+
 
     Parameters
     ----------
@@ -131,7 +135,7 @@ def write_shapefile(
     printout : bool, optional
         Whether to print a message after saving the vector data, by default True.
     **params : Any
-        Additional parameters passed to geopandas.GeoDataFrame.to_file()
+        Additional parameters passed to `geopandas.GeoDataFrame.to_file()`
 
     Returns
     -------
