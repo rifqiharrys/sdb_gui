@@ -106,7 +106,7 @@ def write_shapefile(
         vector_loc: Path | str,
         x_col_name: str,
         y_col_name: str,
-        crs: CRS | str | dict[str, Any],
+        crs: CRS | str | dict[str, Any] | None,
         z_col_name: str | None = None,
         printout: bool = True,
         **params: Any,
@@ -137,6 +137,9 @@ def write_shapefile(
     -------
     None
     """
+
+    if crs is None:
+        raise ValueError('CRS must be provided to save vector data')
 
     x = table[x_col_name]
     y = table[y_col_name]
