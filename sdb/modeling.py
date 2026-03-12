@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, NamedTuple
 
 import pandas as pd
 from joblib import parallel_backend
@@ -6,6 +6,15 @@ from numpy.typing import NDArray
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.neighbors import KNeighborsRegressor
+
+
+class PredictionResult(NamedTuple):
+    """
+    A named tuple to store prediction results
+    """
+
+    z_predict: NDArray
+    z_validate: NDArray | None
 
 
 def prediction(
@@ -17,7 +26,7 @@ def prediction(
         backend: str = 'threading',
         n_jobs: int = -2,
         **params: Any
-) -> tuple[NDArray, NDArray | None]:
+) -> PredictionResult:
     """
     Predicting depth using different models.
 
@@ -47,8 +56,8 @@ def prediction(
 
     Returns
     -------
-    NDArray
-        An array of predicted depth from trained model using unraveled raster data.
+    PredictionResult
+        A named tuple containing the predicted depth and validation depth.
     """
 
     allowed_backend: set[str] = {'loky', 'threading', 'multiprocessing'}
@@ -91,4 +100,4 @@ def prediction(
         else:
             z_validate = None
 
-    return z_predict, z_validate
+    return PredictionResult(z_predict=z_predict, z_validate=z_validate)

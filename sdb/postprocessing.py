@@ -1,3 +1,5 @@
+from typing import NamedTuple
+
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
@@ -5,6 +7,16 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from numpy.typing import ArrayLike, NDArray
 from sklearn import metrics
+
+
+class EvaluationMetrics(NamedTuple):
+    """
+    A named tuple to store evaluation metrics
+    """
+
+    rmse: float
+    mae: float
+    r2: float
 
 
 def out_depth_filter(
@@ -73,7 +85,7 @@ def reshape_prediction(
 def evaluate(
         true_val: ArrayLike,
         pred_val: ArrayLike
-) -> tuple[float, float, float]:
+) -> EvaluationMetrics:
     """
     Evaluate predicted values from true values by calculating
     RMSE, MAE, and R Squared values.
@@ -87,15 +99,15 @@ def evaluate(
 
     Returns
     -------
-    tuple
-        Tuple of RMSE, MAE, and R Squared.
+    EvaluationMetrics
+        Named tuple containing RMSE, MAE, and R Squared.
     """
 
     rmse = float(metrics.root_mean_squared_error(true_val, pred_val))
     mae = float(metrics.mean_absolute_error(true_val, pred_val))
     r2 = float(metrics.r2_score(true_val, pred_val))
 
-    return rmse, mae, r2
+    return EvaluationMetrics(rmse=rmse, mae=mae, r2=r2)
 
 
 def scatter_plotter(
