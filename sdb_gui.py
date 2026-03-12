@@ -441,6 +441,9 @@ class SDBWidget(QWidget):
         grid = QGridLayout()
         row = 1
         openFilesButton = QPushButton('Open File')
+        openFilesButton.clicked.connect(lambda: logger.debug(
+            'Open File button for image loading clicked'
+        ))
         openFilesButton.clicked.connect(
             lambda: self.fileDialog(
                 command=QFileDialog.getOpenFileName,
@@ -531,6 +534,9 @@ class SDBWidget(QWidget):
         grid = QGridLayout()
         row = 1
         openFilesButton = QPushButton('Open File')
+        openFilesButton.clicked.connect(lambda: logger.debug(
+            'Open File button for sample loading clicked'
+        ))
         openFilesButton.clicked.connect(
             lambda: self.fileDialog(
                 command=QFileDialog.getOpenFileName,
@@ -1342,6 +1348,9 @@ class SDBWidget(QWidget):
 
         row += 1
         saveFileButton = QPushButton('Save File Location')
+        saveFileButton.clicked.connect(lambda: logger.debug(
+            'Save File Location button clicked'
+        ))
         saveFileButton.clicked.connect(
             lambda:self.fileDialog(
                 command=QFileDialog.getSaveFileName,
