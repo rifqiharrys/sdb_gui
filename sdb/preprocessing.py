@@ -1,5 +1,3 @@
-from typing import Tuple
-
 import geopandas as gpd
 import numpy as np
 import pandas as pd
@@ -257,7 +255,7 @@ def split_random(
         depth_header: str,
         train_size: float = TRAIN_SIZE,
         random_state: int = RANDOM_STATE
-) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
     """
     Split train and test data randomly based on percentage.
     This process begins by point sampling every depth point, then separating
@@ -280,7 +278,7 @@ def split_random(
 
     Returns
     -------
-    Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]
+    tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]
         A tuple containing (features_train, features_test, z_train, z_test).
     """
 
@@ -309,7 +307,7 @@ def split_attribute(
         depth_header: str,
         split_header: str,
         group: str
-) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
     """
     Split train and test data based on assigned attribute.
     This process begins by separating train and test data based on attribute
@@ -332,7 +330,7 @@ def split_attribute(
 
     Returns
     -------
-    Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]
+    tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]
         A tuple containing (features_train, features_test, z_train, z_test).
     """
 
@@ -357,7 +355,7 @@ def split_data(
         random_state: int = RANDOM_STATE,
         split_header: str | None = None,
         group: str | None = None,
-) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
     """
     Split train and test data based on selected split type.
     This function supports random split and attribute-based split.
@@ -385,7 +383,7 @@ def split_data(
 
     Returns
     -------
-    Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]
+    tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]
         A tuple containing (features_train, features_test, z_train, z_test).
     """
 

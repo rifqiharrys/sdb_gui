@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import xarray as xr
+from numpy.typing import NDArray
 from scipy import ndimage
 
 
@@ -51,21 +52,21 @@ def point_sampling(
 
 
 def median_filter(
-        array: np.ndarray,
+        array: NDArray,
         filter_size: int = 3
-) -> np.ndarray:
+) -> NDArray:
     """
     Calculate median filter of a 2D array.
 
     Parameters
     ----------
-    array : np.ndarray
+    array : NDArray
         2D array data.
     filter_size : int, optional
         Size of the median filter window. Must be >= 3 and odd. Default is 3.
     Returns
     -------
-    np.ndarray
+    NDArray
         Filtered array.
     """
 
@@ -78,7 +79,7 @@ def median_filter(
 
 
 def array_to_dataarray(
-        array: np.ndarray,
+        array: NDArray,
         data_array: xr.DataArray,
         band_name:  str | int = 1,
         attrs: bool = False
@@ -89,7 +90,7 @@ def array_to_dataarray(
 
     Parameters
     ----------
-    array : np.ndarray
+    array : NDArray
         Image data that read using rioxarray.
     data_array : xr.DataArray
         DataArray from rioxarray.

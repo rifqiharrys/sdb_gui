@@ -1,25 +1,24 @@
-from typing import Tuple
-
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
+from numpy.typing import ArrayLike, NDArray
 from sklearn import metrics
 
 
 def out_depth_filter(
-        array: np.ndarray,
+        array: NDArray,
         top_limit: float = 0.0,
         bottom_limit: float = -12.0
-) -> np.ndarray:
+) -> NDArray:
     """
     Filter depth prediction output in an array for the allowed depth
     in positive up direction by changing it to NaN.
 
     Parameters
     ----------
-    array : np.ndarray
+    array : NDArray
         1D array of depth data.
     top_limit : float, optional
         Top depth limit in positive up. Default value is 0.0.
@@ -28,7 +27,7 @@ def out_depth_filter(
 
     Returns
     -------
-    np.ndarray
+    NDArray
         Filtered array with values outside the limits set to NaN.
     """
 
@@ -46,23 +45,23 @@ def out_depth_filter(
 
 
 def reshape_prediction(
-        array: np.ndarray,
+        array: NDArray,
         raster: xr.DataArray
-) -> np.ndarray:
+) -> NDArray:
     """
     Reshape depth prediction in 1D array to a 2D array shape
     that is similar to its source raster.
 
     Parameters
     ----------
-    array : np.ndarray
+    array : NDArray
         Depth prediction data in the shape of 1D array.
     raster : xr.DataArray
         Raster data that is read using rioxarray.
 
     Returns
     -------
-    np.ndarray
+    NDArray
         Reshaped array.
     """
 
@@ -72,18 +71,18 @@ def reshape_prediction(
 
 
 def evaluate(
-        true_val: np.ndarray,
-        pred_val: np.ndarray
-) -> Tuple[float, float, float]:
+        true_val: ArrayLike,
+        pred_val: ArrayLike
+) -> tuple[float, float, float]:
     """
     Evaluate predicted values from true values by calculating
     RMSE, MAE, and R Squared values.
 
     Parameters
     ----------
-    true_val : np.ndarray
+    true_val : ArrayLike
         True values.
-    pred_val : np.ndarray
+    pred_val : ArrayLike
         Predicted values.
 
     Returns
@@ -100,21 +99,21 @@ def evaluate(
 
 
 def scatter_plotter(
-        true_val: np.ndarray,
-        pred_val: np.ndarray,
+        true_val: ArrayLike,
+        pred_val: ArrayLike,
         plot_color: str = 'royalblue',
         line_color: str = 'r',
         title: str = 'Scatter Plot'
-) -> Tuple[Figure, Axes]:
+) -> tuple[Figure, Axes]:
     """
     Create a scatter plot of in situ depth against predicted depth
     and plot a pred_val=true_val line.
 
     Parameters
     ----------
-    true_val : np.ndarray
+    true_val : ArrayLike
         X coordinates. True values.
-    pred_val : np.ndarray
+    pred_val : ArrayLike
         Y coordinates. Predicted values.
     plot_color : str
         Point color. Default is 'royalblue'.
