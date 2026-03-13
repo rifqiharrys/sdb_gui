@@ -31,7 +31,7 @@ pip-delete-this-directory.txt
 .pixi/*
 !.pixi/config.toml
 
-# Generated geospatial files
+# Generated files
 # ESRI Shapefiles
 *.shp
 *.shx
@@ -50,12 +50,16 @@ pip-delete-this-directory.txt
 *.tiff
 *.img
 *.jp2
+*.png
 
 # CSV and tabular data
 *.csv
 
 # Grid files
 *.xyz
+
+# Text files
+*.txt
 
 # OS-specific files
 # macOS

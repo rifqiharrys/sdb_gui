@@ -13,14 +13,14 @@ def read_geotiff(
         **params: Any,
 ) -> xr.DataArray:
     """
-    Read Geotiff raster data using Xarray (using rioxarray extension).
+    Read Geotiff raster data using `rioxarray.open_rasterio`.
 
     Parameters
     ----------
     raster_loc : Path | str
         Raster data location.
     **params : Any
-        Additional parameters passed to rioxarray.open_rasterio()
+        Additional parameters passed to `rioxarray.open_rasterio()`
 
     Returns
     -------
@@ -35,14 +35,14 @@ def read_shapefile(
         **params: Any,
 ) -> gpd.GeoDataFrame:
     """
-    Read shapefile vector data containing depth samples using Geopandas.
+    Read vector data containing depth samples using `geopandas.read_file`.
 
     Parameters
     ----------
     vector_loc : Path | str
         Vector data location containing point depth samples.
     **params : Any
-        Additional parameters passed to geopandas.read_file()
+        Additional parameters passed to `geopandas.read_file()`
 
     Returns
     -------
@@ -65,10 +65,13 @@ def write_geotiff(
         raster: xr.DataArray,
         raster_loc: Path | str,
         to_tif: bool = False,
+        printout: bool = True,
         **params: Any,
 ) -> None:
     """
-    Write dataarray to Geotiff.
+    Write dataarray to raster format using `rioxarray.DataArray.rio.to_raster`.
+    See rioxarray documentation for supported formats.
+    Geotiff is recommended for raster data.
 
     Parameters
     ----------
@@ -81,8 +84,10 @@ def write_geotiff(
         The raster will be written as Geotiff file if True,
         otherwise it will be saved with the provided extension.
         Default is False.
+    printout : bool, optional
+        Whether to print a message after saving the raster data, by default True.
     **params : Any
-        Additional parameters passed to rioxarray.DataArray.rio.to_raster()
+        Additional parameters passed to `rioxarray.DataArray.rio.to_raster()`
 
     Returns
     -------
@@ -94,18 +99,24 @@ def write_geotiff(
 
     raster.rio.to_raster(raster_loc, **params)
 
+    if printout:
+        print(f'Raster data saved to {raster_loc}')
+
 
 def write_shapefile(
         table: pd.DataFrame,
         vector_loc: Path | str,
         x_col_name: str,
         y_col_name: str,
-        crs: CRS | str | dict[str, Any],
+        crs: CRS | str | dict[str, Any] | None,
         z_col_name: str | None = None,
+        printout: bool = True,
         **params: Any,
 ) -> None:
     """
-    Write dataframe to ESRI Shapefile.
+    Write dataframe to vector format using `geopandas.GeoDataFrame.to_file`.
+    See Geopandas documentation for supported formats.
+
 
     Parameters
     ----------
@@ -121,13 +132,18 @@ def write_shapefile(
         Coordinate Reference System as CRS object, string, or dictionary.
     z_col_name : str, optional
         Z coordinates column name, by default None.
+    printout : bool, optional
+        Whether to print a message after saving the vector data, by default True.
     **params : Any
-        Additional parameters passed to geopandas.GeoDataFrame.to_file()
+        Additional parameters passed to `geopandas.GeoDataFrame.to_file()`
 
     Returns
     -------
     None
     """
+
+    if crs is None:
+        raise ValueError('CRS must be provided to save vector data')
 
     x = table[x_col_name]
     y = table[y_col_name]
@@ -145,3 +161,6 @@ def write_shapefile(
     )
 
     gdf.to_file(vector_loc, **params)
+
+    if printout:
+        print(f'Vector data saved to {vector_loc}')

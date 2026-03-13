@@ -17,6 +17,8 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDialog,
                              QPushButton, QScrollArea, QSpinBox, QTableWidget,
                              QTableWidgetItem, QTextBrowser, QVBoxLayout,
                              QWidget)
+from rasterio.errors import RasterioIOError
+from pyogrio.errors import DataSourceError
 
 import sdb
 from gui.config_loader import CONSTANTS, DEFAULTS, PROJECT
@@ -26,6 +28,7 @@ from gui.utils import acronym, resource_path, str2bool, to_title
 VERSION = PROJECT['workspace']['version']
 LOG_FILE = f'{PROJECT["workspace"]["name"].replace("-", "_")}.log'
 EVALUATION_TYPES: dict[str, bool] = CONSTANTS['evaluation_types']
+READ_FORMATS: dict[str, list] = CONSTANTS['read_formats']
 DEM_FORMATS: list[str] = sorted(CONSTANTS['dem_formats'])
 TRAIN_TEST_SAVE: dict[str, bool] = CONSTANTS['train_test_save']
 FILES: dict[str, dict[str, str]] = CONSTANTS['files']
@@ -68,6 +71,9 @@ class SDBWidget(QWidget):
         grid1 = QGridLayout()
         row_grid1 = 1
         loadImageButton = QPushButton('Load Image')
+        loadImageButton.clicked.connect(lambda: logger.debug(
+            'Load Image button clicked'
+        ))
         loadImageButton.clicked.connect(self.loadImageWindow)
         grid1.addWidget(loadImageButton, row_grid1, 1, 1, 1)
 
@@ -78,6 +84,9 @@ class SDBWidget(QWidget):
 
         row_grid1 += 1
         loadSampleButton = QPushButton('Load Sample')
+        loadSampleButton.clicked.connect(lambda: logger.debug(
+            'Load Sample button clicked'
+        ))
         loadSampleButton.clicked.connect(self.loadSampleWindow)
         grid1.addWidget(loadSampleButton, row_grid1, 1, 1, 1)
 
@@ -156,12 +165,18 @@ class SDBWidget(QWidget):
         grid3.addWidget(self.methodCB, row_grid3, 2, 1, 1)
 
         self.optionsButton = QPushButton('Method Options')
+        self.optionsButton.clicked.connect(lambda: logger.debug(
+            'Method Options button clicked'
+        ))
         self.optionsButton.clicked.connect(
             lambda: self._methodOptionWindow()
         )
         grid3.addWidget(self.optionsButton, row_grid3, 3, 1, 1)
 
         processingOptionsButton = QPushButton('Processing Options')
+        processingOptionsButton.clicked.connect(lambda: logger.debug(
+            'Processing Options button clicked'
+        ))
         processingOptionsButton.clicked.connect(self._processingOptionWindow)
         grid3.addWidget(processingOptionsButton, row_grid3, 4, 1, 1)
 
@@ -170,19 +185,31 @@ class SDBWidget(QWidget):
         grid4 = QGridLayout()
         row_grid4 = 1
         makePredictionButton = QPushButton('Generate Prediction')
+        makePredictionButton.clicked.connect(lambda: logger.debug(
+            'Generate Prediction button clicked'
+        ))
         makePredictionButton.clicked.connect(self._predict)
         grid4.addWidget(makePredictionButton, row_grid4, 1, 1, 2)
 
         resetSettingsButton = QPushButton('Reset Settings')
+        resetSettingsButton.clicked.connect(lambda: logger.debug(
+            'Reset Settings button clicked'
+        ))
         resetSettingsButton.clicked.connect(self.resetToDefault)
         grid4.addWidget(resetSettingsButton, row_grid4, 3, 1, 2)
 
         row_grid4 += 1
         stopProcessingButton = QPushButton('Stop Processing')
+        stopProcessingButton.clicked.connect(lambda: logger.debug(
+            'Stop Processing button clicked'
+        ))
         stopProcessingButton.clicked.connect(self._stopProcess)
         grid4.addWidget(stopProcessingButton, row_grid4, 1, 1, 2)
 
         saveFileButton = QPushButton('Save Into File')
+        saveFileButton.clicked.connect(lambda: logger.debug(
+            'Save Into File button clicked'
+        ))
         saveFileButton.clicked.connect(self._saveOptionWindow)
         grid4.addWidget(saveFileButton, row_grid4, 3, 1, 2)
 
@@ -204,16 +231,25 @@ class SDBWidget(QWidget):
 
         row_grid4 += 1
         releaseButton =  QPushButton('Releases')
+        releaseButton.clicked.connect(lambda: logger.debug(
+            'Releases button clicked'
+        ))
         releaseButton.clicked.connect(lambda: webbrowser.open(
             'https://github.com/rifqiharrys/sdb_gui/releases'
         ))
         grid4.addWidget(releaseButton, row_grid4, 1, 1, 1)
 
         licensesButton = QPushButton('Licenses')
+        licensesButton.clicked.connect(lambda: logger.debug(
+            'Licenses button clicked'
+        ))
         licensesButton.clicked.connect(self.licensesDialog)
         grid4.addWidget(licensesButton, row_grid4, 2, 1, 2)
 
         readmeButton = QPushButton('Readme')
+        readmeButton.clicked.connect(lambda: logger.debug(
+            'Readme button clicked'
+        ))
         readmeButton.clicked.connect(lambda: webbrowser.open(
             'https://github.com/rifqiharrys/sdb_gui/blob/main/README.md'
         ))
@@ -347,7 +383,7 @@ class SDBWidget(QWidget):
         self, 
         command: Callable[..., tuple[str, str]],
         window_text: str,
-        file_type: str,
+        file_type: str | list[str],
         text_browser: QTextBrowser
     ) -> None:
         """
@@ -360,7 +396,7 @@ class SDBWidget(QWidget):
             that returns a tuple of (selected_path: str, selected_filter: str)
         window_text : str
             Title of the dialog window
-        file_type : str
+        file_type : str | list[str]
             File type filter (e.g., 'GeoTIFF (*.tif)')
         text_browser : QTextBrowser
             Text browser widget to display selected path
@@ -370,14 +406,20 @@ class SDBWidget(QWidget):
         None
         """
 
-        fileFilter = f'All Files (*.*) ;; {file_type}'
-        selectedFilter = file_type
+        if isinstance(file_type, str):
+            file_type = [file_type]
+
+        # keeping preferred formats first as in constants.yaml, then sorted afterwards
+        initial_filter = file_type[0]
+        file_type = sorted(file_type)
+
+        file_filter = f'All Files (*.*) ;; {";; ".join(file_type)}'
         fname = command(
             self,
-            window_text,
-            str(self.dir_path),
-            fileFilter,
-            selectedFilter
+            caption=window_text,
+            directory=str(self.dir_path),
+            filter=file_filter,
+            initialFilter=initial_filter
         )
 
         if fname[0]:
@@ -408,11 +450,14 @@ class SDBWidget(QWidget):
         grid = QGridLayout()
         row = 1
         openFilesButton = QPushButton('Open File')
+        openFilesButton.clicked.connect(lambda: logger.debug(
+            'Open File button for image loading clicked'
+        ))
         openFilesButton.clicked.connect(
             lambda: self.fileDialog(
                 command=QFileDialog.getOpenFileName,
                 window_text='Open Image File',
-                file_type='GeoTIFF (*.tif)',
+                file_type=READ_FORMATS['raster'],
                 text_browser=self.imglocList
             )
         )
@@ -428,11 +473,17 @@ class SDBWidget(QWidget):
 
         row += 10
         loadButton = QPushButton('Load')
+        loadButton.clicked.connect(lambda: logger.debug(
+            'Load button for image loading clicked'
+        ))
         loadButton.clicked.connect(self._loadImageAction)
         loadButton.clicked.connect(self.loadImageDialog.close)
         grid.addWidget(loadButton, 15, 3, 1, 1)
 
         cancelButton = QPushButton('Cancel')
+        cancelButton.clicked.connect(lambda: logger.debug(
+            'Cancel button for image loading clicked'
+        ))
         cancelButton.clicked.connect(self.loadImageDialog.close)
         grid.addWidget(cancelButton, 15, 4, 1, 1)
 
@@ -476,6 +527,11 @@ class SDBWidget(QWidget):
                     'No data loaded. Please load your data!'
                 )
                 self.loadImageWindow()
+        except RasterioIOError as e:
+            self._warningWithClear(
+                f'Image data format error: {e}'
+            )
+            self.loadImageDialog.close()
 
 
     def loadSampleWindow(self):
@@ -492,11 +548,14 @@ class SDBWidget(QWidget):
         grid = QGridLayout()
         row = 1
         openFilesButton = QPushButton('Open File')
+        openFilesButton.clicked.connect(lambda: logger.debug(
+            'Open File button for sample loading clicked'
+        ))
         openFilesButton.clicked.connect(
             lambda: self.fileDialog(
                 command=QFileDialog.getOpenFileName,
                 window_text='Open Depth Sample File',
-                file_type='ESRI Shapefile (*.shp)',
+                file_type=READ_FORMATS['vector'],
                 text_browser=self.samplelocList
             )
         )
@@ -516,11 +575,17 @@ class SDBWidget(QWidget):
         grid.addWidget(self.showCheckBox, row, 1, 1, 2)
 
         loadButton = QPushButton('Load')
+        loadButton.clicked.connect(lambda: logger.debug(
+            'Load button for sample loading clicked'
+        ))
         loadButton.clicked.connect(self._loadSampleAction)
         loadButton.clicked.connect(self.loadSampleDialog.close)
         grid.addWidget(loadButton, row, 3, 1, 1)
 
         cancelButton = QPushButton('Cancel')
+        cancelButton.clicked.connect(lambda: logger.debug(
+            'Cancel button for sample loading clicked'
+        ))
         cancelButton.clicked.connect(self.loadSampleDialog.close)
         grid.addWidget(cancelButton, row, 4, 1, 1)
 
@@ -618,6 +683,11 @@ class SDBWidget(QWidget):
                     'No data loaded. Please load your data!'
                 )
                 self.loadSampleWindow()
+        except DataSourceError as e:
+            self._warningWithClear(
+                f'Sample data format error: {e}'
+            )
+            self.loadSampleDialog.close()
 
 
     def _methodOptionWindow(self):
@@ -665,11 +735,17 @@ class SDBWidget(QWidget):
             row += 1
 
         loadButton = QPushButton('Load')
+        loadButton.clicked.connect(lambda: logger.debug(
+            f'Load button for {method} options clicked'
+        ))
         loadButton.clicked.connect(self._loadMethodOptionAction)
         loadButton.clicked.connect(optionDialog.close)
         grid.addWidget(loadButton, row, 3, 1, 1)
 
         cancelButton = QPushButton('Cancel')
+        cancelButton.clicked.connect(lambda: logger.debug(
+            f'Cancel button for {method} options clicked'
+        ))
         cancelButton.clicked.connect(optionDialog.close)
         grid.addWidget(cancelButton, row, 4, 1, 1)
 
@@ -758,11 +834,17 @@ class SDBWidget(QWidget):
 
         row += 1
         loadButton = QPushButton('Load')
+        loadButton.clicked.connect(lambda: logger.debug(
+            'Load button for processing options clicked'
+        ))
         loadButton.clicked.connect(self._loadProcessingOptionAction)
         loadButton.clicked.connect(self.processingOptionDialog.close)
         grid.addWidget(loadButton, row, 3, 1, 1)
 
         cancelButton = QPushButton('Cancel')
+        cancelButton.clicked.connect(lambda: logger.debug(
+            'Cancel button for processing options clicked'
+        ))
         cancelButton.clicked.connect(self.processingOptionDialog.close)
         grid.addWidget(cancelButton, row, 4, 1, 1)
 
@@ -907,7 +989,7 @@ class SDBWidget(QWidget):
         Sending parameters and inputs from widget to Process Class
         """
 
-        logging.debug('Sending user inputs to process class')
+        logger.debug('sending user inputs to process class')
         self.saveSettings()
 
         self.resultText.clear()
@@ -1124,6 +1206,8 @@ class SDBWidget(QWidget):
         and then clear result info and progress bar after closing
         """
 
+        logger.warning(warning_text)
+
         warning = QErrorMessage()
         warning.setWindowTitle('WARNING')
         warning.setWindowIcon(
@@ -1142,6 +1226,8 @@ class SDBWidget(QWidget):
         Show warning dialog and customized warning text
         without clearing result info and progress bar after closing
         """
+
+        logger.warning(warning_text)
 
         warning = QErrorMessage()
         warning.setWindowTitle('WARNING')
@@ -1281,6 +1367,9 @@ class SDBWidget(QWidget):
 
         row += 1
         saveFileButton = QPushButton('Save File Location')
+        saveFileButton.clicked.connect(lambda: logger.debug(
+            'Save File Location button clicked'
+        ))
         saveFileButton.clicked.connect(
             lambda:self.fileDialog(
                 command=QFileDialog.getSaveFileName,
@@ -1327,11 +1416,17 @@ class SDBWidget(QWidget):
         grid.addWidget(self.reportCheckBox, row, 2, 1, 1)
 
         saveButton = QPushButton('Save')
+        saveButton.clicked.connect(lambda: logger.debug(
+            'Save button clicked'
+        ))
         saveButton.clicked.connect(self._saveAction)
         saveButton.clicked.connect(self.saveOptionDialog.close)
         grid.addWidget(saveButton, row, 3, 1, 1)
 
         cancelButton = QPushButton('Cancel')
+        cancelButton.clicked.connect(lambda: logger.debug(
+            'Cancel button for save options clicked'
+        ))
         cancelButton.clicked.connect(self.saveOptionDialog.close)
         grid.addWidget(cancelButton, row, 4, 1, 1)
 
@@ -1387,7 +1482,8 @@ class SDBWidget(QWidget):
             if self.saveDEMCheckBox.isChecked():
                 sdb.write_geotiff(
                     daz_filtered,
-                    save_loc
+                    save_loc,
+                    printout=False
                 )
                 new_img_size = Path(save_loc).stat().st_size
                 print_dem_info = (
@@ -1507,14 +1603,16 @@ class SDBWidget(QWidget):
                     train_save_loc,
                     x_col_name='x',
                     y_col_name='y',
-                    crs=end_results['sample_gdf'].crs
+                    crs=end_results['sample_gdf'].crs,
+                    printout=False
                 )
                 sdb.write_shapefile(
                     test_data,
                     test_save_loc,
                     x_col_name='x',
                     y_col_name='y',
-                    crs=end_results['sample_gdf'].crs
+                    crs=end_results['sample_gdf'].crs,
+                    printout=False
                 )
 
             train_data_size = Path(train_save_loc).stat().st_size
@@ -1712,7 +1810,7 @@ class Process(QThread):
             'sample_gdf': depth_filtered_sample
         }
 
-        logging.debug('preprocess ended')
+        logger.debug('preprocess ended')
         return results
 
 
@@ -1727,7 +1825,7 @@ class Process(QThread):
 
         results = self.preprocess()
 
-        logger.info(f'prediction started using {method}')
+        logger.info(f'predict action started using {method}')
         if results is None or not self._is_running:
             return None
 
@@ -1752,6 +1850,9 @@ class Process(QThread):
             logger.debug('using prediction data to later use against z_test')
             f_test = None
 
+        logger.debug(
+            'running prediction function using selected method and parameters'
+        )
         z_predict, z_validate = sdb.prediction(
             model=method,
             unraveled_band=bands_df,

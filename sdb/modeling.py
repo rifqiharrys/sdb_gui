@@ -1,11 +1,20 @@
-from typing import Any, Dict, Set, Tuple
+from typing import Any, NamedTuple
 
-import numpy as np
 import pandas as pd
 from joblib import parallel_backend
+from numpy.typing import NDArray
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.neighbors import KNeighborsRegressor
+
+
+class PredictionResult(NamedTuple):
+    """
+    A named tuple to store prediction results
+    """
+
+    z_predict: NDArray
+    z_validate: NDArray | None
 
 
 def prediction(
@@ -17,7 +26,7 @@ def prediction(
         backend: str = 'threading',
         n_jobs: int = -2,
         **params: Any
-) -> Tuple[np.ndarray, np.ndarray | None]:
+) -> PredictionResult:
     """
     Predicting depth using different models.
 
@@ -38,7 +47,7 @@ def prediction(
         Backend to use for parallel processing. Default is 'threading'.
     n_jobs : int, optional
         The number of jobs to run in parallel. Default is -2.
-    **params : Dict[str, Union[str, int, float, bool]]
+    **params : Any
         Parameters to pass to the respective model.
         See sklearn documentation for more details.
         For KNeighborsRegressor: n_neighbors, weights, algorithm, leaf_size, etc.
@@ -47,18 +56,18 @@ def prediction(
 
     Returns
     -------
-    np.ndarray
-        An array of predicted depth from trained model using unraveled raster data.
+    PredictionResult
+        A named tuple containing the predicted depth and validation depth.
     """
 
-    allowed_backend: Set[str] = {'loky', 'threading', 'multiprocessing'}
+    allowed_backend: set[str] = {'loky', 'threading', 'multiprocessing'}
     if backend not in allowed_backend:
         raise ValueError(
             f'Invalid backend: {backend}.\n'
             f'Allowed: {allowed_backend}'
         )
 
-    model_alias_dict: Dict[str, Set[str]] = {
+    model_alias_dict: dict[str, set[str]] = {
         'knn': {
             'knn', 'k_nearest_neighbors', 'K-Nearest Neighbors'
         },
@@ -91,4 +100,4 @@ def prediction(
         else:
             z_validate = None
 
-    return z_predict, z_validate
+    return PredictionResult(z_predict=z_predict, z_validate=z_validate)
