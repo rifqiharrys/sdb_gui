@@ -13,14 +13,14 @@ def read_geotiff(
         **params: Any,
 ) -> xr.DataArray:
     """
-    Read Geotiff raster data using Xarray (using rioxarray extension).
+    Read Geotiff raster data using `rioxarray.open_rasterio`.
 
     Parameters
     ----------
     raster_loc : Path | str
         Raster data location.
     **params : Any
-        Additional parameters passed to rioxarray.open_rasterio()
+        Additional parameters passed to `rioxarray.open_rasterio()`
 
     Returns
     -------
@@ -35,14 +35,14 @@ def read_shapefile(
         **params: Any,
 ) -> gpd.GeoDataFrame:
     """
-    Read shapefile vector data containing depth samples using Geopandas.
+    Read vector data containing depth samples using `geopandas.read_file`.
 
     Parameters
     ----------
     vector_loc : Path | str
         Vector data location containing point depth samples.
     **params : Any
-        Additional parameters passed to geopandas.read_file()
+        Additional parameters passed to `geopandas.read_file()`
 
     Returns
     -------
