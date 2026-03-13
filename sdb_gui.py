@@ -17,6 +17,8 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDialog,
                              QPushButton, QScrollArea, QSpinBox, QTableWidget,
                              QTableWidgetItem, QTextBrowser, QVBoxLayout,
                              QWidget)
+from rasterio.errors import RasterioIOError
+from pyogrio.errors import DataSourceError
 
 import sdb
 from gui.config_loader import CONSTANTS, DEFAULTS, PROJECT
@@ -26,6 +28,7 @@ from gui.utils import acronym, resource_path, str2bool, to_title
 VERSION = PROJECT['workspace']['version']
 LOG_FILE = f'{PROJECT["workspace"]["name"].replace("-", "_")}.log'
 EVALUATION_TYPES: dict[str, bool] = CONSTANTS['evaluation_types']
+READ_FORMATS: dict[str, list] = CONSTANTS['read_formats']
 DEM_FORMATS: list[str] = sorted(CONSTANTS['dem_formats'])
 TRAIN_TEST_SAVE: dict[str, bool] = CONSTANTS['train_test_save']
 FILES: dict[str, dict[str, str]] = CONSTANTS['files']
@@ -380,7 +383,7 @@ class SDBWidget(QWidget):
         self, 
         command: Callable[..., tuple[str, str]],
         window_text: str,
-        file_type: str,
+        file_type: str | list[str],
         text_browser: QTextBrowser
     ) -> None:
         """
@@ -393,7 +396,7 @@ class SDBWidget(QWidget):
             that returns a tuple of (selected_path: str, selected_filter: str)
         window_text : str
             Title of the dialog window
-        file_type : str
+        file_type : str | list[str]
             File type filter (e.g., 'GeoTIFF (*.tif)')
         text_browser : QTextBrowser
             Text browser widget to display selected path
@@ -403,14 +406,20 @@ class SDBWidget(QWidget):
         None
         """
 
-        fileFilter = f'All Files (*.*) ;; {file_type}'
-        selectedFilter = file_type
+        if isinstance(file_type, str):
+            file_type = [file_type]
+
+        # keeping preferred formats first as in constants.yaml, then sorted afterwards
+        initial_filter = file_type[0]
+        file_type = sorted(file_type)
+
+        file_filter = f'All Files (*.*) ;; {";; ".join(file_type)}'
         fname = command(
             self,
-            window_text,
-            str(self.dir_path),
-            fileFilter,
-            selectedFilter
+            caption=window_text,
+            directory=str(self.dir_path),
+            filter=file_filter,
+            initialFilter=initial_filter
         )
 
         if fname[0]:
@@ -448,7 +457,7 @@ class SDBWidget(QWidget):
             lambda: self.fileDialog(
                 command=QFileDialog.getOpenFileName,
                 window_text='Open Image File',
-                file_type='GeoTIFF (*.tif)',
+                file_type=READ_FORMATS['raster'],
                 text_browser=self.imglocList
             )
         )
@@ -518,6 +527,11 @@ class SDBWidget(QWidget):
                     'No data loaded. Please load your data!'
                 )
                 self.loadImageWindow()
+        except RasterioIOError as e:
+            self._warningWithClear(
+                f'Image data format error: {e}'
+            )
+            self.loadImageDialog.close()
 
 
     def loadSampleWindow(self):
@@ -541,7 +555,7 @@ class SDBWidget(QWidget):
             lambda: self.fileDialog(
                 command=QFileDialog.getOpenFileName,
                 window_text='Open Depth Sample File',
-                file_type='ESRI Shapefile (*.shp)',
+                file_type=READ_FORMATS['vector'],
                 text_browser=self.samplelocList
             )
         )
@@ -669,6 +683,11 @@ class SDBWidget(QWidget):
                     'No data loaded. Please load your data!'
                 )
                 self.loadSampleWindow()
+        except DataSourceError as e:
+            self._warningWithClear(
+                f'Sample data format error: {e}'
+            )
+            self.loadSampleDialog.close()
 
 
     def _methodOptionWindow(self):
