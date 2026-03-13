@@ -9,6 +9,12 @@ evaluation_types:
   'Use Current Prediction': false
   'Recalculate from Test Data': true
 
+read_formats:
+  raster:
+    - 'GeoTIFF (*.tif *.tiff *.gtif *.gtiff)'
+  vector:
+    - 'Esri Shapefile (*.shp)'
+
 dem_formats:
   - 'ASCII Gridded XYZ (*.xyz)'
   - 'GeoTIFF (*.tif)'
