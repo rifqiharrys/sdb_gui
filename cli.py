@@ -2,9 +2,8 @@ from pathlib import Path
 
 import typer
 
-from sdb.preprocessing import reproject_vector
-
 from sdb.io import read_geotiff, read_shapefile, write_geotiff, write_shapefile
+from sdb.preprocessing import reproject_vector
 from sdb.utils import array_to_dataarray, median_filter, point_sampling
 
 cli_app = typer.Typer()
