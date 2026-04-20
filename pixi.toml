@@ -6,6 +6,7 @@ platforms = ["win-64", "linux-64", "osx-arm64"]
 version = "4.1.1"
 
 [tasks]
+sdb-cli = "python cli.py"
 
 [dependencies]
 python = "3.12.*"
@@ -18,6 +19,7 @@ geopandas = ">=1.1"
 scikit-learn = ">=1.8"
 matplotlib = ">=3.10"
 joblib = ">=1.5"
+typer = ">=0.24.0"
 
 [feature.gui.dependencies]
 pyqt = ">=5.15,<6"
