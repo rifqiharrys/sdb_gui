@@ -56,12 +56,14 @@ def median_filter(
         filter_size: int = 3
 ) -> NDArray:
     """
-    Calculate median filter of a 2D array.
+    Calculate median filter of a 3D array from rioxarray.
+    The filter applied to each band separately.
+    Band dimension is expected to be the first dimension of the array.
 
     Parameters
     ----------
     array : NDArray
-        2D array data.
+        3D array data.
     filter_size : int, optional
         Size of the median filter window. Must be >= 3 and odd. Default is 3.
     Returns
@@ -73,7 +75,9 @@ def median_filter(
     if filter_size < 3 or filter_size % 2 == 0:
         raise ValueError('Allowed value: >= 3 and odd numbers')
 
-    filtered = ndimage.median_filter(array, size=filter_size)
+    fs = (1, filter_size, filter_size)  # filter size for each dimension
+
+    filtered = ndimage.median_filter(array, size=fs)
 
     return filtered
 
