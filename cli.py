@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Annotated
 
 import typer
 
@@ -10,9 +11,18 @@ cli_app = typer.Typer()
 
 @cli_app.command(name="median-filter")
 def median_filter_cli(
-    input_file: str,
-    output_file: str,
-    filter_size: int = 3
+    input_file: Annotated[str, typer.Argument(
+        help="Path to the input raster file."
+    )],
+    output_file: Annotated[str, typer.Argument(
+        help="Path to the output raster file."
+    )],
+    filter_size: Annotated[int, typer.Option(
+        "--filter-size",
+        "-f",
+        help="Size of the median filter window. "
+        "Must be >= 3 and odd."
+    )] = 3
 ) -> None:
     """
     Apply median filter to a raster image.
@@ -45,9 +55,15 @@ def median_filter_cli(
 
 @cli_app.command(name="point-sampling")
 def point_sampling_cli(
-    input_raster: str,
-    input_vector: str,
-    output_vector: str
+    input_raster: Annotated[str, typer.Argument(
+        help="Path to the input raster file."
+    )],
+    input_vector: Annotated[str, typer.Argument(
+        help="Path to the input vector file containing point locations."
+    )],
+    output_vector: Annotated[str, typer.Argument(
+        help="Path to the output vector file where sampled results will be saved."
+    )]
 )-> None:
     """
     Sample raster values at point locations and save the results to a new vector file.
