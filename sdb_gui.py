@@ -424,10 +424,11 @@ class SDBWidget(QWidget):
 
         if fname[0]:
             selected_path = Path(fname[0])
+            selected_filter = fname[1]  # Get the actual selected filter from dialog
 
             # For save dialogs, ensure the extension matches the selected filter
-            if 'Save' in window_text and file_type in DEM_FORMATS:
-                extension = self._getDEMExtension(file_type)
+            if 'Save' in window_text and selected_filter in DEM_FORMATS:
+                extension = self._getDEMExtension(selected_filter)
                 if selected_path.suffix.lower() != extension.lower():
                     selected_path = selected_path.with_suffix(extension)
 
@@ -1449,16 +1450,16 @@ class SDBWidget(QWidget):
                     f'Median Filter Size:\t{self.medianFilterSB.value()}'
                 )
 
-                daz_filtered.values[0] = sdb.median_filter(
-                    daz_filtered.values[0],
+                daz_filtered.values[...] = sdb.median_filter(
+                    daz_filtered.values,
                     filter_size=self.medianFilterSB.value()
                 )
                 daz_filtered.band_name.values[0] = 'filtered'
             else:
                 print_filter_info = 'Median Filter Size:\tDisabled'
 
-            daz_filtered.values[0] = sdb.out_depth_filter(
-                array=daz_filtered.values[0],
+            daz_filtered.values[...] = sdb.out_depth_filter(
+                array=daz_filtered.values,
                 top_limit=self.saveLimitADSB.value(),
                 bottom_limit=self.saveLimitBDSB.value()
             )
@@ -1469,10 +1470,10 @@ class SDBWidget(QWidget):
             if CONSTANTS['depth_direction'][
                 self.depthDirectionSaveCB.currentText()
             ]:
-                daz_filtered.values[0] *=-1
-                test_df_copy['z'] *=-1
-                test_df_copy['z_validate'] *=-1
-                train_df_copy['z'] *=-1
+                daz_filtered.values[...] *= -1
+                test_df_copy['z'] *= -1
+                test_df_copy['z_validate'] *= -1
+                train_df_copy['z'] *= -1
 
             if not self.savelocList.toPlainText():
                 raise ValueError('empty save location')
