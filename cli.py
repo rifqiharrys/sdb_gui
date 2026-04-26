@@ -4,7 +4,7 @@ import typer
 
 from sdb.io import read_geotiff, read_shapefile, write_geotiff, write_shapefile
 from sdb.preprocessing import reproject_vector
-from sdb.utils import array_to_dataarray, median_filter, point_sampling
+from sdb.utils import median_filter, point_sampling
 
 cli_app = typer.Typer()
 
@@ -33,11 +33,8 @@ def median_filter_cli(
 
     raster = read_geotiff(Path(input_file))
 
-    filtered_array = median_filter(raster.values[0], filter_size=filter_size)
-    filtered_raster = array_to_dataarray(
-        array=filtered_array,
-        data_array=raster,
-    )
+    filtered_array = median_filter(raster.values, filter_size=filter_size)
+    filtered_raster = raster.copy(data=filtered_array)
 
     write_geotiff(
         raster=filtered_raster,
