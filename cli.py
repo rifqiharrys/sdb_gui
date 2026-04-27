@@ -88,19 +88,16 @@ def point_sampling_cli(
     # check if the vector data contains point geometry
     if not all(vector.geometry.type == 'Point'):
         raise ValueError('Input vector data must contain point geometry')
-    
-    # check if the raster and vector data have the same CRS
-    # reproject the vector data to the raster CRS if they are different
-    if raster.rio.crs != vector.crs:
-        vector = reproject_vector(
-            raster=raster,
-            vector=vector
-        )
+
+    new_vector = reproject_vector(
+        raster=raster,
+        vector=vector
+    )
 
     sampled_table = point_sampling(
         raster=raster,
-        x=vector.geometry.x,
-        y=vector.geometry.y
+        x=new_vector.geometry.x,
+        y=new_vector.geometry.y
     )
 
     write_shapefile(
