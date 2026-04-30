@@ -7,12 +7,15 @@ from sdb.io import read_geotiff, read_shapefile, write_geotiff, write_shapefile
 from sdb.preprocessing import reproject_vector
 from sdb.utils import median_filter, point_sampling
 
-cli_app = typer.Typer()
+cli_app = typer.Typer(no_args_is_help=True)
 
-@cli_app.command(name="median-filter")
+@cli_app.command(
+    name='median-filter',
+    no_args_is_help=True,
+)
 def median_filter_cli(
     input_file: Annotated[str, typer.Argument(
-        help="Path to the input raster file."
+        help="Path to the input raster file.",
     )],
     output_file: Annotated[str, typer.Argument(
         help="Path to the output raster file."
@@ -26,19 +29,6 @@ def median_filter_cli(
 ) -> None:
     """
     Apply median filter to a raster image.
-
-    Parameters
-    ----------
-    input_file : str
-        Path to the input raster file.
-    output_file : str
-        Path to the output raster file.
-    filter_size : int, optional
-        Size of the median filter window. Must be >= 3 and odd. Default is 3.
-
-    Returns
-    -------
-    None
     """
 
     raster = read_geotiff(Path(input_file))
@@ -53,7 +43,10 @@ def median_filter_cli(
     )
 
 
-@cli_app.command(name="point-sampling")
+@cli_app.command(
+    name='point-sampling',
+    no_args_is_help=True,
+)
 def point_sampling_cli(
     input_raster: Annotated[str, typer.Argument(
         help="Path to the input raster file."
@@ -66,20 +59,8 @@ def point_sampling_cli(
     )]
 )-> None:
     """
-    Sample raster values at point locations and save the results to a new vector file.
-
-    Parameters
-    ----------
-    input_raster : str
-        Path to the input raster file.
-    input_vector : str
-        Path to the input vector file containing point locations.
-    output_vector : str
-        Path to the output vector file where sampled results will be saved.
-
-    Returns
-    -------
-    None
+    Sample raster values at point locations
+    and save the results to a new vector file.
     """
 
     raster = read_geotiff(Path(input_raster))
