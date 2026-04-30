@@ -15,16 +15,16 @@ cli_app = typer.Typer(no_args_is_help=True)
 )
 def median_filter_cli(
     input_file: Annotated[str, typer.Argument(
-        help="Path to the input raster file.",
+        help='Path to the input raster file.'
     )],
     output_file: Annotated[str, typer.Argument(
-        help="Path to the output raster file."
+        help='Path to the output raster file.'
     )],
     filter_size: Annotated[int, typer.Option(
-        "--filter-size",
-        "-f",
-        help="Size of the median filter window. "
-        "Must be >= 3 and odd."
+        '--filter-size',
+        '-f',
+        help='Size of the median filter window. '
+        'Must be >= 3 and odd.'
     )] = 3
 ) -> None:
     """
@@ -49,13 +49,13 @@ def median_filter_cli(
 )
 def point_sampling_cli(
     input_raster: Annotated[str, typer.Argument(
-        help="Path to the input raster file."
+        help='Path to the input raster file.'
     )],
     input_vector: Annotated[str, typer.Argument(
-        help="Path to the input vector file containing point locations."
+        help='Path to the input vector file containing point locations.'
     )],
     output_vector: Annotated[str, typer.Argument(
-        help="Path to the output vector file where sampled results will be saved."
+        help='Path to the output vector file where sampled results will be saved.'
     )]
 )-> None:
     """
