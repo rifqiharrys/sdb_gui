@@ -4,7 +4,6 @@ from typing import Annotated
 import typer
 
 from sdb.io import read_geotiff, read_shapefile, write_geotiff, write_shapefile
-from sdb.preprocessing import reproject_vector
 from sdb.utils import median_filter, point_sampling
 
 cli_app = typer.Typer(no_args_is_help=True)
@@ -56,29 +55,29 @@ def point_sampling_cli(
     )],
     output_vector: Annotated[str, typer.Argument(
         help='Path to the output vector file where sampled results will be saved.'
-    )]
+    )],
+    copy_attributes: Annotated[bool, typer.Option(
+        '--copy',
+        '-c',
+        help='Copy attributes from the input vector to the output vector.'
+    )] = False
 )-> None:
     """
     Sample raster values at point locations
-    and save the results to a new vector file.
+    and save the results to a new vector file
+    with CRS matching the input raster.
     """
 
     raster = read_geotiff(Path(input_raster))
     vector = read_shapefile(Path(input_vector))
 
-    # check if the vector data contains point geometry
     if not all(vector.geometry.type == 'Point'):
         raise ValueError('Input vector data must contain point geometry')
 
-    new_vector = reproject_vector(
-        raster=raster,
-        vector=vector
-    )
-
     sampled_table = point_sampling(
         raster=raster,
-        x=new_vector.geometry.x,
-        y=new_vector.geometry.y
+        vector=vector,
+        include_attributes=copy_attributes
     )
 
     write_shapefile(
