@@ -32,6 +32,8 @@ pip-delete-this-directory.txt
 !.pixi/config.toml
 
 # Generated files
+docs/data/*
+
 # ESRI Shapefiles
 *.shp
 *.shx
