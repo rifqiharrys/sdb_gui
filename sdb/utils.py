@@ -1,3 +1,4 @@
+import geopandas as gpd
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -7,9 +8,11 @@ from scipy import ndimage
 
 def point_sampling(
         raster: xr.DataArray,
-        x: pd.Series,
-        y: pd.Series,
-        include_xy: bool = True
+        x: pd.Series | None = None,
+        y: pd.Series | None = None,
+        vector: gpd.GeoDataFrame | None = None,
+        include_xy: bool = True,
+        include_attributes: bool = False
 ) -> pd.DataFrame:
     """
     Extract raster values from a dataarray based on xy coordinates.
@@ -19,21 +22,53 @@ def point_sampling(
     ----------
     raster : xr.DataArray
         DataArray from rioxarray.
-    x : pd.Series
+    x : pd.Series | None
         X coordinates.
-    y : pd.Series
+        Default is None, and must be provided together with y.
+    y : pd.Series | None
         Y coordinates.
+        Default is None, and must be provided together with x.
+    vector : gpd.GeoDataFrame | None, optional
+        GeoDataFrame containing points for sampling.
+        Default is None, and must be provided if x and y are not provided.
     include_xy : bool, optional
-        Whether to include the x and y coordinates in the output DataFrame. Default is True.
+        Whether to include the x and y coordinates in the output DataFrame.
+        Default is True.
+    include_attributes : bool, optional
+        Whether to include attributes 
+        from the input vector in the output DataFrame.
+        Default is False. Only applicable if vector is provided.
 
     Returns
     -------
     pd.DataFrame
-        DataFrame containing the extracted raster values and optionally the x and y coordinates.
+        DataFrame containing the extracted raster values
+        and optionally the x and y coordinates
+        and attributes from the input vector.
     """
 
-    x_reindex = x.reset_index(drop=True)
-    y_reindex = y.reset_index(drop=True)
+    if x is not None and y is not None:
+        x_reindex = x.reset_index(drop=True)
+        y_reindex = y.reset_index(drop=True)
+    else:
+        if vector is None:
+            raise ValueError('Either x and y or vector must be provided')
+
+        if not all(vector.geometry.type == 'Point'):
+            raise ValueError('Input vector must contain point geometries only.')
+
+        # avoid circular dependency by importing clip_vector here
+        from .preprocessing import clip_vector
+        new_vector = clip_vector(
+            raster=raster,
+            vector=vector
+        ).reset_index(drop=True)
+
+        x_reindex = new_vector.geometry.x.reset_index(drop=True)
+        y_reindex = new_vector.geometry.y.reset_index(drop=True)
+
+        if include_attributes:
+            attributes = new_vector.drop(columns='geometry').reset_index(drop=True)
 
     x_in = xr.DataArray(x_reindex, dims=['location'])
     y_in = xr.DataArray(y_reindex, dims=['location'])
@@ -47,6 +82,9 @@ def point_sampling(
 
     if include_xy:
         point_samples_df['x'], point_samples_df['y'] = x_reindex, y_reindex
+
+    if include_attributes and vector is not None:
+        point_samples_df = point_samples_df.join(attributes)
 
     return point_samples_df
 
