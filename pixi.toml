@@ -6,7 +6,8 @@ platforms = ["win-64", "linux-64", "osx-arm64"]
 version = "4.1.1"
 
 [tasks]
-sdb-cli = "python cli.py"
+sdb-gui = { cmd = "python sdb_gui.py", default-environment = "gui", description = "running sdb_gui.py" }
+sdb-cli = { cmd = "python cli.py", description = "running cli.py" }
 
 [dependencies]
 python = "3.12.*"
