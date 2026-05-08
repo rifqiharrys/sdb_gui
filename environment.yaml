@@ -14,3 +14,4 @@ dependencies:
   - pyqt>=5.15,<6
   - joblib>=1.5
   - pyyaml>=6.0
+  - typer>=0.24.0
