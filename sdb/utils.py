@@ -6,6 +6,78 @@ from numpy.typing import NDArray
 from scipy import ndimage
 
 
+def reproject_vector(
+        raster: xr.DataArray,
+        vector: gpd.GeoDataFrame
+) -> gpd.GeoDataFrame:
+    """
+    Reproject vector data if it has different CRS with raster data.
+
+    Parameters
+    ----------
+    raster : xr.DataArray
+        Raster data.
+    vector : gpd.GeoDataFrame
+        Vector data location containing point depth samples.
+
+    Returns
+    -------
+    gpd.GeoDataFrame
+        Reprojected vector data.
+    """
+
+    if raster.rio.crs is None:
+        raise ValueError('Raster CRS is not defined.')
+    if vector.crs is None:
+        raise ValueError('Vector CRS is not defined.')
+
+    # Retrieve CRS information from image and sample and change it to uppercase
+    raster_crs = str(raster.rio.crs).upper()
+    vector_crs = str(vector.crs).upper()
+
+    # Check if CRS is the same and reproject sample if not
+    if raster_crs != vector_crs:
+        new_vector = vector.to_crs(crs=raster_crs)
+    else:
+        new_vector = vector.copy()
+
+    return new_vector
+
+
+def clip_vector(
+        raster: xr.DataArray, 
+        vector: gpd.GeoDataFrame
+) -> gpd.GeoDataFrame:
+    """
+    Clip vector that is located outside raster boundary.
+
+    Parameters
+    ----------
+    raster : xr.DataArray
+        Raster data.
+    vector : gpd.GeoDataFrame
+        Vector data location containing point depth samples.
+
+    Returns
+    -------
+    gpd.GeoDataFrame
+        Clipped vector data.
+    """
+
+    # Check if vector has the same CRS as raster
+    new_vector = reproject_vector(
+        raster=raster,
+        vector=vector
+    )
+
+    # Insert xarray image boundary coordinates to variables
+    left, bottom, right, top = raster.rio.bounds()
+    # Exclude out of boundary points
+    new_vector = new_vector.cx[left:right, bottom:top]
+
+    return new_vector
+
+
 def point_sampling(
         raster: xr.DataArray,
         x: pd.Series | None = None,
@@ -57,8 +129,6 @@ def point_sampling(
         if not all(vector.geometry.type == 'Point'):
             raise ValueError('Input vector must contain point geometries only.')
 
-        # avoid circular dependency by importing clip_vector here
-        from .preprocessing import clip_vector
         new_vector = clip_vector(
             raster=raster,
             vector=vector
