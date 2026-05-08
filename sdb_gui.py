@@ -9,16 +9,31 @@ from typing import Any, Callable
 
 import numpy as np
 import pandas as pd
+from pyogrio.errors import DataSourceError
 from PyQt5.QtCore import QSettings, Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDialog,
-                             QDoubleSpinBox, QErrorMessage, QFileDialog,
-                             QGridLayout, QLabel, QMessageBox, QProgressBar,
-                             QPushButton, QScrollArea, QSpinBox, QTableWidget,
-                             QTableWidgetItem, QTextBrowser, QVBoxLayout,
-                             QWidget)
+from PyQt5.QtWidgets import (
+    QApplication,
+    QCheckBox,
+    QComboBox,
+    QDialog,
+    QDoubleSpinBox,
+    QErrorMessage,
+    QFileDialog,
+    QGridLayout,
+    QLabel,
+    QMessageBox,
+    QProgressBar,
+    QPushButton,
+    QScrollArea,
+    QSpinBox,
+    QTableWidget,
+    QTableWidgetItem,
+    QTextBrowser,
+    QVBoxLayout,
+    QWidget,
+)
 from rasterio.errors import RasterioIOError
-from pyogrio.errors import DataSourceError
 
 import sdb
 from gui.config_loader import CONSTANTS, DEFAULTS, PROJECT

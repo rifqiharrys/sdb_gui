@@ -1,8 +1,8 @@
 from collections import OrderedDict
 from typing import Any, Dict
 
-import yaml
 import tomllib
+import yaml
 
 from .utils import resource_path
 
