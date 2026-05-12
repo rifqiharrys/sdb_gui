@@ -3,7 +3,23 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from numpy.typing import NDArray
+from rich.progress import Progress, SpinnerColumn, TextColumn
 from scipy import ndimage
+from contextlib import contextmanager
+
+@contextmanager
+def progress_spinner(description: str, style: str):
+    """Context manager for progress spinner."""
+    with Progress(
+        SpinnerColumn(),
+        TextColumn(
+            '[progress.description]{task.description}',
+            style=style
+        ),
+        transient=True,
+    ) as progress:
+        progress.add_task(description=description, total=None)
+        yield
 
 
 def reproject_vector(
@@ -37,7 +53,11 @@ def reproject_vector(
 
     # Check if CRS is the same and reproject sample if not
     if raster_crs != vector_crs:
-        new_vector = vector.to_crs(crs=raster_crs)
+        with progress_spinner(
+            description='Reprojecting vector data...',
+            style='yellow'
+        ):
+            new_vector = vector.to_crs(crs=raster_crs)
     else:
         new_vector = vector.copy()
 
@@ -70,10 +90,14 @@ def clip_vector(
         vector=vector
     )
 
-    # Insert xarray image boundary coordinates to variables
-    left, bottom, right, top = raster.rio.bounds()
-    # Exclude out of boundary points
-    new_vector = new_vector.cx[left:right, bottom:top]
+    with progress_spinner(
+        description='Excluding out-of-bounds points...',
+        style='yellow'
+    ):
+        # Insert xarray image boundary coordinates to variables
+        left, bottom, right, top = raster.rio.bounds()
+        # Exclude out of boundary points
+        new_vector = new_vector.cx[left:right, bottom:top]
 
     return new_vector
 
@@ -143,7 +167,11 @@ def point_sampling(
     x_in = xr.DataArray(x_reindex, dims=['location'])
     y_in = xr.DataArray(y_reindex, dims=['location'])
 
-    point_samples = raster.sel(x=x_in, y=y_in, method='nearest').values.T
+    with progress_spinner(
+        description='Extracting raster values from point locations...',
+        style='yellow'
+    ):
+        point_samples = raster.sel(x=x_in, y=y_in, method='nearest').values.T
 
     point_samples_df = pd.DataFrame(
         point_samples,
@@ -185,7 +213,11 @@ def median_filter(
 
     fs = (1, filter_size, filter_size)  # filter size for each dimension
 
-    filtered = ndimage.median_filter(array, size=fs)
+    with progress_spinner(
+        description='Applying median filter to raster data...',
+        style='yellow'
+    ):
+        filtered = ndimage.median_filter(array, size=fs)
 
     return filtered
 
