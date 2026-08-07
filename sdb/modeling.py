@@ -96,14 +96,13 @@ def prediction(
     with progress_spinner(
         description=f'Predicting using {regressor.__class__.__name__}...',
         style='bold green'
-    ):
-        with parallel_backend(backend=backend, n_jobs=n_jobs):
-            regressor.fit(features_train, label_train)
-            z_predict = regressor.predict(unraveled_band)
+    ), parallel_backend(backend=backend, n_jobs=n_jobs):
+        regressor.fit(features_train, label_train)
+        z_predict = regressor.predict(unraveled_band)
 
-            if features_test is not None:
-                z_validate = regressor.predict(features_test)
-            else:
-                z_validate = None
+        if features_test is not None:
+            z_validate = regressor.predict(features_test)
+        else:
+            z_validate = None
 
     return PredictionResult(z_predict=z_predict, z_validate=z_validate)

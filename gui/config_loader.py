@@ -14,8 +14,8 @@ def load_config(config_path: str) -> dict[str, Any]:
     """
     try:
         config_file = resource_path(config_path)
-        
-        if config_path.endswith(('.toml')):
+
+        if config_path.endswith('.toml'):
             with open(config_file, 'rb') as file:
                 return tomllib.load(file)
         elif config_path.endswith(('.yaml', '.yml')):

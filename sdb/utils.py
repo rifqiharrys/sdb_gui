@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 import geopandas as gpd
 import numpy as np
 import pandas as pd
@@ -5,7 +7,7 @@ import xarray as xr
 from numpy.typing import NDArray
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from scipy import ndimage
-from contextlib import contextmanager
+
 
 @contextmanager
 def progress_spinner(description: str, style: str):

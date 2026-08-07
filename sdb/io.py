@@ -56,7 +56,7 @@ def read_shapefile(
     gdf = gpd.read_file(vector_loc, **params)
 
     if not isinstance(gdf, gpd.GeoDataFrame):
-        raise ValueError('Input file does not contain valid geometry data')
+        raise TypeError('Input file does not contain valid geometry data')
 
     return gdf
 
