@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import Any, Dict
+from typing import Any
 
 import tomllib
 import yaml
@@ -7,7 +7,7 @@ import yaml
 from .utils import resource_path
 
 
-def load_config(config_path: str) -> Dict[str, Any]:
+def load_config(config_path: str) -> dict[str, Any]:
     """
     Load GUI constants from a YAML or TOML configuration file.
     File type is determined by the extension (.yaml, .yml, or .toml).
@@ -27,11 +27,11 @@ def load_config(config_path: str) -> Dict[str, Any]:
         raise FileNotFoundError(f'Configuration file not found: {config_file}')
     except yaml.YAMLError as e:
         raise RuntimeError(f'Error parsing YAML file: {e}')
-    except Exception as e:
+    except tomllib.TOMLDecodeError as e:
         raise RuntimeError(f'Error parsing TOML file: {e}')
 
 
-def structure_defaults(defaults_dict: Dict[str, Any]) -> Dict[str, Any]:
+def structure_defaults(defaults_dict: dict[str, Any]) -> dict[str, Any]:
     """
     Convert loaded defaults from YAML into the expected structure
     with proper nested OrderedDicts for compatibility with existing code.

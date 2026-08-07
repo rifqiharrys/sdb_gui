@@ -4,8 +4,9 @@ import pprint
 import re
 import sys
 import webbrowser
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -60,7 +61,7 @@ class SDBWidget(QWidget):
         Initialize widget and default values
         """
 
-        super(SDBWidget, self).__init__()
+        super().__init__()
 
         self.settings = QSettings('SDB', 'SDB GUI')
         self._assignSettings()
@@ -304,7 +305,7 @@ class SDBWidget(QWidget):
                     return DEFAULTS
 
             return DEFAULTS
-        except Exception as e:
+        except (AttributeError, KeyError, TypeError, ValueError) as e:
             logger.error(f'Error loading settings: {e}')
             return DEFAULTS
 
@@ -892,9 +893,7 @@ class SDBWidget(QWidget):
         ]['parameters']
         
         for param, widget in self.selection_widgets.items():
-            if isinstance(widget, QDoubleSpinBox):
-                selection_params[param] = widget.value()
-            elif isinstance(widget, QSpinBox):
+            if isinstance(widget, (QDoubleSpinBox, QSpinBox)):
                 selection_params[param] = widget.value()
             elif isinstance(widget, QComboBox):
                 selection_params[param] = widget.currentText()
@@ -920,8 +919,7 @@ class SDBWidget(QWidget):
             current_parameters = proc_op_dict['selection'][selection]['parameters']
             self.selection_widgets = {}
 
-            row = 0
-            for param, value in current_parameters.items():
+            for row, (param, value) in enumerate(current_parameters.items()):
                 label = QLabel(to_title(param) + ':')
                 self.dynamicLayout.addWidget(label, row, 1, 1, 2)
 
@@ -962,7 +960,6 @@ class SDBWidget(QWidget):
 
                 self.selection_widgets[param] = widget
                 self.dynamicLayout.addWidget(widget, row, 3, 1, 2)
-                row += 1
         except NameError:
             self.trainSelectCB.setCurrentText(
                 DEFAULTS['processing']['current_selection']
@@ -996,7 +993,7 @@ class SDBWidget(QWidget):
                     f'group widget updated "{selected_header}": {group_list}'
                 )
 
-        except Exception as e:
+        except (KeyError, AttributeError) as e:
             logger.error(f'failed to update groups: {e}')
 
 
@@ -1195,7 +1192,7 @@ class SDBWidget(QWidget):
                 with open(LOG_FILE, 'r') as src, open(save_path, 'w') as target:
                     target.write(src.read())
                 logger.info(f'log file copied to: {save_path}')
-            except Exception as e:
+            except OSError as e:
                 logger.error(f'failed to copy log file: {e}')
 
 
@@ -1565,14 +1562,15 @@ class SDBWidget(QWidget):
                 report_save_loc = Path(save_loc).with_name(
                     f'{Path(save_loc).stem}_report.txt'
                 )
-                report = open(report_save_loc, 'w')
 
-                report.write(
-                    print_result_info +
-                    print_dem_info +
-                    print_train_test_info +
-                    print_scatter_plot_info
-                )
+                with open(report_save_loc, 'w') as report:
+                    report.write(
+                        print_result_info +
+                        print_dem_info +
+                        print_train_test_info +
+                        print_scatter_plot_info
+                    )
+
                 logger.info('report has been saved')
                 logger.debug(f'report location: {report_save_loc}')
         except ValueError as e:
@@ -1710,8 +1708,8 @@ class SDBWidget(QWidget):
         self.licenseText = QTextBrowser()
         license_name = licenseCB.currentText()
         license_location = license_dict[license_name]
-        license_file = open(resource_path(license_location), 'r')
-        self.licenseText.setText(license_file.read())
+        with open(resource_path(license_location), 'r') as license_file:
+            self.licenseText.setText(license_file.read())
         grid.addWidget(self.licenseText, 2, 1, 1, 4)
 
         okButton = QPushButton('OK')
@@ -1728,8 +1726,8 @@ class SDBWidget(QWidget):
         Selecting license file location
         """
 
-        license_file = open(resource_path(location), 'r')
-        self.licenseText.setText(license_file.read())
+        with open(resource_path(location), 'r') as license_file:
+            self.licenseText.setText(license_file.read())
 
 
 
@@ -1903,7 +1901,7 @@ class Process(QThread):
             results = self.predict(method=self.method)
 
             if results is None or not self._is_running:
-                return None
+                return
             logger.debug('run started')
 
             time_model = datetime.datetime.now()
@@ -1979,7 +1977,7 @@ class Process(QThread):
             )
         except ValueError as e:
             self.warning_with_clear.emit(
-                f'{str(e)}'
+                f'{e!s}'
             )
 
 
