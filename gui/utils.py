@@ -1,6 +1,17 @@
 import re
 import sys
 from pathlib import Path
+from typing import NamedTuple
+
+
+class TimeMessage(NamedTuple):
+    """
+    A named tuple to store time elapsed and 
+    message information for progress reporting.
+    """
+
+    timestamp: float
+    message: str
 
 
 def resource_path(relative_path: str) -> str:
@@ -17,6 +28,7 @@ def resource_path(relative_path: str) -> str:
         base_path = Path(__file__).parent.parent.resolve()
     
     return str(base_path / relative_path)
+
 
 def str2bool(v: str) -> bool:
     """

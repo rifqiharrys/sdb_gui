@@ -1,14 +1,15 @@
-import datetime
 import logging
 import pprint
 import re
 import sys
+import time
 import webbrowser
 from collections.abc import Callable
+from datetime import timedelta
+from itertools import pairwise
 from pathlib import Path
 from typing import Any
 
-import numpy as np
 import pandas as pd
 from pyogrio.errors import DataSourceError
 from PyQt5.QtCore import QSettings, Qt, QThread, pyqtSignal
@@ -38,7 +39,7 @@ from rasterio.errors import RasterioIOError
 
 import sdb
 from gui.config_loader import CONSTANTS, DEFAULTS, PROJECT
-from gui.utils import acronym, resource_path, str2bool, to_title
+from gui.utils import TimeMessage, acronym, resource_path, str2bool, to_title
 
 ## CONSTANTS ##
 VERSION = PROJECT['workspace']['version']
@@ -1043,14 +1044,14 @@ class SDBWidget(QWidget):
             )
 
 
-    def _timeCounting(self, time_text: list[datetime.datetime | str]) -> None:
+    def _timeCounting(self, time_message: TimeMessage) -> None:
         """
         Receive time value on every step and its corresponding processing
         text to show in result text browser and increase progress bar.
         """
 
-        time_list.append(time_text[0])
-        self.resultText.append(time_text[1])
+        time_list.append(time_message.timestamp)
+        self.resultText.append(time_message.message)
         self.progressBar.setValue(self.progressBar.value() + 1)
 
         if self.progressBar.value() == self.progressBar.maximum():
@@ -1115,9 +1116,9 @@ class SDBWidget(QWidget):
                 'Depth Limit:\t\tDisabled'
             )
 
-        time_array = np.array(time_list)
-        time_diff = time_array[1:] - time_array[:-1]
-        runtime = np.append(time_diff, time_list[-1] - time_list[0])
+        time_diff = [end - start for start, end in pairwise(time_list)]
+        elapsed_time = time_diff + [time_list[-1] - time_list[0]]
+        runtime = [timedelta(seconds=t) for t in elapsed_time]
 
         global print_result_info
         print_result_info = (
@@ -1739,7 +1740,7 @@ class Process(QThread):
     """
 
     thread_signal = pyqtSignal(dict)
-    time_signal = pyqtSignal(list)
+    time_signal = pyqtSignal(TimeMessage)
     warning_with_clear = pyqtSignal(str)
     warning_without_clear = pyqtSignal(str)
 
@@ -1779,18 +1780,25 @@ class Process(QThread):
             return None
 
         logger.debug('preprocess started by clip and/or reproject sample data')
-        time_start = datetime.datetime.now()
-        start_list = [time_start, 'Clipping and Reprojecting...\n']
-        self.time_signal.emit(start_list)
+        self.time_signal.emit(
+            TimeMessage(
+                timestamp=time.perf_counter(),
+                message='Clipping and Reprojecting...\n'
+            )
+        )
+
         clipped_sample = sdb.clip_vector(image_raw, sample_raw)
 
         if not self._is_running:
             return None
 
         logger.debug('filter depth sample input')
-        time_clip = datetime.datetime.now()
-        clip_list = [time_clip, 'Depth Filtering...\n']
-        self.time_signal.emit(clip_list)
+        self.time_signal.emit(
+            TimeMessage(
+                timestamp=time.perf_counter(),
+                message='Depth Filtering...\n'
+            )
+        )
         depth_filtered_sample = sdb.in_depth_filter(
             vector=clipped_sample,
             header=self.depth_label,
@@ -1803,9 +1811,12 @@ class Process(QThread):
         if not self._is_running:
             return None
 
-        time_depth_filter = datetime.datetime.now()
-        depth_filter_list = [time_depth_filter, 'Split Train and Test...\n']
-        self.time_signal.emit(depth_filter_list)
+        self.time_signal.emit(
+            TimeMessage(
+                timestamp=time.perf_counter(),
+                message='Split Train and Test...\n'
+            )
+        )
         logger.info(f'split depth sample by {self.train_select}: {self.selection}')
         logger.debug(f'splitting type: {self.train_select}: {self.selection}')
         f_train, f_test, z_train, z_test = sdb.split_data(
@@ -1843,9 +1854,12 @@ class Process(QThread):
         if results is None or not self._is_running:
             return None
 
-        time_split = datetime.datetime.now()
-        split_list = [time_split, 'Modeling...\n']
-        self.time_signal.emit(split_list)
+        self.time_signal.emit(
+            TimeMessage(
+                timestamp=time.perf_counter(),
+                message='Modeling...\n'
+            )
+        )
 
         model_parameters = option_pool['method'][method]['model_parameters']
         logger.info(f'model parameters: {model_parameters}')
@@ -1904,9 +1918,12 @@ class Process(QThread):
                 return
             logger.debug('run started')
 
-            time_model = datetime.datetime.now()
-            model_list = [time_model, 'Evaluating...\n']
-            self.time_signal.emit(model_list)
+            self.time_signal.emit(
+                TimeMessage(
+                    timestamp=time.perf_counter(),
+                    message='Evaluating...\n'
+                )
+            )
 
             logger.debug('reshape prediction array to raster shape')
             az_predict = sdb.reshape_prediction(
@@ -1941,9 +1958,12 @@ class Process(QThread):
             )
             logger.info(f'RMSE: {rmse}, MAE: {mae}, R2: {r2}')
 
-            time_test = datetime.datetime.now()
-            test_list = [time_test, 'Done.']
-            self.time_signal.emit(test_list)
+            self.time_signal.emit(
+                TimeMessage(
+                    timestamp=time.perf_counter(),
+                    message='Done.'
+                )
+            )
 
             train_df = results['f_train'].copy()
             train_df['z'] = results['z_train'].copy()
