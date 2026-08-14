@@ -939,7 +939,7 @@ class SDBWidget(QWidget):
                     widget.setAlignment(Qt.AlignRight)
                 elif param == 'n_splits':
                     widget = QSpinBox()
-                    widget.setRange(4, 100)
+                    widget.setRange(1, 100)
                     widget.setValue(value)
                     widget.setAlignment(Qt.AlignRight)
                 elif param in ('split_header', 'group'):

@@ -252,6 +252,15 @@ def depth_split(
         A list of GeoDataFrames containing the split depth data.
     """
 
+    max_splits = len(vector) // 100
+
+    # raise error if n_splits is less than 1 or greater than max_splits
+    if n_splits < 1 or n_splits > max_splits:
+        raise ValueError(
+            f'Invalid n_splits: {n_splits}. '
+            f'n_splits must be between 1 and {max_splits} (1/100 of the data).'
+        )
+
     clipped_vector = clip_vector(raster, vector).reset_index(drop=True)
     sorted_vector = clipped_vector.sort_values(depth_header).reset_index(drop=True)
     split_indices = np.array_split(np.arange(len(sorted_vector)), n_splits)
