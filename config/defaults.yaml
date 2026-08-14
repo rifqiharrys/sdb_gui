@@ -23,6 +23,7 @@ processing:
       parameters:
         train_size: 0.75
         random_state: 0
+        n_splits: 5
     'Attribute Selection':
       alias: 'attribute'
       parameters:

@@ -937,6 +937,11 @@ class SDBWidget(QWidget):
                     widget.setRange(0, 1000)
                     widget.setValue(value)
                     widget.setAlignment(Qt.AlignRight)
+                elif param == 'n_splits':
+                    widget = QSpinBox()
+                    widget.setRange(4, 100)
+                    widget.setValue(value)
+                    widget.setAlignment(Qt.AlignRight)
                 elif param in ('split_header', 'group'):
                     widget = QComboBox()
                     if param == 'split_header':

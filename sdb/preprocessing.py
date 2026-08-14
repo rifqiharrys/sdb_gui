@@ -6,7 +6,7 @@ import pandas as pd
 import xarray as xr
 from sklearn.model_selection import train_test_split
 
-from .utils import point_sampling
+from .utils import clip_vector, point_sampling
 
 TRAIN_SIZE = 0.5
 RANDOM_STATE = 42
@@ -190,6 +190,78 @@ def features_label(
     return df
 
 
+def combine_splits(splits: list[SplitData]) -> SplitData:
+    """
+    Combine multiple SplitData objects.
+
+    Parameters
+    ----------
+    splits : list[SplitData]
+        A list of SplitData objects to combine.
+
+    Returns
+    -------
+    SplitData
+        A combined SplitData object.
+    """
+
+    return SplitData(
+        features_train=pd.concat(
+            [split.features_train for split in splits],
+            ignore_index=True
+        ),
+        features_test=pd.concat(
+            [split.features_test for split in splits],
+            ignore_index=True
+        ),
+        z_train=pd.concat(
+            [split.z_train for split in splits],
+            ignore_index=True
+        ),
+        z_test=pd.concat(
+            [split.z_test for split in splits],
+            ignore_index=True
+        )
+    )
+
+
+def depth_split(
+    raster: xr.DataArray,
+    vector: gpd.GeoDataFrame,
+    depth_header: str,
+    n_splits: int = 5,
+) -> list[gpd.GeoDataFrame]:
+    """
+    Split depth data into n datasets with approximately equal numbers
+    of observations inside a raster extent,ordered by depth.
+
+    Parameters
+    ----------
+    raster : xr.DataArray
+        DataArray from rioxarray.
+    vector : gpd.GeoDataFrame
+        Vector data of depth points in GeoDataFrame type.
+    depth_header : str
+        Header name of depth data.
+    n_splits : int, optional
+        Number of splits, by default equal to 5.
+
+    Returns
+    -------
+    list[gpd.GeoDataFrame]
+        A list of GeoDataFrames containing the split depth data.
+    """
+
+    clipped_vector = clip_vector(raster, vector).reset_index(drop=True)
+    sorted_vector = clipped_vector.sort_values(depth_header).reset_index(drop=True)
+    split_indices = np.array_split(np.arange(len(sorted_vector)), n_splits)
+
+    return [
+        sorted_vector.iloc[index].reset_index(drop=True)
+        for index in split_indices
+    ]
+
+
 def split_random(
         raster: xr.DataArray,
         vector: gpd.GeoDataFrame,
@@ -304,6 +376,7 @@ def split_data(
         split_type: str = 'random',
         train_size: float = TRAIN_SIZE,
         random_state: int = RANDOM_STATE,
+        n_splits: int = 5,
         split_header: str | None = None,
         group: str | None = None,
 ) -> SplitData:
@@ -366,12 +439,20 @@ def split_data(
             group=group
         )
     elif split_type == 'random':
-        return split_random(
+        depth_splits = depth_split(
             raster=raster,
             vector=vector,
             depth_header=depth_header,
-            train_size=train_size,
-            random_state=random_state
+            n_splits=n_splits
         )
+        return combine_splits([
+            split_random(
+                raster=raster,
+                vector=depth_split,
+                depth_header=depth_header,
+                train_size=train_size,
+                random_state=random_state
+            ) for depth_split in depth_splits
+        ])
     else:
         raise ValueError(f'Unknown split_type: {split_type}')
