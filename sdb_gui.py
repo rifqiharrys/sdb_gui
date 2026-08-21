@@ -5,6 +5,7 @@ import sys
 import time
 import webbrowser
 from collections.abc import Callable
+from copy import deepcopy
 from datetime import timedelta
 from itertools import pairwise
 from pathlib import Path
@@ -303,12 +304,12 @@ class SDBWidget(QWidget):
                         f'Missing or invalid settings structure: {e},'
                         ' loading defaults'
                     )
-                    return DEFAULTS
+                    return deepcopy(DEFAULTS)
 
-            return DEFAULTS
+            return deepcopy(DEFAULTS)
         except (AttributeError, KeyError, TypeError, ValueError) as e:
             logger.error(f'Error loading settings: {e}')
-            return DEFAULTS
+            return deepcopy(DEFAULTS)
 
 
     def _assignSettings(self) -> None:
@@ -932,14 +933,12 @@ class SDBWidget(QWidget):
                     widget.setValue(value)
                     widget.setSuffix('')
                     widget.setAlignment(Qt.AlignRight)
-                elif param == 'random_state':
+                elif param in ('random_state', 'n_splits'):
                     widget = QSpinBox()
-                    widget.setRange(0, 1000)
-                    widget.setValue(value)
-                    widget.setAlignment(Qt.AlignRight)
-                elif param == 'n_splits':
-                    widget = QSpinBox()
-                    widget.setRange(1, 100)
+                    if param == 'random_state':
+                        widget.setRange(0, 1000)
+                    elif param == 'n_splits':
+                        widget.setRange(1, 100)
                     widget.setValue(value)
                     widget.setAlignment(Qt.AlignRight)
                 elif param in ('split_header', 'group'):
