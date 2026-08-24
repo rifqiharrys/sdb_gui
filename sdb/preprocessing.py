@@ -230,10 +230,12 @@ def depth_split(
     vector: gpd.GeoDataFrame,
     depth_header: str,
     n_splits: int = 5,
+    class_mode: str = 'amount'
 ) -> list[gpd.GeoDataFrame]:
     """
-    Split depth data into n datasets with approximately equal numbers
-    of observations inside a raster extent,ordered by depth.
+    Split depth data into n datasets with approximately
+    equal numbers of observations or equal depth ranges
+    inside a raster extent,ordered by depth.
 
     Parameters
     ----------
@@ -245,6 +247,9 @@ def depth_split(
         Header name of depth data.
     n_splits : int, optional
         Number of splits, by default equal to 5.
+    class_mode : str, optional
+        How to classify depth values either by 'amount' or by 'interval'.
+        Default is 'amount'.
 
     Returns
     -------
@@ -253,6 +258,7 @@ def depth_split(
     """
 
     max_splits = len(vector) // 100
+    class_mode = class_mode.lower()
 
     # raise error if n_splits is less than 1 or greater than max_splits
     if n_splits < 1 or n_splits > max_splits:
@@ -262,13 +268,37 @@ def depth_split(
         )
 
     clipped_vector = clip_vector(raster, vector).reset_index(drop=True)
-    sorted_vector = clipped_vector.sort_values(depth_header).reset_index(drop=True)
-    split_indices = np.array_split(np.arange(len(sorted_vector)), n_splits)
 
-    return [
-        sorted_vector.iloc[index].reset_index(drop=True)
-        for index in split_indices
-    ]
+    if 'amount' in class_mode:
+        clipped_vector['_split'] = pd.qcut(
+            clipped_vector[depth_header],
+            q=n_splits,
+            labels=False,
+            duplicates="drop",
+        )
+    elif 'interval' in class_mode:
+        clipped_vector['_split'] = pd.cut(
+            clipped_vector[depth_header],
+            bins=n_splits,
+            labels=False,
+            include_lowest=True,
+        )
+    else:
+        raise ValueError("class_mode must have 'amount' or 'interval'")
+
+    split_vectors: list[gpd.GeoDataFrame] = []
+
+    for _, group in clipped_vector.groupby('_split', sort=True):
+        split_vector = group.drop(columns='_split').reset_index(drop=True)
+        split_vectors.append(
+            gpd.GeoDataFrame(
+                split_vector,
+                geometry=clipped_vector.geometry.name,
+                crs=clipped_vector.crs,
+            )
+        )
+
+    return split_vectors
 
 
 def split_random(
