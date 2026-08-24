@@ -3,7 +3,7 @@ authors = ["rifqiharrys <rifqiharrys@proton.me>"]
 channels = ["conda-forge"]
 name = "sdb-gui"
 platforms = ["win-64", "linux-64", "osx-arm64"]
-version = "4.1.1"
+version = "4.2.0"
 
 [tasks]
 sdb-gui = { cmd = "python sdb_gui.py", default-environment = "gui", description = "running sdb_gui.py" }
