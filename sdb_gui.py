@@ -46,6 +46,7 @@ from gui.utils import TimeMessage, acronym, resource_path, str2bool, to_title
 VERSION = PROJECT['workspace']['version']
 LOG_FILE = f'{PROJECT["workspace"]["name"].replace("-", "_")}.log'
 EVALUATION_TYPES: dict[str, bool] = CONSTANTS['evaluation_types']
+DEPTH_CLASS_MODES: list[str] = CONSTANTS['depth_class_modes']
 READ_FORMATS: dict[str, list] = CONSTANTS['read_formats']
 DEM_FORMATS: list[str] = sorted(CONSTANTS['dem_formats'])
 TRAIN_TEST_SAVE: dict[str, bool] = CONSTANTS['train_test_save']
@@ -941,9 +942,12 @@ class SDBWidget(QWidget):
                         widget.setRange(1, 100)
                     widget.setValue(value)
                     widget.setAlignment(Qt.AlignRight)
-                elif param in ('split_header', 'group'):
+                elif param in ('depth_class_mode', 'split_header', 'group'):
                     widget = QComboBox()
-                    if param == 'split_header':
+                    if param == 'depth_class_mode':
+                        widget.addItems(DEPTH_CLASS_MODES)
+                        widget.setCurrentText(value)
+                    elif param == 'split_header':
                         object_only = sample_raw.select_dtypes(
                             include=['object', 'string']
                         )

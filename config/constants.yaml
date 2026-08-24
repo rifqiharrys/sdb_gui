@@ -9,6 +9,10 @@ evaluation_types:
   'Use Current Prediction': false
   'Recalculate from Test Data': true
 
+depth_class_modes:
+  - 'Equal Amount'
+  - 'Equal Interval'
+
 read_formats:
   raster:
     - 'GeoTIFF (*.tif *.tiff *.gtif *.gtiff)'
