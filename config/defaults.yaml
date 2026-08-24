@@ -24,7 +24,7 @@ processing:
         train_size: 0.75
         random_state: 0
         n_splits: 4
-        depth_class_mode: 'Equal Amount'
+        depth_class: 'Equal Amount'
     'Attribute Selection':
       alias: 'attribute'
       parameters:

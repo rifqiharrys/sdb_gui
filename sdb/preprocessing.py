@@ -10,6 +10,8 @@ from .utils import clip_vector, point_sampling
 
 TRAIN_SIZE = 0.5
 RANDOM_STATE = 42
+N_SPLITS = 4
+DEPTH_CLASS = 'amount'  # or 'interval'
 
 
 class SplitData(NamedTuple):
@@ -229,13 +231,13 @@ def depth_split(
     raster: xr.DataArray,
     vector: gpd.GeoDataFrame,
     depth_header: str,
-    n_splits: int = 5,
-    class_mode: str = 'amount'
+    n_splits: int = N_SPLITS,
+    depth_class: str = DEPTH_CLASS
 ) -> list[gpd.GeoDataFrame]:
     """
     Split depth data into n datasets with approximately
     equal numbers of observations or equal depth ranges
-    inside a raster extent,ordered by depth.
+    inside a raster extent.
 
     Parameters
     ----------
@@ -246,10 +248,10 @@ def depth_split(
     depth_header : str
         Header name of depth data.
     n_splits : int, optional
-        Number of splits, by default equal to 5.
-    class_mode : str, optional
+        Number of splits, by default equal to N_SPLITS.
+    depth_class : str, optional
         How to classify depth values either by 'amount' or by 'interval'.
-        Default is 'amount'.
+        Default is DEPTH_CLASS.
 
     Returns
     -------
@@ -258,7 +260,7 @@ def depth_split(
     """
 
     max_splits = len(vector) // 100
-    class_mode = class_mode.lower()
+    depth_class = depth_class.lower()
 
     # raise error if n_splits is less than 1 or greater than max_splits
     if n_splits < 1 or n_splits > max_splits:
@@ -269,14 +271,14 @@ def depth_split(
 
     clipped_vector = clip_vector(raster, vector).reset_index(drop=True)
 
-    if 'amount' in class_mode:
+    if 'amount' in depth_class:
         clipped_vector['_split'] = pd.qcut(
             clipped_vector[depth_header],
             q=n_splits,
             labels=False,
             duplicates="drop",
         )
-    elif 'interval' in class_mode:
+    elif 'interval' in depth_class:
         clipped_vector['_split'] = pd.cut(
             clipped_vector[depth_header],
             bins=n_splits,
@@ -284,7 +286,7 @@ def depth_split(
             include_lowest=True,
         )
     else:
-        raise ValueError("class_mode must have 'amount' or 'interval'")
+        raise ValueError("depth_class must have 'amount' or 'interval'")
 
     split_vectors: list[gpd.GeoDataFrame] = []
 
@@ -415,7 +417,8 @@ def split_data(
         split_type: str = 'random',
         train_size: float = TRAIN_SIZE,
         random_state: int = RANDOM_STATE,
-        n_splits: int = 5,
+        n_splits: int = N_SPLITS,
+        depth_class: str = DEPTH_CLASS,
         split_header: str | None = None,
         group: str | None = None,
 ) -> SplitData:
@@ -437,6 +440,11 @@ def split_data(
         Train data size for random split, by default equal to TRAIN_SIZE.
     random_state : int, optional
         Random state for random split, by default equal to RANDOM_STATE.
+    n_splits : int, optional
+        Number of splits, by default equal to N_SPLITS.
+    depth_class : str, optional
+        How to classify depth values either by 'amount' or by 'interval'.
+        Default is DEPTH_CLASS.
     split_header : str, optional
         Header name of data that separates train and test data for
         attribute-based split, by default None.
@@ -482,7 +490,8 @@ def split_data(
             raster=raster,
             vector=vector,
             depth_header=depth_header,
-            n_splits=n_splits
+            n_splits=n_splits,
+            depth_class=depth_class
         )
         return combine_splits([
             split_random(

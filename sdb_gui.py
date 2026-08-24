@@ -942,9 +942,9 @@ class SDBWidget(QWidget):
                         widget.setRange(1, 100)
                     widget.setValue(value)
                     widget.setAlignment(Qt.AlignRight)
-                elif param in ('depth_class_mode', 'split_header', 'group'):
+                elif param in ('depth_class', 'split_header', 'group'):
                     widget = QComboBox()
-                    if param == 'depth_class_mode':
+                    if param == 'depth_class':
                         widget.addItems(DEPTH_CLASS_MODES)
                         widget.setCurrentText(value)
                     elif param == 'split_header':
