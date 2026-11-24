@@ -1,7 +1,7 @@
+import tomllib
 from collections import OrderedDict
 from typing import Any
 
-import tomllib
 import yaml
 
 from .utils import resource_path
